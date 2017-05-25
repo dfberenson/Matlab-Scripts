@@ -1,4 +1,5 @@
-%
+% @dfberenson@gmail.com
+% Next steps: convert setps to standalone functions
 
 fname_trackedimg = 'C:\Users\Skotheim Lab\Desktop\Test images\DFB_170308_HMEC_1Giii_1 images\Individual Cells\Cell4daughters_label.tif';
 info = imfinfo(fname_trackedimg);
