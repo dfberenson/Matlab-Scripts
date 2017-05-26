@@ -1,17 +1,29 @@
+% @dfberenson@gmail.com
+% Next steps: convert setps to standalone functions
+
 fname_trackedimg = 'C:\Users\Skotheim Lab\Desktop\Test images\DFB_170308_HMEC_1Giii_1 images\Individual Cells\Cell4daughters_label.tif';
 info = imfinfo(fname_trackedimg);
 num_images = numel(info);
-imgstack
+h = info.Height;
+w = info.Width;
+
+imstack = zeros(h,w,3,num_images);
+
 for i = 1:num_images
     A = imread(fname_trackedimg, i, 'Info', info);
-    
+    imstack(:,:,:,i) = A;
 end
+
+implay(uint8(imstack));
+
 
 % img = Tiff(fname_trackedimg,'r');
 % offsets = img.getTag('SubIFD');
 % img.setSubDirectory(offsets(1));
 % subimg_1 = img.read();
 % imagesc(subimg_1);
+
+foldername = 'C:/Users/Skotheim Lab/Desktop/Test images';
 
 fname_background = 'C:/Users/Skotheim Lab/Desktop/Test images/Cell4daughters_Image.csv';
 table_background = readtable(fname_background);

@@ -23,14 +23,17 @@ implay(uint8(imstack));
 % subimg_1 = img.read();
 % imagesc(subimg_1);
 
-fname_background = 'C:/Users/Skotheim Lab/Desktop/Test images/Cell4daughters_Image.csv';
-table_background = readtable(fname_background);
+foldername = 'C:/Users/Skotheim Lab/Desktop/Test images';
+
+fname_background = 'Cell4daughters_Image';
+fpath_background = [foldername '/' fname_background '.csv'];
+table_background = readtable(fpath_background);
 imgMedians_Geminin = table2array(table_background(2:end,32));
 imgMedians_mCherry = table2array(table_background(2:end,33));
 
-
-fname_segmented = 'C:/Users/Skotheim Lab/Desktop/Test images/Cell4daughters_Segmented.csv';
-table_segmented = importdata(fname_segmented,',',1);
+fname_segmented = 'Cell4daughters_Segmented';
+fpath_segmented = [foldername '/' fname_segmented '.csv'];
+table_segmented = importdata(fpath_segmented,',',1);
 headers_segmented = table_segmented.colheaders;
 data_segmented = table_segmented.data;
 index_Frames = find(strcmp(headers_segmented,'ImageNumber'));
