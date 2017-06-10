@@ -1,8 +1,14 @@
 % @dfberenson@gmail.com
-% Next steps: convert setps to standalone functions
+% Next steps: convert steps to standalone functions
 
-fname_trackedimg = 'C:\Users\Skotheim Lab\Desktop\Test images\DFB_170308_HMEC_1Giii_1 images\Individual Cells\Cell4daughters_label.tif';
-info = imfinfo(fname_trackedimg);
+
+cellnum = 6;
+
+foldername = 'C:/Users/Skotheim Lab/Desktop/Test images';
+fname_trackedimg = ['DFB_170308_HMEC_1Giii_1 images\Individual Cells\Cell'...
+num2str(cellnum) 'daughters_label'];
+fpath_trackedimg = [foldername '/' fname_trackedimg '.tif'];
+info = imfinfo(fpath_trackedimg);
 num_images = numel(info);
 h = info.Height;
 w = info.Width;
@@ -10,11 +16,11 @@ w = info.Width;
 imstack = zeros(h,w,3,num_images);
 
 for i = 1:num_images
-    A = imread(fname_trackedimg, i, 'Info', info);
+    A = imread(fpath_trackedimg, i, 'Info', info);
     imstack(:,:,:,i) = A;
 end
 
-implay(uint8(imstack));
+movie = implay(uint8(imstack));
 
 
 % img = Tiff(fname_trackedimg,'r');
@@ -25,13 +31,13 @@ implay(uint8(imstack));
 
 foldername = 'C:/Users/Skotheim Lab/Desktop/Test images';
 
-fname_background = 'Cell4daughters_Image';
+fname_background = ['Cell' num2str(cellnum) 'daughters_Image'];
 fpath_background = [foldername '/' fname_background '.csv'];
 table_background = readtable(fpath_background);
 imgMedians_Geminin = table2array(table_background(2:end,32));
 imgMedians_mCherry = table2array(table_background(2:end,33));
 
-fname_segmented = 'Cell4daughters_Segmented';
+fname_segmented = ['Cell' num2str(cellnum) 'daughters_Segmented'];
 fpath_segmented = [foldername '/' fname_segmented '.csv'];
 table_segmented = importdata(fpath_segmented,',',1);
 headers_segmented = table_segmented.colheaders;
@@ -60,6 +66,7 @@ frame_G1S = zeros(1,numcells);
 %For each cell label
 for i = 1:numcells
     thisframes = 1:max(frames);
+    movie.show;
     thisframes = 1:input(strcat('Last good frame for cell ',num2str(i),': '));
     goodframes{i} = thisframes;
     rawtraces_Geminin{i} = zeros(length(thisframes),1);
@@ -80,11 +87,21 @@ for i = 1:numcells
 end
 
 figure()
+framerate = input('Framerate (min/frame): ');
 geminin_scaler = 0.05;
+legendInfo = cell(4*numcells,1);
+colors = ['grcm'];
 hold on
 for i = 1:numcells
-    plot(goodframes{i},rawtraces_Geminin{i}(goodframes{i})*geminin_scaler)
-    plot(goodframes{i},rawtraces_mCherry{i}(goodframes{i}))
-    plot(goodframes{i},smoothtraces_Geminin{i}(goodframes{i})*geminin_scaler)
-    plot(goodframes{i},smoothtraces_mCherry{i}(goodframes{i}))
+    plot(goodframes{i}*framerate,rawtraces_Geminin{i}(goodframes{i})*geminin_scaler , [colors(2*i-1) ':'])
+    plot(goodframes{i}*framerate,rawtraces_mCherry{i}(goodframes{i}) , [colors(2*i) ':'])
+    plot(goodframes{i}*framerate,smoothtraces_Geminin{i}(goodframes{i})*geminin_scaler , [colors(2*i-1) '-'])
+    plot(goodframes{i}*framerate,smoothtraces_mCherry{i}(goodframes{i}) , [colors(2*i) '-'])
+    legendInfo(4*i-3) = {['Cell ' num2str(cellnum) char(64+i) ', raw Geminin']};
+    legendInfo(4*i-2) = {['Cell ' num2str(cellnum) char(64+i) ', raw mCherry']};
+    legendInfo(4*i-1) = {['Cell ' num2str(cellnum) char(64+i) ', smooth Geminin']};
+    legendInfo(4*i-0) = {['Cell ' num2str(cellnum) char(64+i) ', smooth mCherry']};
 end
+legend(legendInfo(:),'Location','SE')
+xlabel('Time (min)')
+ylabel('Fluorescence (AU)')

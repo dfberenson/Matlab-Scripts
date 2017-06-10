@@ -1,4 +1,4 @@
-foldername = 'C:\Users\Skotheim Lab\Desktop\Test images\Measurements\DFB_170520_HMEC_1GFiii_photobleaching measurements';
+foldername = 'C:\Users\Skotheim Lab\Desktop\Test images\Many-cell measurements\DFB_170530_HMEC_1GFiii_photobleaching measurements';
 filename = 'AllIntegratedIntensities';
 filepath = [foldername '\' filename '.xlsx'];
 
@@ -13,7 +13,8 @@ data = datastruct.data;
 X = cell(1,length(headers));
 Y = cell(1,length(headers));
 allexptnames = cell(1,length(headers));
-linestyles = {'r-','r--','r:','b-','b--','b:','g-','g:'};
+linestyles = {'r-','r--','b-','b--','g-','g--'};
+%linestyles = {'r-','r--','r:','b-','b--','b:','g-','g:'};
 percentile95 = 0;
 
 hold on

@@ -39,7 +39,7 @@ plot(times,daughterA_green)
 plot(maxfit)
 
 G1Stransition = (maxfit.a - maxfit.c)/maxfit.b
-
+% 
 % generations = input('How many generations? ');
 % trace = [];
 % 
