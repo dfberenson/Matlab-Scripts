@@ -1,13 +1,14 @@
 
 
-ancestorcellnum = 6;
+ancestorcellnum = 1;
+numcells = 4;
 
 foldername = 'C:/Users/Skotheim Lab/Desktop/Test images';
 fname_grayimg = ['DFB_170308_HMEC_1Giii_1 images\Individual Cells\Cell'...
 num2str(ancestorcellnum) 'granddaughters_labelUntrackedGray'];
 fpath_grayimg = [foldername '/' fname_grayimg '.tif'];
-
-
+fname_manualtracks = ['Cell' num2str(ancestorcellnum) 'granddaughters_Segmented_ManuallyTracked'];
+fpath_manualtracks = [foldername '/' fname_manualtracks '.xlsx'];
 
 %Calls importManualTracks to get the list of frames and corresponding object labels
 
@@ -48,71 +49,106 @@ areas = data_segmented(:,index_Areas);
 geminin = data_segmented(:,index_Geminin);
 mCherry = data_segmented(:,index_mCherry);
 
-numcells = 1;
 allframenums = cell(numcells,1);
 alltracks = cell(numcells,1);
-
+firstframes = zeros(numcells,1);
+lastframes = zeros(numcells,1);
 goodframes = cell(numcells,1);
 rawtraces_Geminin = cell(numcells,1);
 rawtraces_mCherry = cell(numcells,1);
 smoothtraces_Geminin = cell(numcells,1);
 smoothtraces_mCherry = cell(numcells,1);
 
+ancestorcellnum_array = zeros(1,numcells);
+descendantcellnum_array = zeros(1,numcells);
 frame_G1S = zeros(1,numcells);
+sizes_birth = zeros(1,numcells);
+sizes_G1S = zeros(1,numcells);
+sizes_M = zeros(1,numcells);
 
 %For each cell label
-for i = 1:numcells
+for n = 1:numcells
+    
+    ancestorcellnum_array(n) = ancestorcellnum;
+    descendantcellnum_array(n) = n;
+    
 %     thisframes = 1:max(frames);
 %     movie.show;
 %     thisframes = 1:input(strcat('Last good frame for cell ',num2str(i),': '));
 %     goodframes{i} = thisframes;
 
-    [trackedframes,track] = importManualTracks(fpath_grayimg);
-    allframenums{i} = trackedframes;
-    alltracks{i} = track;
-    goodframes{i} = unique(trackedframes);
-    maxframe = max(trackedframes);
+%     [trackedframes,track] = enterManualTracks(fpath_grayimg);
+    [trackedframes,track] = importManualTracks(fpath_grayimg , fpath_manualtracks , n);
+    allframenums{n} = trackedframes;
+    alltracks{n} = track;
+    goodframes{n} = unique(trackedframes);
+    firstframes(n) = min(trackedframes);
+    lastframes(n) = max(trackedframes);
 
-    rawtraces_Geminin{i} = zeros(maxframe,1);
-    rawtraces_mCherry{i} = zeros(maxframe,1);
+    rawtraces_Geminin{n} = zeros(length(goodframes),1);
+    rawtraces_mCherry{n} = zeros(length(goodframes),1);
         
     %For each timepoint, combine all measurements with the appropriate
     %object number at this timepoint, then subtract (sum of areas)*imgmedian
-    for j = 1:maxframe
-        thisframe_trackedobjects = track(trackedframes == j);     
+    for i = firstframes(n):lastframes(n)
+        thisframe_trackedobjects = track(trackedframes == i);     
         
-        %At each timepoint j, the measurements we want are those where
+        %At each timepoint i, the measurements we want are those where
         %objnums matches the objects tracked in this frame
-        %(thisframe_trackedobjects) and of course where frames == j
-        rawtraces_Geminin{i}(j) = sum(geminin(ismember(objnums,thisframe_trackedobjects)...
-            & frames == j)) - sum(areas(ismember(objnums,thisframe_trackedobjects)...
-            & frames == j))*imgUQs_Geminin(j);
-        rawtraces_mCherry{i}(j) = sum(mCherry(ismember(objnums,thisframe_trackedobjects)...
-            & frames == j)) - sum(areas(ismember(objnums,thisframe_trackedobjects)...
-            & frames == j))*imgUQs_mCherry(j);
+        %(thisframe_trackedobjects) and of course where frames == i
+        rawtraces_Geminin{n}(i+1-firstframes(n)) = sum(geminin(ismember(objnums,thisframe_trackedobjects)...
+            & frames == i)) - sum(areas(ismember(objnums,thisframe_trackedobjects)...
+            & frames == i))*imgUQs_Geminin(i);
+        rawtraces_mCherry{n}(i+1-firstframes(n)) = sum(mCherry(ismember(objnums,thisframe_trackedobjects)...
+            & frames == i)) - sum(areas(ismember(objnums,thisframe_trackedobjects)...
+            & frames == i))*imgUQs_mCherry(i);
     end
     
-    smoothtraces_Geminin{i} = movavg(rawtraces_Geminin{i},5);
-    smoothtraces_mCherry{i} = movavg(rawtraces_mCherry{i},5);    
-    frame_G1S(i) = findG1S(smoothtraces_Geminin{i},10,15,'plot');
+    smoothtraces_Geminin{n} = movavg(rawtraces_Geminin{n},5);
+    smoothtraces_mCherry{n} = movavg(rawtraces_mCherry{n},5);    
+    frame_G1S(n) = findG1S(smoothtraces_Geminin{n},10,15,'plot');
+    sizes_birth(n) = smoothtraces_mCherry{n}(3);
+    sizes_G1S(n) = smoothtraces_mCherry{n}(fix(frame_G1S(n)));
+    sizes_M(n) = smoothtraces_mCherry{n}(end-2);
 end
 
 figure()
 framerate = input('Framerate (min/frame): ');
 geminin_scaler = 0.05;
 legendInfo = cell(4*numcells,1);
-colors = ['grcm'];
+colors = ['grcmbykk'];
 hold on
-for i = 1:numcells
-    plot(goodframes{i}*framerate,rawtraces_Geminin{i}(goodframes{i})*geminin_scaler , [colors(2*i-1) ':'])
-    plot(goodframes{i}*framerate,rawtraces_mCherry{i}(goodframes{i}) , [colors(2*i) ':'])
-    plot(goodframes{i}*framerate,smoothtraces_Geminin{i}(goodframes{i})*geminin_scaler , [colors(2*i-1) '-'])
-    plot(goodframes{i}*framerate,smoothtraces_mCherry{i}(goodframes{i}) , [colors(2*i) '-'])
-    legendInfo(4*i-3) = {['Cell ' num2str(ancestorcellnum) char(64+i) ', raw Geminin']};
-    legendInfo(4*i-2) = {['Cell ' num2str(ancestorcellnum) char(64+i) ', raw mCherry']};
-    legendInfo(4*i-1) = {['Cell ' num2str(ancestorcellnum) char(64+i) ', smooth Geminin']};
-    legendInfo(4*i-0) = {['Cell ' num2str(ancestorcellnum) char(64+i) ', smooth mCherry']};
+for n = 1:numcells
+    plot((goodframes{n}-firstframes(n))*framerate,rawtraces_Geminin{n}(find(goodframes{n}))*geminin_scaler ,...
+        [colors(2*n-1) ':'])
+    plot((goodframes{n}-firstframes(n))*framerate,rawtraces_mCherry{n}(find(goodframes{n})) ,...
+        [colors(2*n) ':'])
+    plot((goodframes{n}-firstframes(n))*framerate,smoothtraces_Geminin{n}(find(goodframes{n}))*geminin_scaler ,...
+        [colors(2*n-1) '-'])
+    plot((goodframes{n}-firstframes(n))*framerate,smoothtraces_mCherry{n}(find(goodframes{n})) ,...
+        [colors(2*n) '-'])
+    legendInfo(4*n-3) = {['Cell ' num2str(ancestorcellnum) '-' num2str(n) ', raw Geminin']};
+    legendInfo(4*n-2) = {['Cell ' num2str(ancestorcellnum) '-' num2str(n) ', raw mCherry']};
+    legendInfo(4*n-1) = {['Cell ' num2str(ancestorcellnum) '-' num2str(n) ', smooth Geminin']};
+    legendInfo(4*n-0) = {['Cell ' num2str(ancestorcellnum) '-' num2str(n) ', smooth mCherry']};
 end
 legend(legendInfo(:),'Location','SE')
 xlabel('Time (min)')
 ylabel('Fluorescence (AU)')
+
+
+fname_tosave = ['DFB_170308_HMEC_1Giii_1_analyzed'];
+fpath_tosave = [foldername '/' fname_tosave '.mat'];
+
+if exist(fpath_tosave,'file') == 2
+   saveddata = load(fpath_tosave);  
+end
+
+%Need to go through each variable in saveddata and check if the current
+%workspace is dealing with the same cells as it (i.e., matching
+%ancestorcellnum_array and descendantcellnum_array). If matching, replace
+%old data with new data. If not matching, append new data.
+
+save(fpath_tosave , 'ancestorcellnum_array' , 'descendantcellnum_array' ,...
+    'rawtraces_Geminin' , 'rawtraces_mCherry' , 'smoothtraces_Geminin' ,...
+    'smoothtraces_mCherry' , 'frame_G1S' , 'sizes_birth', 'sizes_G1S');

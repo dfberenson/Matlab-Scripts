@@ -26,4 +26,10 @@ function t = findG1S(trace,varargin)
             plot(maxfit)
         end
     end
+    
+    if t<1
+        t=1;
+    elseif t>length(trace)
+        t=length(trace);
+    end
 end
