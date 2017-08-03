@@ -4,10 +4,10 @@ ancestorcellnum = 1;
 numcells = 4;
 
 foldername = 'C:/Users/Skotheim Lab/Desktop/Test images';
-fname_grayimg = ['DFB_170308_HMEC_1Giii_1 images\Individual Cells\Cell'...
+fname_grayimg = ['DFB_170308_HMEC_1Giii_1 images/Individual Cells/Cell'...
 num2str(ancestorcellnum) 'granddaughters_labelUntrackedGray'];
 fpath_grayimg = [foldername '/' fname_grayimg '.tif'];
-fname_manualtracks = ['Cell' num2str(ancestorcellnum) 'granddaughters_Segmented_ManuallyTracked'];
+fname_manualtracks = ['DFB_170308_HMEC_1Giii_1 analysis/Cell' num2str(ancestorcellnum) 'granddaughters_Segmented_ManuallyTracked'];
 fpath_manualtracks = [foldername '/' fname_manualtracks '.xlsx'];
 
 %Calls importManualTracks to get the list of frames and corresponding object labels
@@ -17,10 +17,10 @@ fpath_manualtracks = [foldername '/' fname_manualtracks '.xlsx'];
 %Using upper quartile of image as background to subtract since medians were
 %often 0
 
-foldername = 'C:/Users/Skotheim Lab/Desktop/Test images';
+%foldername = 'C:/Users/Skotheim Lab/Desktop/Test images';
 
 %For future reference: can read spreadsheets as table
-fname_background = ['Cell' num2str(ancestorcellnum) 'granddaughters_Image'];
+fname_background = ['DFB_170308_HMEC_1Giii_1 analysis/Cell' num2str(ancestorcellnum) 'granddaughters_Image'];
 fpath_background = [foldername '/' fname_background '.csv'];
 table_background = readtable(fpath_background);
 imgMedians_Geminin = table2array(table_background(:,{'Intensity_MedianIntensity_Geminin'}));
@@ -30,7 +30,7 @@ imgUQs_mCherry = table2array(table_background(:,{'Intensity_UpperQuartileIntensi
 
 
 %Or can read spreadsheets as data
-fname_segmented = ['Cell' num2str(ancestorcellnum) 'granddaughters_Segmented'];
+fname_segmented = ['DFB_170308_HMEC_1Giii_1 analysis/Cell' num2str(ancestorcellnum) 'granddaughters_Segmented'];
 fpath_segmented = [foldername '/' fname_segmented '.csv'];
 table_segmented = importdata(fpath_segmented,',',1);
 headers_segmented = table_segmented.colheaders;
@@ -59,12 +59,14 @@ rawtraces_mCherry = cell(numcells,1);
 smoothtraces_Geminin = cell(numcells,1);
 smoothtraces_mCherry = cell(numcells,1);
 
-ancestorcellnum_array = zeros(1,numcells);
-descendantcellnum_array = zeros(1,numcells);
-frame_G1S = zeros(1,numcells);
-sizes_birth = zeros(1,numcells);
-sizes_G1S = zeros(1,numcells);
-sizes_M = zeros(1,numcells);
+ancestorcellnum_array = zeros(numcells,1);
+descendantcellnum_array = zeros(numcells,1);
+frames_G1S = zeros(numcells,1);
+aregood = false(numcells,1);
+sizes_birthF20 = zeros(numcells,1);
+sizes_G1S = zeros(numcells,1);
+sizes_M = zeros(numcells,1);
+sizes_birth_extrap = zeros(numcells,1);
 
 %For each cell label
 for n = 1:numcells
@@ -106,10 +108,21 @@ for n = 1:numcells
     
     smoothtraces_Geminin{n} = movavg(rawtraces_Geminin{n},5);
     smoothtraces_mCherry{n} = movavg(rawtraces_mCherry{n},5);    
-    frame_G1S(n) = findG1S(smoothtraces_Geminin{n},10,15,'plot');
-    sizes_birth(n) = smoothtraces_mCherry{n}(3);
-    sizes_G1S(n) = smoothtraces_mCherry{n}(fix(frame_G1S(n)));
-    sizes_M(n) = smoothtraces_mCherry{n}(end-2);
+    frames_G1S(n) = findG1S(smoothtraces_Geminin{n},10,35,'plot');
+    aregood(n) = input('Enter 1 if trace looks good, else 0: ');
+    sizes_birthF20(n) = smoothtraces_mCherry{n}(20);
+    sizes_G1S(n) = smoothtraces_mCherry{n}(fix(frames_G1S(n)));
+    sizes_M(n) = smoothtraces_mCherry{n}(end-10);
+    
+    frametostartextrap = 20;
+    frametoendextrap = 80;
+    if length(smoothtraces_mCherry{n}) > frametoendextrap
+        extrapfit = fitlm(frametostartextrap:frametoendextrap,...
+            smoothtraces_mCherry{n}(frametostartextrap:frametoendextrap));
+        sizes_birth_extrap(n) = extrapfit.Coefficients.Estimate(1);
+    else
+        sizes_birth_extrap(n) = NaN;
+    end
 end
 
 figure()
@@ -140,15 +153,56 @@ ylabel('Fluorescence (AU)')
 fname_tosave = ['DFB_170308_HMEC_1Giii_1_analyzed'];
 fpath_tosave = [foldername '/' fname_tosave '.mat'];
 
-if exist(fpath_tosave,'file') == 2
-   saveddata = load(fpath_tosave);  
+if exist(fpath_tosave,'file') == 2  %If file previously existed
+   S = load(fpath_tosave);
+   saveddata = S.SavedDataStruct;
+   datatosave = saveddata;
+   
+    %Update previous measurements if they were already stored.
+    %Only works when updating a whole lineage (i.e., 4 granddaughters)
+    %simultaneously
+    if any(saveddata.ancestorcellnum_array == ancestorcellnum)
+       knowncells_indices = datatosave.ancestorcellnum_array == ancestorcellnum;
+       datatosave.descendantcellnum_array(knowncells_indices) = descendantcellnum_array;
+       datatosave.aregood(knowncells_indices) = aregood;
+       datatosave.rawtraces_Geminin(knowncells_indices) = rawtraces_Geminin;
+       datatosave.rawtraces_mCherry(knowncells_indices) = rawtraces_mCherry;
+       datatosave.smoothtraces_Geminin(knowncells_indices) = smoothtraces_Geminin;
+       datatosave.smoothtraces_mCherry(knowncells_indices) = smoothtraces_mCherry;
+       datatosave.frames_G1S(knowncells_indices) = frames_G1S;
+       datatosave.sizes_birthF20(knowncells_indices) = sizes_birthF20;
+       datatosave.sizes_G1S(knowncells_indices) = sizes_G1S;
+       datatosave.sizes_M(knowncells_indices) = sizes_M;
+       datatosave.sizes_birth_extrap(knowncells_indices) = sizes_birth_extrap;
+    
+    else
+        datatosave.ancestorcellnum_array = [datatosave.ancestorcellnum_array ; ancestorcellnum_array];
+        datatosave.descendantcellnum_array = [datatosave.descendantcellnum_array ; descendantcellnum_array];
+        datatosave.aregood = [datatosave.aregood ; aregood];
+        datatosave.rawtraces_Geminin = [datatosave.rawtraces_Geminin ; rawtraces_Geminin];
+        datatosave.rawtraces_mCherry = [datatosave.rawtraces_mCherry ; rawtraces_mCherry];
+        datatosave.smoothtraces_Geminin = [datatosave.smoothtraces_Geminin ; smoothtraces_Geminin];
+        datatosave.smoothtraces_mCherry = [datatosave.smoothtraces_mCherry ; smoothtraces_mCherry];
+        datatosave.frames_G1S = [datatosave.frames_G1S ; frames_G1S];
+        datatosave.sizes_birthF20 = [datatosave.sizes_birthF20 ; sizes_birthF20];
+        datatosave.sizes_G1S = [datatosave.sizes_G1S ; sizes_G1S];
+        datatosave.sizes_M = [datatosave.sizes_M ; sizes_M];
+        datatosave.sizes_birth_extrap = [datatosave.sizes_birth_extrap ; sizes_birth_extrap];
+    end    
+else
+    datatosave = struct('ancestorcellnum_array' , ancestorcellnum_array,...
+    'descendantcellnum_array' , descendantcellnum_array,...
+    'aregood' , aregood,...
+    'rawtraces_Geminin' , {rawtraces_Geminin},...
+    'rawtraces_mCherry' , {rawtraces_mCherry},...
+    'smoothtraces_Geminin' , {smoothtraces_Geminin},...
+    'smoothtraces_mCherry' , {smoothtraces_mCherry},...
+    'frames_G1S' , frames_G1S,...
+    'sizes_birthF20' , sizes_birthF20,...
+    'sizes_G1S' , sizes_G1S,...
+    'sizes_M' , sizes_M,...
+    'sizes_birth_extrap' , sizes_birth_extrap);
 end
 
-%Need to go through each variable in saveddata and check if the current
-%workspace is dealing with the same cells as it (i.e., matching
-%ancestorcellnum_array and descendantcellnum_array). If matching, replace
-%old data with new data. If not matching, append new data.
-
-save(fpath_tosave , 'ancestorcellnum_array' , 'descendantcellnum_array' ,...
-    'rawtraces_Geminin' , 'rawtraces_mCherry' , 'smoothtraces_Geminin' ,...
-    'smoothtraces_mCherry' , 'frame_G1S' , 'sizes_birth', 'sizes_G1S');
+SavedDataStruct = datatosave;
+save(fpath_tosave , 'SavedDataStruct');

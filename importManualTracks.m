@@ -26,7 +26,10 @@ function [framenums,track] = importManualTracks(fpath_grayimg , fpath_manualtrac
     ycoords = table2array(trackingdata(:,{'Y'}));
     origframenums = table2array(trackingdata(:,{'Slice'}));
     allsplitcells = table2array(trackingdata(:,{'SplitLabel1','SplitLabel2','SplitLabel3'}));
-       
+    
+    slice_increment = origframenums(2) - origframenums(1);
+    origframenums = origframenums / slice_increment;
+    
     tracklength = length(origframenums);
     firstframe = min(origframenums);
     lastframe = max(origframenums);
@@ -46,11 +49,16 @@ function [framenums,track] = importManualTracks(fpath_grayimg , fpath_manualtrac
     while needToFix
         currframe = currframe + 1;
         thissplitcells = allsplitcells(origframenums == currframe,:);
-        if any(thissplitcells)
+        if any(~isnan(thissplitcells))
             newlabels = thissplitcells(~isnan(thissplitcells));
+            if any(newlabels == 0)
+                track = track(framenums > currframe);
+                framenums = framenums(framenums > currframe);
+                continue;
+            end
             if any(newlabels == -1)
-                framenums = framenums(framenums <= currframe);
-                track = track(framenums <=currframe);
+                framenums = framenums(framenums < currframe);
+                track = track(framenums < currframe);
                 break;
             end
             oldlabels = track(framenums == currframe);

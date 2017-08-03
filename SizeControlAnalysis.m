@@ -12,6 +12,8 @@ yAxis = input('Dependent variable (time) axis title: ','s');
 Z = input('Dependent variable (later size - initial size): ');
 zAxis = input('Dependent variable (growth) axis title: ','s');
 
+%Eliminates NaNs and restricts to cells with all positive values
+%That means only cells that grew during G1 or entire cycle
 Xclean = X(X > 0 & Y > 0 & Z > 0);
 Yclean = Y(X > 0 & Y > 0 & Z > 0);
 Zclean = Z(X > 0 & Y > 0 & Z > 0);
@@ -24,13 +26,15 @@ fit1 = polyfit(Xclean,Yclean,1)
 lm1 = fitlm(Xclean,Yclean)
 lm = lm1;
 disp(sprintf('\n'));
-plot(0:max(Xclean),polyval(fit1,0:max(Xclean)))
+domainXclean = linspace(0,max(Xclean),100);
+plot(domainXclean,polyval(fit1,domainXclean))
 axis([0 inf 0 inf])
 xlabel(xAxis)
 ylabel(yAxis)
 lm_r2 = lm.Rsquared.Ordinary;
 lm_pValue = lm.Coefficients.pValue(2);
-str1 = ['R^2 =  ' num2str(lm_r2) sprintf('\n') 'p-Value =  ' num2str(lm_pValue)];
+lm_slope = lm.Coefficients.Estimate(2);
+str1 = ['R^2 =  ' num2str(lm_r2) sprintf('\n') 'p-Value =  ' num2str(lm_pValue) sprintf('\n') 'slope = ' num2str(lm_slope)];
 if (lm.Coefficients.Estimate(2) > 0)
     dim = dimTopLeft;
 else
@@ -47,13 +51,14 @@ fit2 = polyfit(Xclean,Zclean,1)
 lm2 = fitlm(Xclean,Zclean)
 lm = lm2;
 disp(sprintf('\n'));
-plot(0:max(Xclean),polyval(fit2,0:max(Xclean)))
+plot(domainXclean,polyval(fit2,domainXclean))
 axis([0 inf 0 inf])
 xlabel(xAxis)
 ylabel(zAxis)
 lm_r2 = lm.Rsquared.Ordinary;
 lm_pValue = lm.Coefficients.pValue(2);
-str2 = ['R^2 =  ' num2str(lm_r2) sprintf('\n') 'p-Value =  ' num2str(lm_pValue)];
+lm_slope = lm.Coefficients.Estimate(2);
+str2 = ['R^2 =  ' num2str(lm_r2) sprintf('\n') 'p-Value =  ' num2str(lm_pValue) sprintf('\n') 'slope = ' num2str(lm_slope)];
 if (lm.Coefficients.Estimate(2) > 0)
     dim = dimTopLeft;
 else
@@ -73,13 +78,15 @@ fit3 = polyfit(Xcleaner,Ycleaner,1);
 lm3 = fitlm(Xcleaner,Ycleaner)
 lm = lm3;
 disp(sprintf('\n'));
-plot(0:max(Xcleaner),polyval(fit3,0:max(Xcleaner)))
+domainXcleaner = linspace(0,max(Xcleaner),100);
+plot(domainXcleaner,polyval(fit3,domainXcleaner))
 axis([0 inf 0 inf])
 xlabel(xAxis)
 ylabel(yAxis)
 lm_r2 = lm.Rsquared.Ordinary;
 lm_pValue = lm.Coefficients.pValue(2);
-str3 = ['R^2 =  ' num2str(lm_r2) sprintf('\n') 'p-Value =  ' num2str(lm_pValue)];
+lm_slope = lm.Coefficients.Estimate(2);
+str3 = ['R^2 =  ' num2str(lm_r2) sprintf('\n') 'p-Value =  ' num2str(lm_pValue) sprintf('\n') 'slope = ' num2str(lm_slope)];
 if (lm.Coefficients.Estimate(2) > 0)
     dim = dimTopLeft;
 else
