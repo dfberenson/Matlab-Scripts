@@ -39,6 +39,8 @@ function [framenums,track] = importManualTracks(fpath_grayimg , fpath_manualtrac
         x = xcoords(origframenums == i);
         y = ycoords(origframenums == i);
         origtrack(origframenums == i) = imstack(y,x,i);
+        %If there is an error here involving unequal numbers of elements,
+        %Check manual track spreadsheet to confirm no twice-recorded slices
     end
 
     framenums = origframenums;

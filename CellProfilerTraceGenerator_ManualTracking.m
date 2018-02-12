@@ -1,13 +1,14 @@
 
 
-ancestorcellnum = 1;
-numcells = 4;
+ancestorcellnum = 106;
+numcells = 2;
+framerate = 10;
 
-foldername = 'C:/Users/Skotheim Lab/Desktop/Test images';
-fname_grayimg = ['DFB_170308_HMEC_1Giii_1 images/Individual Cells/Cell'...
-num2str(ancestorcellnum) 'granddaughters_labelUntrackedGray'];
+foldername = 'E:/Image Analysis';
+fname_grayimg = ['DFB_170830_HMEC_1Giii_palbo_After images\Cell'...
+num2str(ancestorcellnum) 'daughters_Gray'];
 fpath_grayimg = [foldername '/' fname_grayimg '.tif'];
-fname_manualtracks = ['DFB_170308_HMEC_1Giii_1 analysis/Cell' num2str(ancestorcellnum) 'granddaughters_Segmented_ManuallyTracked'];
+fname_manualtracks = ['DFB_170830_HMEC_1Giii_palbo_After analysis/Cell' num2str(ancestorcellnum) 'daughters_segmented_ManuallyTracked'];
 fpath_manualtracks = [foldername '/' fname_manualtracks '.xlsx'];
 
 %Calls importManualTracks to get the list of frames and corresponding object labels
@@ -20,7 +21,7 @@ fpath_manualtracks = [foldername '/' fname_manualtracks '.xlsx'];
 %foldername = 'C:/Users/Skotheim Lab/Desktop/Test images';
 
 %For future reference: can read spreadsheets as table
-fname_background = ['DFB_170308_HMEC_1Giii_1 analysis/Cell' num2str(ancestorcellnum) 'granddaughters_Image'];
+fname_background = ['DFB_170830_HMEC_1Giii_palbo_After analysis/Cell' num2str(ancestorcellnum) 'daughters_Image'];
 fpath_background = [foldername '/' fname_background '.csv'];
 table_background = readtable(fpath_background);
 imgMedians_Geminin = table2array(table_background(:,{'Intensity_MedianIntensity_Geminin'}));
@@ -30,7 +31,7 @@ imgUQs_mCherry = table2array(table_background(:,{'Intensity_UpperQuartileIntensi
 
 
 %Or can read spreadsheets as data
-fname_segmented = ['DFB_170308_HMEC_1Giii_1 analysis/Cell' num2str(ancestorcellnum) 'granddaughters_Segmented'];
+fname_segmented = ['DFB_170830_HMEC_1Giii_palbo_After analysis/Cell' num2str(ancestorcellnum) 'daughters_Segmented'];
 fpath_segmented = [foldername '/' fname_segmented '.csv'];
 table_segmented = importdata(fpath_segmented,',',1);
 headers_segmented = table_segmented.colheaders;
@@ -56,16 +57,22 @@ lastframes = zeros(numcells,1);
 goodframes = cell(numcells,1);
 rawtraces_Geminin = cell(numcells,1);
 rawtraces_mCherry = cell(numcells,1);
+rawtraces_area = cell(numcells,1);
 smoothtraces_Geminin = cell(numcells,1);
 smoothtraces_mCherry = cell(numcells,1);
+smoothtraces_area = cell(numcells,1);
 
 ancestorcellnum_array = zeros(numcells,1);
 descendantcellnum_array = zeros(numcells,1);
 frames_G1S = zeros(numcells,1);
+frames_fullcycle = zeros(numcells,1);
 aregood = false(numcells,1);
 sizes_birthF20 = zeros(numcells,1);
+areas_birthF20 = zeros(numcells,1);
 sizes_G1S = zeros(numcells,1);
+areas_G1S = zeros(numcells,1);
 sizes_M = zeros(numcells,1);
+areas_M = zeros(numcells,1);
 sizes_birth_extrap = zeros(numcells,1);
 
 %For each cell label
@@ -89,6 +96,7 @@ for n = 1:numcells
 
     rawtraces_Geminin{n} = zeros(length(goodframes),1);
     rawtraces_mCherry{n} = zeros(length(goodframes),1);
+    rawtraces_area{n} = zeros(length(goodframes),1);
         
     %For each timepoint, combine all measurements with the appropriate
     %object number at this timepoint, then subtract (sum of areas)*imgmedian
@@ -104,15 +112,21 @@ for n = 1:numcells
         rawtraces_mCherry{n}(i+1-firstframes(n)) = sum(mCherry(ismember(objnums,thisframe_trackedobjects)...
             & frames == i)) - sum(areas(ismember(objnums,thisframe_trackedobjects)...
             & frames == i))*imgUQs_mCherry(i);
+        rawtraces_area{n}(i+1-firstframes(n)) = sum(areas(ismember(objnums,thisframe_trackedobjects) & frames == i));
     end
     
     smoothtraces_Geminin{n} = movavg(rawtraces_Geminin{n},5);
-    smoothtraces_mCherry{n} = movavg(rawtraces_mCherry{n},5);    
-    frames_G1S(n) = findG1S(smoothtraces_Geminin{n},10,35,'plot');
+    smoothtraces_mCherry{n} = movavg(rawtraces_mCherry{n},5);   
+    smoothtraces_area{n} = movavg(rawtraces_area{n},5);
+    frames_G1S(n) = findG1S(smoothtraces_Geminin{n},10,10,'plot');
+    frames_fullcycle(n) = lastframes(n) - firstframes(n) + 1;
     aregood(n) = input('Enter 1 if trace looks good, else 0: ');
     sizes_birthF20(n) = smoothtraces_mCherry{n}(20);
+    areas_birthF20(n) = smoothtraces_area{n}(20);
     sizes_G1S(n) = smoothtraces_mCherry{n}(fix(frames_G1S(n)));
+    areas_G1S(n) = smoothtraces_area{n}(fix(frames_G1S(n)));
     sizes_M(n) = smoothtraces_mCherry{n}(end-10);
+    areas_M(n) = smoothtraces_area{n}(end-10);
     
     frametostartextrap = 20;
     frametoendextrap = 80;
@@ -126,7 +140,7 @@ for n = 1:numcells
 end
 
 figure()
-framerate = input('Framerate (min/frame): ');
+%framerate = input('Framerate (min/frame): ');
 geminin_scaler = 0.05;
 legendInfo = cell(4*numcells,1);
 colors = ['grcmbykk'];
@@ -150,7 +164,7 @@ xlabel('Time (min)')
 ylabel('Fluorescence (AU)')
 
 
-fname_tosave = ['DFB_170308_HMEC_1Giii_1_analyzed'];
+fname_tosave = ['DFB_170830_HMEC_1Giii_palbo_After analysis'];
 fpath_tosave = [foldername '/' fname_tosave '.mat'];
 
 if exist(fpath_tosave,'file') == 2  %If file previously existed
@@ -170,9 +184,13 @@ if exist(fpath_tosave,'file') == 2  %If file previously existed
        datatosave.smoothtraces_Geminin(knowncells_indices) = smoothtraces_Geminin;
        datatosave.smoothtraces_mCherry(knowncells_indices) = smoothtraces_mCherry;
        datatosave.frames_G1S(knowncells_indices) = frames_G1S;
+       datatosave.frames_fullcycle(knowncells_indices) = frames_fullcycle;
        datatosave.sizes_birthF20(knowncells_indices) = sizes_birthF20;
+       datatosave.areas_birthF20(knowncells_indices) = areas_birthF20;
        datatosave.sizes_G1S(knowncells_indices) = sizes_G1S;
+       datatosave.areas_G1S(knowncells_indices) = areas_G1S;
        datatosave.sizes_M(knowncells_indices) = sizes_M;
+       datatosave.areas_M(knowncells_indices) = areas_M;
        datatosave.sizes_birth_extrap(knowncells_indices) = sizes_birth_extrap;
     
     else
@@ -184,9 +202,13 @@ if exist(fpath_tosave,'file') == 2  %If file previously existed
         datatosave.smoothtraces_Geminin = [datatosave.smoothtraces_Geminin ; smoothtraces_Geminin];
         datatosave.smoothtraces_mCherry = [datatosave.smoothtraces_mCherry ; smoothtraces_mCherry];
         datatosave.frames_G1S = [datatosave.frames_G1S ; frames_G1S];
+        datatosave.frames_fullcycle = [datatosave.frames_fullcycle ; frames_fullcycle];
         datatosave.sizes_birthF20 = [datatosave.sizes_birthF20 ; sizes_birthF20];
+        datatosave.areas_birthF20 = [datatosave.areas_birthF20 ; areas_birthF20];
         datatosave.sizes_G1S = [datatosave.sizes_G1S ; sizes_G1S];
+        datatosave.areas_G1S = [datatosave.areas_G1S ; areas_G1S];
         datatosave.sizes_M = [datatosave.sizes_M ; sizes_M];
+        datatosave.areas_M = [datatosave.areas_M ; areas_M];
         datatosave.sizes_birth_extrap = [datatosave.sizes_birth_extrap ; sizes_birth_extrap];
     end    
 else
@@ -198,9 +220,13 @@ else
     'smoothtraces_Geminin' , {smoothtraces_Geminin},...
     'smoothtraces_mCherry' , {smoothtraces_mCherry},...
     'frames_G1S' , frames_G1S,...
+    'frames_fullcycle' , frames_fullcycle,...
     'sizes_birthF20' , sizes_birthF20,...
+    'areas_birthF20' , areas_birthF20,...
     'sizes_G1S' , sizes_G1S,...
+    'areas_G1S' , areas_G1S,...
     'sizes_M' , sizes_M,...
+    'areas_M' , areas_M,...
     'sizes_birth_extrap' , sizes_birth_extrap);
 end
 

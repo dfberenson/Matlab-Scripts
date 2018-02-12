@@ -1,10 +1,10 @@
 
 outlinesOnly = true;
 
-ancestorcellnum = 1;
-n = 2;
+ancestorcellnum = 36;
+n = 1;
 
-foldername = 'C:/Users/Skotheim Lab/Desktop/Test images';
+foldername = 'E:/Image Analysis';
 fname_grayimg = ['DFB_170308_HMEC_1Giii_1 images/Individual Cells/Cell'...
 num2str(ancestorcellnum) 'granddaughters_labelUntrackedGray'];
 fpath_grayimg = [foldername '/' fname_grayimg '.tif'];

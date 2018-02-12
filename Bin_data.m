@@ -10,28 +10,51 @@ Yclean = Y(X > 0 & Y > 0);
 X = Xclean;
 Y = Yclean;
 
-numbins = 7;
-minbin = 3950;
-maxbin = 9950;
-binsizes = linspace(minbin,maxbin,numbins);
-bincenters = linspace(0,1,numbins-1);
-means = linspace(0,1,numbins-1);
-stdevs = linspace(0,1,numbins-1);
-for n = 1:numbins-1
-    if n < numbins
-        thisbinmin = binsizes(n);
-        thisbinmax = binsizes(n+1);
-        bincenters(n) = (thisbinmin + thisbinmax)/2;
-        means(n) = mean(Y(thisbinmin<=X & X<=thisbinmax));
-        stdevs(n) = std(Y(thisbinmin<=X & X<=thisbinmax));
-    end
+figure()
+scatter(X,Y)
+numbins = input('How many bins: ');
+minbin = input('Bin minimum: ');
+maxbin = input('Bin maximum: ');
+close()
+
+% numbins = 7;
+% minbin = 3950;
+% maxbin = 9950;
+
+
+binsizes = linspace(minbin,maxbin,numbins+1);
+bincenters = zeros(numbins,1);
+means = zeros(numbins,1);
+stdevs = zeros(numbins,1);
+Ns = zeros(numbins,1);
+stderrs = zeros(numbins,1);
+
+for i = 1:numbins
+    thisbinmin = binsizes(i);
+    thisbinmax = binsizes(i+1);
+    bincenters(i) = (thisbinmin + thisbinmax)/2;
+    means(i) = mean(Y(thisbinmin<=X & X<=thisbinmax));
+    stdevs(i) = std(Y(thisbinmin<=X & X<=thisbinmax));
+    Ns(i) = length(Y(thisbinmin<=X & X<=thisbinmax));
+    stderrs(i) = stdevs(i)/sqrt(Ns(i));
 end
+
+% figure()
+% hold on
+% scatter(X,Y)
+% errorbar(bincenters,means,stdevs)
+% xlabel(xAxis)
+% ylabel(yAxis)
+% axis([0 inf 0 inf])
+% %legend('Data','Means +/- std. dev')
+% hold off
 
 figure()
 hold on
 scatter(X,Y)
-errorbar(bincenters,means,stdevs)
+errorbar(bincenters,means,stderrs)
 xlabel(xAxis)
 ylabel(yAxis)
 axis([0 inf 0 inf])
+%legend('Data','Means +/- std. error')
 hold off
