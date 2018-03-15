@@ -1,4 +1,4 @@
-
+% Need to work with fake labels not real labels
 
 function labels = localOptimumTrack(image, previous_props, maxX, max_local_dist)
 % Inputs: image = current image, previous_props properties data structure for previous image,
