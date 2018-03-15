@@ -38,7 +38,8 @@ fluo1_measurements = [];
 fluo2_measurements = [];
 X = [];
 Y = [];
-
+timepoint = [];
+cell_num = [];
 
 for t = [1:40]
     
@@ -57,6 +58,8 @@ for t = [1:40]
     thistime_fluo2_measurements = table2array(fluo2table(:,{'Optical_volume_micron3_'}));
     thistime_X = table2array(phasetable(:,{'Surface_Centroid_X'}));
     thistime_Y = table2array(phasetable(:,{'Surface_Centroid_Y'}));
+        thistime_timepoint = repelem(t,length(thistime_area_measurements))';
+    thistime_cell_num = [1:length(thistime_area_measurements)]';
     
 %     %Randomly shuffle order of measurements to confirm that changing the
 %     %order matters as it should
@@ -73,7 +76,8 @@ for t = [1:40]
     fluo2_measurements = [fluo2_measurements ; thistime_fluo2_measurements];
     X = [X ; thistime_X];
     Y = [Y ; thistime_Y];
-    
+        timepoint = [timepoint ; thistime_timepoint];
+    cell_num = [cell_num ; thistime_cell_num];
     
 %     area_measurements = [area_measurements ; table2array(phasetable(:,{'Surface_micron2_'}))];
 %     phase_measurements = [phase_measurements ; table2array(phasetable(:,{'Optical_volume_micron3_'}))];
@@ -90,22 +94,50 @@ xmax = 200;
 ymin = 100;
 ymax = 220;
 
-figure('Name', 'Fig1: Fluo1 values at X,Y coordinates')
+xbad = 174;
+ybad = 130;
+% Missing data are assigned to (x,y) coordinate (174,130) for whatever reason
+phasebad = 40;
+% Censor cells with phase measurement below 40 (presumably due to
+% missegmentation)
+
+fig1 = figure('Name', 'Fig1: Fluo1 values at X,Y coordinates')
 scatter(X,Y,10,fluo1_measurements)
 line([xmin xmin],[ymin ymax])
 line([xmax xmax],[ymin ymax])
 line([xmin xmax],[ymin ymin])
 line([xmin xmax],[ymax ymax])
-figure('Name', 'Fig2: Fluo1 nonzero at X,Y coordinates')
+fig2 = figure('Name', 'Fig2: Fluo1 nonzero at X,Y coordinates')
 scatter(X,Y,10,fluo1_measurements == 0)
+colormap('flag')
 line([xmin xmin],[ymin ymax])
 line([xmax xmax],[ymin ymax])
 line([xmin xmax],[ymin ymin])
 line([xmin xmax],[ymax ymax])
 
+fig1a = figure('Name','Fig1a: Phase values at X,Y coordinates')
+scatter(X,Y,10,phase_measurements)
+line([xmin xmin],[ymin ymax])
+line([xmax xmax],[ymin ymax])
+line([xmin xmax],[ymin ymin])
+line([xmin xmax],[ymax ymax])
+fig2a = figure('Name','Fig2a: Phase < 40 at X,Y coordinates')
+scatter(X,Y,10,phase_measurements < phasebad)
+colormap('flag')
+line([xmin xmin],[ymin ymax])
+line([xmax xmax],[ymin ymax])
+line([xmin xmax],[ymin ymin])
+line([xmin xmax],[ymax ymax])
 
-in_frame_positions = (xmin < X & X < xmax & ymin < Y & Y < ymax);
+fig_hist = figure('Name','Histogram: Phase values')
+hold on
+histogram(phase_measurements(phase_measurements >= phasebad),0:10:200,'FaceColor','r')
+histogram(phase_measurements(phase_measurements < phasebad),0:10:200, 'FaceColor','k')
+xlabel('Phase optical mass')
+ylabel('Count')
+legend('Cells bigger than 40','Cells smaller than 40 (likely missegmented)')
 
+in_frame_positions = (xmin < X & X < xmax & ymin < Y & Y < ymax & X ~= xbad & Y ~= ybad & phase_measurements > phasebad);
 
 fig3 = plot_scatter_with_line(phase_measurements(in_frame_positions),fluo1_measurements(in_frame_positions))
 fig3.Name = 'Figure 3: mCherry vs Phase'
@@ -131,4 +163,15 @@ fig7 = plot_scatter_with_line(area_measurements(in_frame_positions),fluo2_measur
 fig7.Name = 'Figure 7: Geminin vs Area'
 xlabel('Area')
 ylabel('Fluo2 integrated intensity')
+
+
+% Some code to identify potentially problematic cells. Use the
+% bad_timepoints and bad_cellnums variables to figure out where the bad
+% cells are, then look at the table from that timepoint in those rows.
+% bad = find(phase_measurements(in_frame_positions) < 40 & phase_measurements(in_frame_positions) > 30);
+% timepoints_inframe = timepoint(in_frame_positions);
+% bad_timepoints = timepoints_inframe(bad);
+% cell_nums_inframe = cell_num(in_frame_positions);
+% bad_cellnums = cell_nums_inframe(bad);
+
 

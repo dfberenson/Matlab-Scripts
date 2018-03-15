@@ -28,7 +28,7 @@ Y = Y(index);
 %Create an index for all the data (m)
 %And an empty cell array to contain the data
 m = 1;
-binneddataY = cell(numbins);
+binneddataY = cell(1,numbins);
 
 %Go through each bin
 for n = 1 : numbins
