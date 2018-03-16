@@ -50,17 +50,17 @@ upstream_tracked_labels = orig_labels;
 orig_props = regionprops(orig_labels);
 upstream_props = orig_props;
 
-cmap = rand(500,3);
+cmap = 0.1 + 0.9*rand(500,3);
 cmap(1,:) = [0 0 0];
 t = startframe;
 
-untrackedim_gray = uint16(orig_labels);
-untrackedim_rgb = ind2rgb(untrackedim_gray,cmap);
+untrackedim_gray = single(orig_labels);
+untrackedim_rgb = ind2rgb(orig_labels,cmap);
 imwrite(untrackedim_gray, [folder '\Untracked_Gray\Pos' num2str(pos) '_' num2str(t) '.tif']);
 imwrite(untrackedim_rgb, [folder '\Untracked_RGB\Pos' num2str(pos) '_' num2str(t) '.tif']);
 
-trackedim_gray = uint16(orig_labels);
-trackedim_rgb = ind2rgb(trackedim_gray,cmap);
+trackedim_gray = single(orig_labels);
+trackedim_rgb = ind2rgb(orig_labels,cmap);
 imwrite(trackedim_gray, [folder '\Tracked_Gray\Pos' num2str(pos) '_' num2str(t) '.tif']);
 imwrite(trackedim_rgb, [folder '\Tracked_RGB\Pos' num2str(pos) '_' num2str(t) '.tif']);
 
@@ -80,12 +80,12 @@ if (strategy == 's' && ascdesc == 'a')
         %     trackedstack(:,:,t) = uint16(thistime_labels);
         
         untrackedim_gray = uint16(thistime_untracked_labels);
-        untrackedim_rgb = ind2rgb(untrackedim_gray,cmap);
+        untrackedim_rgb = ind2rgb(thistime_untracked_labels,cmap);
         imwrite(untrackedim_gray, [folder '\Untracked_Gray\Pos' num2str(pos) '_' num2str(t) '.tif']);
         imwrite(untrackedim_rgb, [folder '\Untracked_RGB\Pos' num2str(pos) '_' num2str(t) '.tif']);
         
         trackedim_gray = uint16(thistime_tracked_labels);
-        trackedim_rgb = ind2rgb(trackedim_gray,cmap);
+        trackedim_rgb = ind2rgb(thistime_tracked_labels,cmap);
         imwrite(trackedim_gray, [folder '\Tracked_Gray\Pos' num2str(pos) '_' num2str(t) '.tif']);
         imwrite(trackedim_rgb, [folder '\Tracked_RGB\Pos' num2str(pos) '_' num2str(t) '.tif']);
         
@@ -107,7 +107,7 @@ elseif (strategy == 's' && ascdesc == 'd')
         %     trackedstack(:,:,t) = uint16(thistime_labels);
         
         trackedim_gray = uint16(thistime_tracked_labels);
-        trackedim_rgb = ind2rgb(trackedim_gray,cmap);
+        trackedim_rgb = ind2rgb(thistime_tracked_labels,cmap);
         imwrite(trackedim_gray, [folder '\Tracked_Gray\Pos' num2str(pos) '_' num2str(t) '.tif']);
         imwrite(trackedim_rgb, [folder '\Tracked_RGB\Pos' num2str(pos) '_' num2str(t) '.tif']);
         upstream_untracked_labels = thistime_untracked_labels;
@@ -128,12 +128,12 @@ elseif (strategy == 'o' && ascdesc == 'a')
         %     trackedstack(:,:,t) = uint16(thistime_labels);
         
         untrackedim_gray = uint16(thistime_untracked_labels);
-        untrackedim_rgb = ind2rgb(untrackedim_gray,cmap);
+        untrackedim_rgb = ind2rgb(thistime_untracked_labels,cmap);
         imwrite(untrackedim_gray, [folder '\Untracked_Gray\Pos' num2str(pos) '_' num2str(t) '.tif']);
         imwrite(untrackedim_rgb, [folder '\Untracked_RGB\Pos' num2str(pos) '_' num2str(t) '.tif']);
         
         trackedim_gray = uint16(thistime_tracked_labels);
-        trackedim_rgb = ind2rgb(trackedim_gray,cmap);
+        trackedim_rgb = ind2rgb(thistime_tracked_labels,cmap);
         imwrite(trackedim_gray, [folder '\Tracked_Gray\Pos' num2str(pos) '_' num2str(t) '.tif']);
         imwrite(trackedim_rgb, [folder '\Tracked_RGB\Pos' num2str(pos) '_' num2str(t) '.tif']);
 
@@ -155,7 +155,7 @@ elseif (strategy == 'o' && ascdesc == 'd')
         %     trackedstack(:,:,t) = uint16(thistime_labels);
         
         trackedim_gray = uint16(thistime_tracked_labels);
-        trackedim_rgb = ind2rgb(trackedim_gray,cmap);
+        trackedim_rgb = ind2rgb(thistime_tracked_labels,cmap);
         imwrite(trackedim_gray, [folder '\Tracked_Gray\Pos' num2str(pos) '_' num2str(t) '.tif']);
         imwrite(trackedim_rgb, [folder '\Tracked_RGB\Pos' num2str(pos) '_' num2str(t) '.tif']);
         upstream_untracked_labels = thistime_untracked_labels;
@@ -173,10 +173,10 @@ end
 
 % Must clear stacks because can only hold one in memory at a time
 
-% clear trackedstack_rgb;
-% clear trackedstack_gray;
-% trackedstack_gray = readSequence([folder '\Tracked_Gray\Pos' num2str(pos)],startframe,endframe,'gray');
-% gray = implay(trackedstack_gray)
+clear trackedstack_rgb;
+clear trackedstack_gray;
+trackedstack_gray = readSequence([folder '\Tracked_Gray\Pos' num2str(pos)],startframe,endframe,'gray');
+gray = implay(trackedstack_gray)
 
 toc
 

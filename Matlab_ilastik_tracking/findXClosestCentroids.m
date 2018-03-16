@@ -3,8 +3,8 @@
 function X_closest_centroids_indices = findXClosestCentroids(centroid, props, X)
 
 for p = 1:length(props)
-    previous_centroid = props(p).Centroid;
-    dist2(p) = squaredDistance(centroid, previous_centroid);
+    other_centroid = props(p).Centroid;
+    dist2(p) = squaredDistance(centroid, other_centroid);
 end
 
 [~,indices] = sort(dist2);

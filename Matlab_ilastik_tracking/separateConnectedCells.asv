@@ -12,26 +12,14 @@ touchingCells = uint8(img == 2);
 % figure,imshow(img,[])
 % figure,imshow(touchingCells,[])
 
-comp = ~touchingCells;
-basins = bwdist(comp);
-suppressed = -imhmin(basins,6.2);
+basins = bw
+comp = imcomplement(touchingCells);
+suppressed = imhmin(comp,20);
 L = watershed(suppressed);
 
-% Minimum watershed depth of 6.2 empirically works well for this image.
-% Perhaps can try starting with a high depth and incrementing to lower
-% depths while counting depths until reach a height so number of distinct
-% basins is equal to the cell label.
-
 figure,imshow(comp,[])
-figure,imshow(basins,[])
 figure,imshow(suppressed,[])
 figure,imshow(L,[])
-
-nontouchingCells = touchingCells;
-nontouchingCells(L == 0) = 0;
-
-figure,imshow(touchingCells,[])
-figure,imshow(nontouchingCells,[])
 
 A = bwdist(touchingCells);
 B = bwdist(~touchingCells);
