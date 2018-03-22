@@ -1,6 +1,5 @@
 
-
-function tracked_labels = localOptimumTrack(untracked_labels, upstream_untracked_labels, upstream_tracked_labels, maxX, max_local_dist)
+function tracked_labels = localOptimumTrack(untracked_labels, upstream_untracked_labels, upstream_tracked_labels, maxX, max_local_dist, max_dilation_dist)
 % Inputs: object_image = untracked label image, with each connected
 % component assigned an arbitrary pixel intensity value.
 % upstream_untracked_labels = randomly ordered connected components from
@@ -13,17 +12,20 @@ function tracked_labels = localOptimumTrack(untracked_labels, upstream_untracked
 % If a cell is outside this cluster, increment maxX down by one and try
 % again.
 
+debug = false;
+
 tracked_labels = untracked_labels;
 thistime_props = regionprops(tracked_labels);
-upstream_props = regionprops(upstream_tracked_labels);
+upstream_props = regionprops(upstream_untracked_labels);
 
 for c = 1:length(thistime_props)
     %     disp(['Tracking cell ' num2str(c)])
     
     %     X can't be greater than the total number of cells in this frame or the upstream frame
-    X = min([maxX, length(thistime_props), length(upstream_props)]);
     centroid = thistime_props(c).Centroid;
-    X = min(X, numCloseCentroids(centroid, thistime_props, max_local_dist));
+    upstream_X = numCloseCentroids(centroid, upstream_props, maxX, max_local_dist, max_dilation_dist);
+    current_X = numCloseCentroids(centroid, thistime_props, upstream_X, max_local_dist, max_dilation_dist);
+    X = min(upstream_X, current_X);
     closest_current_centroids = findXClosestCentroids(centroid, thistime_props, X);
     closest_upstream_centroids = findXClosestCentroids(centroid, upstream_props, X);
     
@@ -38,50 +40,50 @@ for c = 1:length(thistime_props)
         end
     end
     
-    %     Brute force method to search through all unique pairwise assignments
-    %     of cells to parents in matrix follows.
-    %     Create all possible vectors of length X where each element is in the range [1 X] inclusive.
-    %     Ignore any that would have a non-unique assignment.
-    %     Calculate the sum of the squared distances and store it, adjusting for Matlab 1-indexing.
-    %     Find the lowest sum.
-    
-    %     Example for debugging purposes:
-    %     c = 100;
-    %     closest_current_centroids = [100 200 300];
-    %     closest_upstream_centroids = [150 250 350];
-    %     matrix = [[100 50 40];[10 30 90];[20 10 30]];
-    %     dist2_matrix = matrix;
-    
-    sums = NaN(1,X^X);
-    for k = 0:X^X-1
-        pattern = getMatrixReadablePattern(convertToBaseX(k,X), X);
+    %     Look at previously created list of unique patterns.
+    %     Go through each and find which one has the lowest summed squared distances.
+    all_unique_patterns = csvread(['C:\Users\Skotheim Lab\Desktop\Matlab-Scripts\Matlab_ilastik_tracking\UniquePatterns_'...
+        num2str(X) '.csv']);
+    num_unique_patterns = length(all_unique_patterns);
+    assert(num_unique_patterns == factorial(X));
+    sums = NaN(1,num_unique_patterns);
+    for n = 1:num_unique_patterns
         thistry_sum = 0;
-        
-        if length(pattern) == length(unique(pattern))
-            for m = 1:X
-                thistry_sum = thistry_sum + dist2_matrix(m, pattern(m));
-            end
-            sums(k+1) = thistry_sum;
+        thispattern = all_unique_patterns(n,:);
+        for m = 1:X
+            thistry_sum = thistry_sum + dist2_matrix(m, thispattern(m));
         end
+        sums(n) = thistry_sum;
     end
     [~,indices] = sort(sums);
-    best_k = indices(1) - 1;
-    best_pattern = getMatrixReadablePattern(convertToBaseX(best_k,X),X);
+    best_n = indices(1);
+    best_pattern = all_unique_patterns(best_n,:);
     
     %     Get the matrix index for the current cell.
     %     Use the best_pattern to find the corresponding cell.
-    thiscell_matrix_index = find(closest_current_centroids == c);
+    thiscell_matrix_index = closest_current_centroids == c;
     upstreamcell_matrix_index = best_pattern(thiscell_matrix_index);
     upstreamcell_untracked_label = closest_upstream_centroids(upstreamcell_matrix_index);
-    upstreamcell_centroid = upstream_props(upstreamcell_untracked_label).Centroid;
-    upstreamcell_x = round(upstreamcell_centroid(1));
-    upstreamcell_y = round(upstreamcell_centroid(2));
-    upstreamcell_tracked_label = upstream_tracked_labels(upstreamcell_y,upstreamcell_x);
+    
+    % Use the first pixel index of a cell within the upstream cell to find its tracked label
+    upstreamcell_indices = find(upstream_untracked_labels == upstreamcell_untracked_label);
+    upstreamcell_tracked_label = upstream_tracked_labels(upstreamcell_indices(1));
     
     tracked_labels(tracked_labels == c) = upstreamcell_tracked_label + 10000;
-    disp(['Cell ' num2str(upstreamcell_tracked_label) ' has ' num2str(X) ' cells in its cluster.'])
+    
+    if debug == true
+        disp(['Cell ' num2str(c) ' has ' num2str(X) ' cells in its cluster.'])
+        disp(['Cell ' num2str(c) ' has the following cells in its current cluster: '])
+        disp(closest_current_centroids)
+        disp(['Cell ' num2str(c) ' has the following cells in its upstream cluster: '])
+        disp(closest_upstream_centroids)
+        disp(['Cell ' num2str(c) ' has the following best pattern: '])
+        disp(best_pattern')
+        disp(['Cell ' num2str(c) ' is from untracked cell ' num2str(upstreamcell_untracked_label) '.'])
+        disp(['Cell ' num2str(c) ' is from tracked cell ' num2str(upstreamcell_tracked_label) '.'])
+    end
 end
 
-tracked_labels(find(tracked_labels)) = tracked_labels(find(tracked_labels)) - 10000;
+tracked_labels(tracked_labels > 0) = tracked_labels(tracked_labels > 0) - 10000;
 
 end

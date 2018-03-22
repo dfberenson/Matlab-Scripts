@@ -1,50 +1,45 @@
 
+function correctedLocalImage = separateConnectedCells(localImage, correct_num)
 
-% After (?) do regionprops, need to relabel connected cells
-% Perhaps this method will be called by getLabelsFromObjects()
+minimum_watershed_depth = 10;
+[~,num] = bwlabel(localImage);
 
-stack = readStack('E:\Test\TouchingCells3.tif');
-img = stack(:,:,1);
-touchingCells = img;
-touchingCells = uint8(img == 2);
+while num < correct_num && minimum_watershed_depth >= 0
+    basins = bwdist(~localImage);
+    suppressed = -imhmin(basins,minimum_watershed_depth);
+    shed = watershed(suppressed);
+    correctedLocalImage = localImage;
+    correctedLocalImage(shed == 0) = 0;
+%     imshow(correctedLocalImage,[])
+%     imtool(basins)
+    [~,num] = bwlabel(correctedLocalImage);
+    minimum_watershed_depth = minimum_watershed_depth - 0.5;
+end
+end
 
+
+% minimum_watershed_depth_2 = 1;
+% minimum_watershed_depth_3 = 6.2;
+% % Minimum watershed depth of 6.2 empirically works well for this image.
+% % Perhaps can try starting with a high depth and incrementing to lower
+% % depths while counting depths until reach a height so number of distinct
+% % basins is equal to the cell label.
 % 
-% figure,imshow(img,[])
-% figure,imshow(touchingCells,[])
-
-comp = ~touchingCells;
-basins = bwdist(comp);
-suppressed = -imhmin(basins,6.2);
-L = watershed(suppressed);
-
-% Minimum watershed depth of 6.2 empirically works well for this image.
-% Perhaps can try starting with a high depth and incrementing to lower
-% depths while counting depths until reach a height so number of distinct
-% basins is equal to the cell label.
-
-figure,imshow(comp,[])
-figure,imshow(basins,[])
-figure,imshow(suppressed,[])
-figure,imshow(L,[])
-
-nontouchingCells = touchingCells;
-nontouchingCells(L == 0) = 0;
-
-figure,imshow(touchingCells,[])
-figure,imshow(nontouchingCells,[])
-
-A = bwdist(touchingCells);
-B = bwdist(~touchingCells);
-C = -bwdist(~touchingCells);
-L = watershed(C);
-
-figure,imshow(A,[])
-figure,imshow(B,[])
-figure,imshow(C,[])
-figure,imshow(L,[])
-
-nontouchingCells = touchingCells;
-nontouchingCells(L == 0) = 0;
-
-figure,imshow(touchingCells,[])
-figure,imshow(nontouchingCells,[])
+% if num == 2
+%     basins = bwdist(~localImage);
+%     suppressed = -imhmin(basins,minimum_watershed_depth_2);
+%     shed = watershed(suppressed);
+%     %     shed = watershed(-basins);
+%     correctedLocalImage = localImage;
+%     correctedLocalImage(shed == 0) = 0;
+% %     imshow(correctedLocalImage,[])
+% end
+% 
+% if num == 3
+%     basins = bwdist(~localImage);
+%     suppressed = -imhmin(basins,0);
+%     shed = watershed(suppressed);
+%     correctedLocalImage = localImage;
+%     correctedLocalImage(shed == 0) = 0;
+%     imshow(correctedLocalImage,[])
+% end
