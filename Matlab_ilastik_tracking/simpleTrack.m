@@ -7,7 +7,7 @@ thistime_props = regionprops(tracked_labels);
 upstream_props = regionprops(upstream_untracked_labels);
 
 for c = 1:length(thistime_props)
-    disp(['Tracking cell ' num2str(c)]);
+    %     disp(['Tracking cell ' num2str(c)]);
     % For each cell in the current frame, find the closest cell from
     % the previous frame, and then reassign values in this frame to the
     % corresponding values from last frame (+ 10000 to avoid
@@ -19,9 +19,9 @@ for c = 1:length(thistime_props)
     upstreamcell_y = round(upstreamcell_centroid(2));
     upstreamcell_tracked_label = upstream_tracked_labels(upstreamcell_y,upstreamcell_x);
     
-%     disp('Closest upstream centroid is ');
-%     disp(upstreamcell_centroid);
-%     disp(['Closest upstream cell is ' num2str(upstreamcell_tracked_label)]);
+    %     disp('Closest upstream centroid is ');
+    %     disp(upstreamcell_centroid);
+    %     disp(['Closest upstream cell is ' num2str(upstreamcell_tracked_label)]);
     
     tracked_labels(tracked_labels == c) = upstreamcell_tracked_label + 10000;
 end

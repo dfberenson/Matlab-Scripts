@@ -1,24 +1,100 @@
 
-%% Generate and save a list of unique patterns
+% imstack = readStack('E:\Matlab ilastik\TestStack1_Object Predictions.tiff');
 
-path = 'C:\Users\Skotheim Lab\Desktop\Matlab-Scripts\Matlab_ilastik_tracking\UniquePatterns_';
-max_cluster_size = 8;
-for X = 1:max_cluster_size
-    tic
-    disp(X)
-    n = 1;
-    num_unique_combinations = factorial(X);
-    unique_patterns = zeros(num_unique_combinations, X);
-   for k = 0:X^X-1
-        pattern = getMatrixReadablePattern(convertToBaseX(k,X), X);        
-        if length(pattern) == length(unique(pattern))
-            unique_patterns(n,:) = pattern;
-            n = n+1;
-        end
-   end  
-   csvwrite([path num2str(X) '.csv'], unique_patterns)
-   toc
-end
+%% Messing around with GUI
+
+% c = [[0 0 0];[1 0 0];[0 1 0];[0 0 1]];
+% 
+% title(['\fontsize{16}black {\color{magenta}magenta '...
+% '\color[rgb]{0 .5 .5}teal \color{red}red} black again'])
+
+%     %code
+%     line
+%     set(gca,'ButtonDownFcn','disp(''axis callback'')')
+%     %Now, click the axes, you will get: axis callback
+%     %plot new object
+%     plot(0:10)
+%     %Now, click the axes, nothing happend. This is the problem!!!
+%     %We change NextPlot to new to solve the problem
+%     set(gca,'NextPlot','replacechildren')
+%     %register callback function
+%     set(gca,'ButtonDownFcn','disp(''axis callback'')')
+%     plot(0:10)
+%     %now, click the axes, you will get: axis callback
+%     %erase previous objects [optional]
+%     cla(gca)
+%     %draw new object
+%     line
+%     %now, click the axes, you also get: axis callback
+
+    
+% 
+% f = figure
+% ax1 = axes
+% ax1_pos = ax1.Position;
+% ax1.XColor = 'r';
+% ax1.YColor = 'r';
+% ax1.XLim = [0 10];
+% ax1.YLim = [0 10];
+% ax2 = axes('Position',ax1_pos,'XAxisLocation','top',...
+%     'YAxisLocation','right',...
+%     'Color','none');
+% ax2.XLim = [0 10];
+% ax2.YLim = [0 10];
+% 
+% im = imshow(magic(10),[],'Parent',ax2)
+% 
+% ax1
+% ax2
+
+% im = imshow(magic(500),[],'Parent',ax)
+
+
+% 
+% function pickHit
+% f = figure;
+% ax = axes;
+% p = patch(rand(1,3),rand(1,3),'g');
+% l = line([1 0],[0 1]);
+% set(f,'ButtonDownFcn',@(~,~)disp('figure'),...
+%    'HitTest','off')
+% set(ax,'ButtonDownFcn',@(~,~)disp('axes'),...
+%    'HitTest','on')
+% set(p,'ButtonDownFcn',@(~,~)disp('patch'),...
+%    'PickableParts','all','FaceColor','none')
+% set(l,'ButtonDownFcn',@(~,~)disp('line'),...
+%    'HitTest','on')
+% l2 = line([0 1],[0 1])
+% set(l2,'HitTest','off')
+% im = imshow(magic(100),[],'Parent',ax)
+% set(im,'HitTest','off')
+% set(ax,'HitTest','on')
+% set(ax,'ButtonDownFcn',@(~,~)disp('axes'),...
+%    'HitTest','on')
+% end
+
+
+
+%% Generate and save a list of unique patterns
+% 
+% path = 'C:\Users\Skotheim Lab\Desktop\Matlab-Scripts\Matlab_ilastik_tracking\UniquePatterns_';
+% max_cluster_size = 8;
+% for X = 1:max_cluster_size
+%     tic
+%     disp(X)
+%     n = 1;
+%     num_unique_combinations = factorial(X);
+%     unique_patterns = zeros(num_unique_combinations, X);
+%    for k = 0:X^X-1
+%         pattern = getMatrixReadablePattern(convertToBaseX(k,X), X);        
+%         if length(pattern) == length(unique(pattern))
+%             unique_patterns(n,:) = pattern;
+%             n = n+1;
+%         end
+%    end  
+%    csvwrite([path num2str(X) '.csv'], unique_patterns)
+%    toc
+% end
 
 % m = csvread([path num2str(6) '.csv']);
 % sum(m,2)

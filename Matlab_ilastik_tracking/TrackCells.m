@@ -3,9 +3,36 @@
 tic
 
 folder = 'E:\Matlab ilastik';
-expt = 'DFB_170907_HMEC_1GFiii_palbo_after_1';
+expt_name = 'TestStack1';
+expt_folder = [expt_folder];
+results_folder = [expt_folder '\' expt_name '_TrackingResults'];
 
-imstack = readStack('E:\Matlab ilastik\TestStack1_Object Predictions.tiff');
+if ~exist(results_folder,'dir')
+    mkdir(results_folder);
+end
+if ~exist([results_folder '\Tracked_Gray'],'dir')
+    mkdir([results_folder '\Tracked_Gray']);
+end
+if ~exist([results_folder '\Tracked_RGB'],'dir')
+    mkdir([results_folder '\Tracked_RGB']);
+end
+if ~exist([results_folder '\Untracked_Gray'],'dir')
+    mkdir([results_folder '\Untracked_Gray']);
+end
+if ~exist([results_folder '\Untracked_RGB'],'dir')
+    mkdir([results_folder '\Untracked_RGB']);
+end
+if ~exist([results_folder '\Tracked_RGB_chosencell'],'dir')
+    mkdir([results_folder '\Tracked_RGB_chosencell']);
+end
+
+if(input('Use reclassifications? (y/n) ','s') == 'y')
+    imstack = readSequence([expt_folder '\' expt_name '_Object Reclassification\'...
+        expt_name '_Object Reclassification'],startframe,endframe,'gray');
+else
+    imstack = readSequence([expt_folder '\' expt_name '_Object Classification\'...
+        expt_name '_Object Classification'],startframe,endframe,'gray');
+end
 
 max_pos = 18;
 max_num = 0;
@@ -33,9 +60,9 @@ if input_already_loaded == 'n'
     
     for n = 0:max_num
         if n==0
-            filename = ['C3-' expt '_MMStack_Pos' num2str(pos) '.ome_Object Predictions'];
+            filename = ['C3-' expt_name '_MMStack_Pos' num2str(pos) '.ome_Object Predictions'];
         else
-            filename = ['C3-' expt '_MMStack_Pos' num2str(pos) '_' num2str(n) '.ome_Object Predictions'];
+            filename = ['C3-' expt_name '_MMStack_Pos' num2str(pos) '_' num2str(n) '.ome_Object Predictions'];
         end
         fpath = [folder '\' filename '.tiff'];
         
@@ -67,13 +94,13 @@ upstream_props = orig_props;
 
 untrackedim_gray = uint16(orig_labels);
 untrackedim_rgb = ind2rgb(untrackedim_gray,cmap);
-imwrite(untrackedim_gray, [folder '\Untracked_Gray\Pos' num2str(pos) '_' num2str(t) '.tif']);
-imwrite(untrackedim_rgb, [folder '\Untracked_RGB\Pos' num2str(pos) '_' num2str(t) '.tif']);
+imwrite(untrackedim_gray, [results_folder '\Untracked_Gray\Untracked_Gray_' num2str(t) '.tif']);
+imwrite(untrackedim_rgb, [results_folder '\Untracked_RGB\Untracked_RGB_' num2str(t) '.tif']);
 
 trackedim_gray = uint16(orig_labels);
 trackedim_rgb = ind2rgb(trackedim_gray,cmap);
-imwrite(trackedim_gray, [folder '\Tracked_Gray\Pos' num2str(pos) '_' num2str(t) '.tif']);
-imwrite(trackedim_rgb, [folder '\Tracked_RGB\Pos' num2str(pos) '_' num2str(t) '.tif']);
+imwrite(trackedim_gray, [results_folder '\Tracked_Gray\Tracked_Gray_' num2str(t) '.tif']);
+imwrite(trackedim_rgb, [results_folder '\Tracked_RGB\Tracked_RGB_' num2str(t) '.tif']);
 
 %% Track
 
@@ -86,19 +113,19 @@ if (strategy == 's' && ascdesc == 'a')
         %     If want to also keep track of randomly colorized image:
         %     untrackedstack(:,:,t) = uint16(thistime_labels);
         %     untrackedim_rgb = ind2rgb(thistime_labels,cmap);
-        %     imwrite(untrackedim_rgb, [folder '\Untracked_RGB\Pos' num2str(pos) '_' num2str(t) '.tif']);
+        %     imwrite(untrackedim_rgb, [results_folder '\Untracked_RGB\Untracked_RGB_' num2str(t) '.tif']);
         %     If we want to store the stack in memory:
         %     trackedstack(:,:,t) = uint16(thistime_labels);
         
         untrackedim_gray = uint16(thistime_untracked_labels);
         untrackedim_rgb = ind2rgb(untrackedim_gray,cmap);
-        imwrite(untrackedim_gray, [folder '\Untracked_Gray\Pos' num2str(pos) '_' num2str(t) '.tif']);
-        imwrite(untrackedim_rgb, [folder '\Untracked_RGB\Pos' num2str(pos) '_' num2str(t) '.tif']);
+        imwrite(untrackedim_gray, [results_folder '\Untracked_Gray\Untracked_Gray_' num2str(t) '.tif']);
+        imwrite(untrackedim_rgb, [results_folder '\Untracked_RGB\Untracked_RGB_' num2str(t) '.tif']);
         
         trackedim_gray = uint16(thistime_tracked_labels);
         trackedim_rgb = ind2rgb(trackedim_gray,cmap);
-        imwrite(trackedim_gray, [folder '\Tracked_Gray\Pos' num2str(pos) '_' num2str(t) '.tif']);
-        imwrite(trackedim_rgb, [folder '\Tracked_RGB\Pos' num2str(pos) '_' num2str(t) '.tif']);
+        imwrite(trackedim_gray, [results_folder '\Tracked_Gray\Tracked_Gray_' num2str(t) '.tif']);
+        imwrite(trackedim_rgb, [results_folder '\Tracked_RGB\Tracked_RGB_' num2str(t) '.tif']);
         
         upstream_untracked_labels = thistime_untracked_labels;
         upstream_tracked_labels = thistime_tracked_labels;
@@ -113,14 +140,20 @@ elseif (strategy == 's' && ascdesc == 'd')
         %     If want to also keep track of randomly colorized image:
         %     untrackedstack(:,:,t) = uint16(thistime_labels);
         %     untrackedim_rgb = ind2rgb(thistime_labels,cmap);
-        %     imwrite(untrackedim_rgb, [folder '\Untracked_RGB\Pos' num2str(pos) '_' num2str(t) '.tif']);
+        %     imwrite(untrackedim_rgb, [results_folder '\Untracked_RGB\Untracked_RGB_' num2str(t) '.tif']);
         %     If we want to store the stack in memory:
         %     trackedstack(:,:,t) = uint16(thistime_labels);
         
+        untrackedim_gray = uint16(thistime_untracked_labels);
+        untrackedim_rgb = ind2rgb(untrackedim_gray,cmap);
+        imwrite(untrackedim_gray, [results_folder '\Untracked_Gray\Untracked_Gray_' num2str(t) '.tif']);
+        imwrite(untrackedim_rgb, [results_folder '\Untracked_RGB\Untracked_RGB_' num2str(t) '.tif']);
+        
         trackedim_gray = uint16(thistime_tracked_labels);
         trackedim_rgb = ind2rgb(trackedim_gray,cmap);
-        imwrite(trackedim_gray, [folder '\Tracked_Gray\Pos' num2str(pos) '_' num2str(t) '.tif']);
-        imwrite(trackedim_rgb, [folder '\Tracked_RGB\Pos' num2str(pos) '_' num2str(t) '.tif']);
+        imwrite(trackedim_gray, [results_folder '\Tracked_Gray\Tracked_Gray_' num2str(t) '.tif']);
+        imwrite(trackedim_rgb, [results_folder '\Tracked_RGB\Tracked_RGB_' num2str(t) '.tif']);
+        
         upstream_untracked_labels = thistime_untracked_labels;
         upstream_tracked_labels = thistime_tracked_labels;
     end
@@ -134,19 +167,19 @@ elseif (strategy == 'o' && ascdesc == 'a')
         %     If want to also keep track of randomly colorized image:
         %     untrackedstack(:,:,t) = uint16(thistime_labels);
         %     untrackedim_rgb = ind2rgb(thistime_labels,cmap);
-        %     imwrite(untrackedim_rgb, [folder '\Untracked_RGB\Pos' num2str(pos) '_' num2str(t) '.tif']);
+        %     imwrite(untrackedim_rgb, [results_folder '\Untracked_RGB\Untracked_RGB_' num2str(t) '.tif']);
         %     If we want to store the stack in memory:
         %     trackedstack(:,:,t) = uint16(thistime_labels);
         
         untrackedim_gray = uint16(thistime_untracked_labels);
         untrackedim_rgb = ind2rgb(untrackedim_gray,cmap);
-        imwrite(untrackedim_gray, [folder '\Untracked_Gray\Pos' num2str(pos) '_' num2str(t) '.tif']);
-        imwrite(untrackedim_rgb, [folder '\Untracked_RGB\Pos' num2str(pos) '_' num2str(t) '.tif']);
+        imwrite(untrackedim_gray, [results_folder '\Untracked_Gray\Untracked_Gray_' num2str(t) '.tif']);
+        imwrite(untrackedim_rgb, [results_folder '\Untracked_RGB\Untracked_RGB_' num2str(t) '.tif']);
         
         trackedim_gray = uint16(thistime_tracked_labels);
         trackedim_rgb = ind2rgb(trackedim_gray,cmap);
-        imwrite(trackedim_gray, [folder '\Tracked_Gray\Pos' num2str(pos) '_' num2str(t) '.tif']);
-        imwrite(trackedim_rgb, [folder '\Tracked_RGB\Pos' num2str(pos) '_' num2str(t) '.tif']);
+        imwrite(trackedim_gray, [results_folder '\Tracked_Gray\Tracked_Gray_' num2str(t) '.tif']);
+        imwrite(trackedim_rgb, [results_folder '\Tracked_RGB\Tracked_RGB_' num2str(t) '.tif']);
         
         upstream_untracked_labels = thistime_untracked_labels;
         upstream_tracked_labels = thistime_tracked_labels;
@@ -161,14 +194,20 @@ elseif (strategy == 'o' && ascdesc == 'd')
         %     If want to also keep track of randomly colorized image:
         %     untrackedstack(:,:,t) = uint16(thistime_labels);
         %     untrackedim_rgb = ind2rgb(thistime_labels,cmap);
-        %     imwrite(untrackedim_rgb, [folder '\Untracked_RGB\Pos' num2str(pos) '_' num2str(t) '.tif']);
+        %     imwrite(untrackedim_rgb, [results_folder '\Untracked_RGB\Untracked_RGB_' num2str(t) '.tif']);
         %     If we want to store the stack in memory:
         %     trackedstack(:,:,t) = uint16(thistime_labels);
         
+        untrackedim_gray = uint16(thistime_untracked_labels);
+        untrackedim_rgb = ind2rgb(untrackedim_gray,cmap);
+        imwrite(untrackedim_gray, [results_folder '\Untracked_Gray\Untracked_Gray_' num2str(t) '.tif']);
+        imwrite(untrackedim_rgb, [results_folder '\Untracked_RGB\Untracked_RGB_' num2str(t) '.tif']);
+        
         trackedim_gray = uint16(thistime_tracked_labels);
         trackedim_rgb = ind2rgb(trackedim_gray,cmap);
-        imwrite(trackedim_gray, [folder '\Tracked_Gray\Pos' num2str(pos) '_' num2str(t) '.tif']);
-        imwrite(trackedim_rgb, [folder '\Tracked_RGB\Pos' num2str(pos) '_' num2str(t) '.tif']);
+        imwrite(trackedim_gray, [results_folder '\Tracked_Gray\Tracked_Gray_' num2str(t) '.tif']);
+        imwrite(trackedim_rgb, [results_folder '\Tracked_RGB\Tracked_RGB_' num2str(t) '.tif']);
+        
         upstream_untracked_labels = thistime_untracked_labels;
         upstream_tracked_labels = thistime_tracked_labels;
     end
@@ -182,59 +221,59 @@ toc
 
 % clear trackedstack_rgb;
 % clear trackedstack_gray;
-% trackedstack_gray = readSequence([folder '\Tracked_Gray\Pos' num2str(pos)],startframe,endframe,'gray');
+% trackedstack_gray = readSequence([results_folder '\Tracked_Gray\Pos' num2str(pos)],startframe,endframe,'gray');
 % gray = implay(trackedstack_gray)
 
 % clear trackedstack_rgb;
 % clear trackedstack_gray;
-% trackedstack_rgb = readSequence([folder '\Tracked_RGB\Pos' num2str(pos)],startframe,endframe,'rgb');
+% trackedstack_rgb = readSequence([results_folder '\Tracked_RGB\Pos' num2str(pos)],startframe,endframe,'rgb');
 % rgb = implay(trackedstack_rgb)
 
 %% Display results with one cell highlighted on the RGB image
-% 
+%
 % chosen_cell = input('Choose a cell to highlight: ');
 % clear trackedstack_rgb;
 % clear trackedstack_gray;
-% trackedstack_rgb = readSequence([folder '\Tracked_RGB\Pos' num2str(pos)],startframe,endframe,'rgb');
-% 
+% trackedstack_rgb = readSequence([results_folder '\Tracked_RGB\Pos' num2str(pos)],startframe,endframe,'rgb');
+%
 % for t = startframe:1:endframe
-%     gray_img = imread([folder '\Tracked_Gray\Pos' num2str(pos) '_' num2str(t) '.tif']);
-%     
+%     gray_img = imread([results_folder '\Tracked_Gray\Pos' num2str(pos) '_' num2str(t) '.tif']);
+%
 %     perim = bwperim(gray_img == chosen_cell);
 %     highlighted_im = imoverlay(trackedstack_rgb(:,:,:,t),perim,'w');
 %     trackedstack_rgb(:,:,:,t) = highlighted_im;
 % end
 % implay(trackedstack_rgb)
-% 
+%
 % %% Save results with one cell highlighted on the RGB image
-% 
+%
 % for t = startframe:1:endframe
-%     gray_img = imread([folder '\Tracked_Gray\Pos' num2str(pos) '_' num2str(t) '.tif']);
-%     rgb_img = imread([folder '\Tracked_RGB\Pos' num2str(pos) '_' num2str(t) '.tif']);
+%     gray_img = imread([results_folder '\Tracked_Gray\Pos' num2str(pos) '_' num2str(t) '.tif']);
+%     rgb_img = imread([results_folder '\Tracked_RGB\Pos' num2str(pos) '_' num2str(t) '.tif']);
 %     perim = bwperim(gray_img == chosen_cell);
 %     highlighted_im = imoverlay(trackedstack_rgb(:,:,:,t),perim,'w');
-%     imwrite(highlighted_im, [folder '\Tracked_RGB_chosencell\Pos' num2str(pos) '_Cell' num2str(chosen_cell) '_' num2str(t) '.tif']);
+%     imwrite(highlighted_im, [results_folder '\Tracked_RGB_chosencell\Pos' num2str(pos) '_Cell' num2str(chosen_cell) '_' num2str(t) '.tif']);
 % end
-% 
+%
 % %% Display results with once cell highlighted on the Raw image
-% 
+%
 % clear trackedstack_rgb;
 % clear trackedstack_gray;
 % clear trackedstack_raw;
 % clear trackedstack_raw_4d;
 % trackedstack_raw = uint8(readStack('E:\Matlab ilastik\TestStack1.tif')/16);
-% 
+%
 % for t = startframe:1:endframe
-%     gray_img = imread([folder '\Tracked_Gray\Pos' num2str(pos) '_' num2str(t) '.tif']);
+%     gray_img = imread([results_folder '\Tracked_Gray\Pos' num2str(pos) '_' num2str(t) '.tif']);
 %     perim = bwperim(gray_img == chosen_cell);
 %     trackedstack_raw_4d(:,:,:,t) = imoverlay(trackedstack_raw(:,:,t),perim,'c');
-%     
+%
 % %     highlighted_im = trackedstack_raw(:,:,t);
 % %     highlighted_im(perim) = 255;
 % %     trackedstack_raw(:,:,t) = highlighted_im;
 % end
 % implay(trackedstack_raw_4d)
-% 
+%
 % % trackedstack_raw_4d(:,:,1,:) = trackedstack_raw;
 % % movie = immovie(im2uint8(trackedstack_raw_4d),gray(256))
 % % implay(movie)
