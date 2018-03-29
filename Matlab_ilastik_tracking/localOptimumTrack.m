@@ -13,7 +13,7 @@ function tracked_labels = localOptimumTrack(untracked_labels, upstream_untracked
 % again.
 
 debug = false;
-
+max_precalc_cluster_size = 9;
 tracked_labels = untracked_labels;
 thistime_props = regionprops(tracked_labels);
 upstream_props = regionprops(upstream_untracked_labels);
@@ -26,6 +26,7 @@ for c = 1:length(thistime_props)
     upstream_X = numCloseCentroids(centroid, upstream_props, maxX, max_local_dist, max_dilation_dist);
     current_X = numCloseCentroids(centroid, thistime_props, upstream_X, max_local_dist, max_dilation_dist);
     X = min(upstream_X, current_X);
+    X = min(X, max_precalc_cluster_size);
     closest_current_centroids = findXClosestCentroids(centroid, thistime_props, X);
     closest_upstream_centroids = findXClosestCentroids(centroid, upstream_props, X);
     

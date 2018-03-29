@@ -2,9 +2,23 @@
 %Import CSV data column vectors A,B,C,D etc.
 %X is the x-axis vector on which data will be binned
 
-% A = FSCA;
-% B = SSCA;
-% C = mCherryA;
+folder = 'C:\Users\Skotheim Lab\Box Sync\Daniel Berenson''s Files\Data\FACS\161003_HMEC_size-sensors';
+expt = 'HMEC-1G-EF1a-mCherry_60504_Single Cells_Single Cells';
+
+% folder = 'C:\Users\Skotheim Lab\Box Sync\Daniel Berenson''s Files\Data\FACS\180316_HMEC_size-sensors_EGF_Palbo\GatedAndCompensated';
+% expt = 'PlusEGF-PlusPalbo';
+
+T = readtable([folder '\' expt '.csv']);
+
+FSCA = T.FSC_A;
+SSCA = T.SSC_A;
+% GFP = T.GFP_compensated;
+mCherry = T.mCherry_A;
+
+
+% A = T.FSC_A;
+% B = T.SSC_A;
+% C = T.mCherry_compensated;
 
 % X = B;
 % Y = C;

@@ -58,12 +58,19 @@ handles.output = hObject;
 
 % Update handles structure
 handles.stacks_loaded = false;
+handles.image_folder = 'E:\Matlab ilastik';
+handles.expt_name = 'BigStack1';
 handles.startframe = 1;
-handles.endframe = 60;
+handles.endframe = 124;
+ if nargin > 4
+     handles.image_folder = varargin{1};
+     handles.expt_name = varargin{2};
+     handles.startframe = varargin{3};
+     handles.endframe = varargin{4};
+ end
+
 handles.obj_class_cmap = [[0 0 0];[1 0 0];[0 1 0];[0 0 1];[1 1 0];[1 0 1];[0 1 1]];
 handles.reclassify_as = 1;
-handles.image_folder = 'E:\Matlab ilastik';
-handles.expt_name = 'TestStack1';
 handles.expt_folder = [handles.image_folder '\' handles.expt_name];
 
 ax = handles.ObjectClassificationAxes;
@@ -108,13 +115,13 @@ function Load_Stack_btn_Callback(hObject, eventdata, handles)
 % handles.object_reclassification_stack = handles.object_classification_stack;
 
 handles.raw_image_stack = readSequence([handles.expt_folder '\'...
-    handles.expt_name '_Raw\' handles.expt_name '_Raw'],1,60,'gray');
+    handles.expt_name '_Raw\' handles.expt_name '_Raw'],handles.startframe,handles.endframe,'gray');
 handles.object_classification_stack = readSequence([handles.expt_folder '\'...
-    handles.expt_name '_Object Classification\' handles.expt_name '_Object Classification'],1,60,'gray');
+    handles.expt_name '_Object Classification\' handles.expt_name '_Object Classification'],handles.startframe,handles.endframe,'gray');
 handles.tracked_stack = readSequence([handles.expt_folder '\'...
-    handles.expt_name '_TrackingResults\Tracked_RGB\Tracked_RGB'],1,60,'rgb');
+    handles.expt_name '_TrackingResults\Tracked_RGB\Tracked_RGB'],handles.startframe,handles.endframe,'rgb');
 handles.object_reclassification_stack = readSequence([handles.expt_folder '\'...
-    handles.expt_name '_Object Reclassification\' handles.expt_name '_Object Reclassification'],1,60,'gray');
+    handles.expt_name '_Object Reclassification\' handles.expt_name '_Object Reclassification'],handles.startframe,handles.endframe,'gray');
 
 [raw_Y,raw_X,raw_T] = size(handles.raw_image_stack);
 [obj_class_Y,obj_class_X,obj_class_T] = size(handles.object_classification_stack);

@@ -1,4 +1,23 @@
 
+%% Separating connected cells when it's hard to get the right number
+
+im = localImage;
+for d = 1:1000
+    basins = bwdist(~localImage);
+    suppressed = -imhmin(basins,7.61577+d/100000000);
+    shed = watershed(suppressed);
+    correctedLocalImage = localImage;
+    correctedLocalImage(shed == 0) = 0;
+    %     imshow(correctedLocalImage,[])
+    %     imtool(basins)
+    [~,num(d)] = bwlabel(correctedLocalImage);
+    
+end
+plot(num)
+
+
+%%
+
 % imstack = readStack('E:\Matlab ilastik\TestStack1_Object Predictions.tiff');
 
 %% Messing around with GUI

@@ -2,9 +2,9 @@
 %% Initalize variables
 
 folder = 'E:\Matlab ilastik';
-expt_name = 'TestStack1';
+expt_name = 'DivisionStack1';
 startframe = 1;
-endframe = 60;
+endframe = 40;
 
 %TrackCells and ImageViewingGUI currently have the above values hard-coded.
 %Should be shared instead (as arguments?)
@@ -33,7 +33,8 @@ clear obj_class_imstack;
 TrackCells
 
 %% Use GUI to adjust object classification
-gui = ImageViewingGUI;
+% Full camera images are too large to reclassify by hand. Allow zoom?
+gui = ImageViewingGUI(folder,expt_name,startframe,endframe);
 waitfor(gui);
 
 if input('Write reclassifications over classifications? (y/n) ','s') == 'y'

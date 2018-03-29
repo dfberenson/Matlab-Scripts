@@ -13,7 +13,7 @@ end
 
 s = sort(dist2);
 num = length(s(s < max_local_dist^2));
-
+num = max(num,1); % In case a cell appears far away from any possible upstream source
 final_X = min(num, suggested_X);
 % Need to account for the case where there is one more cell just beyond the last one that X would allow
 while (num < length(props)) && (s(num+1) - s(num) < max_dilation_dist^2)

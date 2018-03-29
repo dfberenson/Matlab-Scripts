@@ -3,9 +3,11 @@
 tic
 
 folder = 'E:\Matlab ilastik';
-expt_name = 'TestStack1';
-expt_folder = [expt_folder];
+expt_name = 'DivisionStack1';
+expt_folder = [folder '\' expt_name];
 results_folder = [expt_folder '\' expt_name '_TrackingResults'];
+startframe = input('Enter starting frame: ');
+endframe = input('Enter ending frame: ');
 
 if ~exist(results_folder,'dir')
     mkdir(results_folder);
@@ -26,12 +28,14 @@ if ~exist([results_folder '\Tracked_RGB_chosencell'],'dir')
     mkdir([results_folder '\Tracked_RGB_chosencell']);
 end
 
-if(input('Use reclassifications? (y/n) ','s') == 'y')
-    imstack = readSequence([expt_folder '\' expt_name '_Object Reclassification\'...
-        expt_name '_Object Reclassification'],startframe,endframe,'gray');
-else
-    imstack = readSequence([expt_folder '\' expt_name '_Object Classification\'...
-        expt_name '_Object Classification'],startframe,endframe,'gray');
+if(input('Input already loaded to imstack? (y/n) ','s') == 'n')
+    if(input('Use reclassifications? (y/n) ','s') == 'y')
+        imstack = readSequence([expt_folder '\' expt_name '_Object Reclassification\'...
+            expt_name '_Object Reclassification'],startframe,endframe,'gray');
+    else
+        imstack = readSequence([expt_folder '\' expt_name '_Object Classification\'...
+            expt_name '_Object Classification'],startframe,endframe,'gray');
+    end
 end
 
 max_pos = 18;
@@ -50,11 +54,12 @@ else
 end
 
 %% Need to do this only if don't yet have a list of unique patterns
-% generateUniquePatterns(max_cluster_size);
-
+% tic 
+% generateUniquePatterns(7);
+% toc
 %% Load segmented images from ilastik into imstack
 
-input_already_loaded = input('Input already loaded to imstack (y/n): ','s');
+input_already_loaded = input('Input already loaded to imstack? (y/n): ','s');
 if input_already_loaded == 'n'
     imstack = [];
     
@@ -80,8 +85,6 @@ end
 
 strategy = input('Enter "s/o" for simple/optimum track: ', 's');
 ascdesc = input('Enter "a/d" for ascending/descending track: ', 's');
-startframe = input('Enter starting frame: ');
-endframe = input('Enter ending frame: ');
 [Y,X,T] = size(imstack);
 assert(startframe <= T && endframe <= T, 'Start and end frames must be within length of movie.');
 t = startframe;
