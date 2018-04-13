@@ -25,8 +25,9 @@ for n = 2:max_touching_objects
        touching_cells_c = n_touching_cells_props(c).Image;
        untouching_cells_c = separateConnectedCells(touching_cells_c, n);
        
-       bounding_box(touching_cells_c) = untouching_cells_c(touching_cells_c);
-       object_image(y_min:y_max, x_min:x_max) = bounding_box;
+       bounding_box(touching_cells_c) = 
+       
+       object_image(y_min:y_max, x_min:x_max) = separateConnectedCells(object_image(y_min:y_max, x_min:x_max),n);
    end
 end
 

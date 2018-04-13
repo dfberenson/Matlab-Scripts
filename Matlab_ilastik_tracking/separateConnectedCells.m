@@ -1,5 +1,8 @@
 
 function correctedLocalImage = separateConnectedCells(localImage, correct_num)
+% Takes as input a binary image showing only the cell that needs to be
+% split, and the number of cells to split it into.
+% Returns an equally binary sized image with the cells split.
 
 minimum_watershed_depth = 10;
 [~,num] = bwlabel(localImage,4);
