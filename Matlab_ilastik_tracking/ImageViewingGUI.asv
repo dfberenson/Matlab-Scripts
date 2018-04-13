@@ -59,14 +59,11 @@ handles.output = hObject;
 % Update handles structure
 handles.stacks_loaded = false;
 
-%The following default values will be overwritten when GUI is called
-%with arguments
+%The following default values will be overwritte
 handles.image_folder = 'E:\Matlab ilastik';
 handles.expt_name = 'BigStack1';
 handles.startframe = 1;
 handles.endframe = 124;
-
-%Overwrite default values when GUI is called with arguments
 if length(varargin) >= 4
     handles.image_folder = varargin{1};
     handles.expt_name = varargin{2};

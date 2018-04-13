@@ -1,10 +1,19 @@
 
 %% Initalize variables
 
-folder = 'E:\Matlab ilastik';
-expt_name = 'DivisionStack1';
+folder = 'E:\Matlab ilastik\PixelObjectClassification_3';
+expt_name = 'DivisionStack2';
 startframe = 1;
-endframe = 40;
+endframe = 50;
+
+% Load colormap
+if exist('C:\Users\Skotheim Lab\Desktop\Matlab-Scripts\Matlab_ilastik_tracking\cmap.csv','file') == 2
+    cmap = csvread('C:\Users\Skotheim Lab\Desktop\Matlab-Scripts\Matlab_ilastik_tracking\cmap.csv');
+else
+    cmap = 0.2 + 0.8*rand(500,3);
+    cmap(1,:) = [0 0 0];
+    csvwrite('C:\Users\Skotheim Lab\Desktop\Matlab-Scripts\Matlab_ilastik_tracking\cmap.csv',cmap);
+end
 
 %TrackCells and ImageViewingGUI currently have the above values hard-coded.
 %Should be shared instead (as arguments?)
@@ -30,7 +39,7 @@ end
 clear obj_class_imstack;
 
 %% Run tracking algorithm
-TrackCells
+track_cells(folder,expt_name,startframe,endframe,'c');
 
 %% Use GUI to adjust object classification
 % Full camera images are too large to reclassify by hand. Allow zoom?
@@ -45,4 +54,4 @@ if input('Write reclassifications over classifications? (y/n) ','s') == 'y'
 end
 
 %% Rerun tracking algorithm
-TrackCells
+track_cells(folder,expt_name,startframe,endframe,'r');

@@ -8,13 +8,13 @@ end
 
 if strcmp(color,'rgb')
         for i = startframe:endframe
-            disp(['Writing image ' num2str(i)])
-            imwrite(imstack(:,:,:,i),[filepath  '\' expt_name '_' img_name '_' num2str(i) '.tif']);
+            disp(['Writing image ' sprintf('%03d',i)])
+            imwrite(imstack(:,:,:,i),[filepath  '\' expt_name '_' img_name '_' sprintf('%03d',i) '.tif']);
         end
 else
     for i = startframe:endframe
-            disp(['Writing image ' num2str(i)])
-            imwrite(imstack(:,:,i),[filepath  '\' expt_name '_' img_name '_' num2str(i) '.tif']);
+            disp(['Writing image ' sprintf('%03d',i)])
+            imwrite(imstack(:,:,i),[filepath  '\' expt_name '_' img_name '_' sprintf('%03d',i) '.tif']);
     end
 end
 end

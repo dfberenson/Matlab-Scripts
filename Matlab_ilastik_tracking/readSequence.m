@@ -6,13 +6,13 @@ function imstack = readSequence(filepath, startframe, endframe, color)
 
     if strcmp(color,'rgb')
         for i = startframe:endframe
-            disp(['Reading image ' num2str(i)])
-            imstack(:,:,:,i) = imread([filepath '_' num2str(i) '.tif']);
+            disp(['Reading image ' sprintf('%03d',i)])
+            imstack(:,:,:,i) = imread([filepath '_' sprintf('%03d',i) '.tif']);
         end
     else
         for i = startframe:endframe
-            disp(['Reading image ' num2str(i)])
-            imstack(:,:,i) = imread([filepath '_' num2str(i) '.tif']);
+            disp(['Reading image ' sprintf('%03d',i)])
+            imstack(:,:,i) = imread([filepath '_' sprintf('%03d',i) '.tif']);
         end
     end
 end

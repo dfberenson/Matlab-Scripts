@@ -6,7 +6,7 @@ max_touching_objects = 5;
 
 for n = 2:max_touching_objects
    n_touching_cells = (object_image == n);
-   [n_touching_cells_labels, n_touching_cells_num] = bwlabel(n_touching_cells);
+   [n_touching_cells_labels, n_touching_cells_num] = bwlabel(n_touching_cells,4);
    n_touching_cells_props = regionprops(n_touching_cells_labels);
     
    for c = 1:n_touching_cells_num
@@ -19,6 +19,6 @@ for n = 2:max_touching_objects
    end
 end
 
-[labels,num_cells] = bwlabel(im2bw(object_image,0));
+[labels,num_cells] = bwlabel(im2bw(object_image,0),4);
 
 end

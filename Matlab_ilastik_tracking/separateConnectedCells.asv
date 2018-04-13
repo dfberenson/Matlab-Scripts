@@ -5,6 +5,9 @@ minimum_watershed_depth = 10;
 [~,num] = bwlabel(localImage,4);
 correctedLocalImage = localImage;
 
+% It's possible the rectangular bounding box
+if num == correct_num
+
 while num ~= correct_num && minimum_watershed_depth >= 0
     basins = bwdist(~localImage);
     suppressed = -imhmin(basins,minimum_watershed_depth);

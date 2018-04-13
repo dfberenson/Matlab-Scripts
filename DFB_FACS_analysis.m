@@ -2,11 +2,11 @@
 %Import CSV data column vectors A,B,C,D etc.
 %X is the x-axis vector on which data will be binned
 
-folder = 'C:\Users\Skotheim Lab\Box Sync\Daniel Berenson''s Files\Data\FACS\161003_HMEC_size-sensors';
-expt = 'HMEC-1G-EF1a-mCherry_60504_Single Cells_Single Cells';
+% folder = 'C:\Users\Skotheim Lab\Box Sync\Daniel Berenson''s Files\Data\FACS\161003_HMEC_size-sensors';
+% expt = 'HMEC-1G-EF1a-mCherry_60504_Single Cells_Single Cells';
 
-% folder = 'C:\Users\Skotheim Lab\Box Sync\Daniel Berenson''s Files\Data\FACS\180316_HMEC_size-sensors_EGF_Palbo\GatedAndCompensated';
-% expt = 'PlusEGF-PlusPalbo';
+folder = 'C:\Users\Skotheim Lab\Box Sync\Daniel Berenson''s Files\Data\FACS\180316_HMEC_size-sensors_EGF_Palbo\GatedAndCompensated';
+expt = 'EZ-gated_MinusEGF-MinusPalbo';
 
 T = readtable([folder '\' expt '.csv']);
 
