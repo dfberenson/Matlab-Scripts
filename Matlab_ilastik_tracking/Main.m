@@ -2,9 +2,9 @@
 %% Initalize variables
 
 folder = 'E:\Matlab ilastik\PixelObjectClassification_3';
-expt_name = 'DivisionStack2';
+expt_name = 'DivisionStack1';
 startframe = 1;
-endframe = 50;
+endframe = 40;
 
 % Load colormap
 if exist('C:\Users\Skotheim Lab\Desktop\Matlab-Scripts\Matlab_ilastik_tracking\cmap.csv','file') == 2

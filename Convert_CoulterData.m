@@ -8,12 +8,11 @@ totaldata = [];
 typical_cutoff = 12;
 typical_cutoff_binnum = length(binsizes(binsizes < typical_cutoff));
 
-for i = 1:length(binsizes)-2 % Go through each bin,except last two bins
+for i = 1:length(binsizes)-2 % Go through each bin,except last two bins because they are weird
     thisbinsize = binsizes(i);
     thisbincount = bincounts(i);
     data_to_add = ones(thisbincount,1) * thisbinsize;
     totaldata = [totaldata ; data_to_add];
-    
 end
 
 %Check if there's a local minimum a bit past the typical_cutoff

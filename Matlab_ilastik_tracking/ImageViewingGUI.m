@@ -23,7 +23,7 @@ function varargout = ImageViewingGUI(varargin)
 
 % Edit the above text to modify the response to help ImageViewingGUI
 
-% Last Modified by GUIDE v2.5 23-Mar-2018 14:23:00
+% Last Modified by GUIDE v2.5 14-Apr-2018 09:55:18
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -64,7 +64,7 @@ handles.stacks_loaded = false;
 handles.image_folder = 'E:\Matlab ilastik';
 handles.expt_name = 'BigStack1';
 handles.startframe = 1;
-handles.endframe = 124;
+handles.endframe = 10;
 
 %Overwrite default values when GUI is called with arguments
 if length(varargin) >= 4
@@ -251,6 +251,9 @@ set(tracked_axes,'NextPlot','replacechildren')
 tracked_im_display = imshow(tracked_im,[],'Parent',tracked_axes);
 set(tracked_im_display,'HitTest','off')
 
+linkaxes([object_classification_axes, object_reclassification_axes,...
+    raw_axes, tracked_axes],'xy');
+
 %  set(ax,'HitTest','on')
 %  set(ax,'PickableParts','all')
 guidata(hObject,handles)
@@ -331,3 +334,19 @@ function save_reclassifications_btn_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 writeSequence(handles.object_reclassification_stack,handles.expt_folder,handles.expt_name,...
     'Object Reclassification',handles.startframe,handles.endframe,'gray');
+
+
+% --- Executes on button press in zoomon_btn.
+function zoomon_btn_Callback(hObject, eventdata, handles)
+% hObject    handle to zoomon_btn (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+zoom on
+
+
+% --- Executes on button press in zoomoff_btn.
+function zoomoff_btn_Callback(hObject, eventdata, handles)
+% hObject    handle to zoomoff_btn (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+zoom off

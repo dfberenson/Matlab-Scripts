@@ -1,4 +1,13 @@
 
+f = figure();
+ax = axes();
+M = magic(500);
+im = imshow(M,[],'Parent',ax);
+
+
+
+%% Compare Hungarian algorithm to brute force
+
 tic
 
 X = 9;
