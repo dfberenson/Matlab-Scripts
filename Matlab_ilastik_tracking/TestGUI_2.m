@@ -107,6 +107,8 @@ x = round(eventdata.IntersectionPoint(1));
 y = round(eventdata.IntersectionPoint(2));
 disp(['You touched the Axes at ' num2str(x) ' ' num2str(y)])
 
+
+
 guidata(hObject, handles);
 
 
@@ -131,6 +133,15 @@ function pushbutton2_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% cn = getAxesZoomConstraint(
+handles = my_fcn(hObject,eventdata,handles)
+guidata(hObject,handles)
+disp('outside my_fcn')
+disp(handles)
 
-% zoom off
+
+function handles = my_fcn(hObject,eventdata,handles)
+
+handles.n = rand();
+guidata(hObject,handles)
+disp('inside my_fcn')
+disp(handles)

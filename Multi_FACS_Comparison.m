@@ -1,6 +1,6 @@
 clear all
 
-folder = 'C:\Users\Skotheim Lab\Box Sync\Daniel Berenson''s Files\Data\FACS\180316_HMEC_size-sensors_EGF_Palbo\GatedAndCompensated';
+folder = 'C:\Users\Skotheim Lab\Box Sync\Daniel Berenson''s Files\Data\FACS\180405_HMEC_size-sensors_EGF_Palbo\GatedAndUncompensated_mCherry-hi';
 
 s(1).Name = 'MinusEGF-MinusPalbo';
 s(2).Name = 'MinusEGF-PlusPalbo';

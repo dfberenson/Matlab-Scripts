@@ -1,25 +1,29 @@
 
-f = figure();
-ax = axes();
-M = magic(500);
-im = imshow(M,[],'Parent',ax);
+
+
+
+% 
+% f = figure();
+% ax = axes();
+% M = magic(500);
+% im = imshow(M,[],'Parent',ax);
 
 
 
 %% Compare Hungarian algorithm to brute force
 
-tic
-
-X = 9;
-M = rand(X);
-
-testPossibleAssignments(M)
-
-toc
-
-munkres(M)
-
-toc
+% tic
+% 
+% X = 9;
+% M = rand(X);
+% 
+% testPossibleAssignments(M)
+% 
+% toc
+% 
+% munkres(M)
+% 
+% toc
 
 %
 %% Formatting text
@@ -31,7 +35,68 @@ toc
 %
 %
 %% Separating connected cells when it's hard to get the right number
-%
+% %
+
+raw_im = Cell_cluster_2;
+segmented = raw_im > 800;
+sep = separateConnectedCellsRawWatershed(raw_im, segmented);
+figure,imshow(raw_im,[])
+figure,imshow(segmented,[])
+figure,imshow(sep,[])
+
+% close all
+% figure,imshow(raw_im,[]),title('Raw image')
+% segmented = raw_im > 800;
+% figure,imshow(segmented),title('Segmented image')
+% [L,n] = bwlabel(segmented);
+% figure,imshow(L),title('Labeled image')
+% cell_to_examine = 3;
+% just_touching_cells_mask = L == cell_to_examine;
+% figure,imshow(just_touching_cells_mask),title(['Just cell number ' num2str(cell_to_examine)])
+% just_touching_cells_raw = imimposemin(raw_im,~just_touching_cells_mask);
+% figure,imshow(just_touching_cells_raw,[]),title(['Just cell number ' num2str(cell_to_examine)])
+% 
+% % To try it on the whole image:
+% % just_touching_cells_mask = L > 0;
+% % just_touching_cells_raw = imimposemin(raw_im, ~just_touching_cells_mask)
+% 
+% basins_whole_raw_im = single(raw_im);
+% figure,imshow(basins_whole_raw_im,[]),title('Whole raw image as basins')
+% shed_whole_raw = watershed(-basins_whole_raw_im);
+% figure,imshow(shed_whole_raw,[]),title('Whole raw image watershed')
+% 
+% basins_mask = bwdist(~just_touching_cells_mask);
+% figure,imshow(basins_mask,[]),title('Bwdist image as basins')
+% shed_mask = watershed(-basins_mask);
+% figure,imshow(shed_mask,[]),title('Bwdist image watershed')
+% 
+% basins_raw = single(just_touching_cells_raw);
+% figure,imshow(basins_raw,[]),title('Raw image as basins')
+% shed_raw = watershed(-basins_raw);
+% figure,imshow(shed_raw,[]),title('Raw image watershed')
+% 
+% suppressed = imhmin(basins_raw,3000);
+% shed_raw = watershed(-suppressed);
+% figure,imshow(shed_raw,[]),title('Raw image watershed, suppressed < 3000')
+% overlaid_shed_raw = imoverlay(just_touching_cells_raw*16, shed_raw == 0, 'y');
+% figure,imshow(overlaid_shed_raw,[]),title('Raw image watershed, suppressed < 3000, overlaid')
+% 
+% se = strel('disk', 3);
+% io_raw = imopen(single(just_touching_cells_raw), se);
+% figure,imshow(io_raw,[]),title('Raw image opened')
+% shed_raw_opened = watershed(-io_raw);
+% figure,imshow(shed_raw_opened,[]),title('Raw image opened watershed')
+% overlaid_shed_raw_opened = imoverlay(just_touching_cells_raw*16, shed_raw_opened == 0, 'y');
+% figure,imshow(overlaid_shed_raw_opened,[]),title('Raw image opened watershed, overlaid')
+% 
+% 
+% se = strel('disk', 1);
+% io_mask = imopen(basins_mask,se);
+% figure,imshow(io_mask,[])
+% shed_mask_strel = watershed(-io_mask);
+% figure,imshow(shed_mask_strel)
+
+
 % im = localImage;
 % for d = 1:1000
 %     basins = bwdist(~localImage);
@@ -42,7 +107,7 @@ toc
 %     %     imshow(correctedLocalImage,[])
 %     %     imtool(basins)
 %     [~,num(d)] = bwlabel(correctedLocalImage);
-%
+% 
 % end
 % plot(num)
 

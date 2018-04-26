@@ -34,22 +34,26 @@ if ~exist([results_folder '\Tracked_RGB_chosencell'],'dir')
     mkdir([results_folder '\Tracked_RGB_chosencell']);
 end
 
+rawimstack = readSequence([expt_folder '\' expt_name '_Raw\'...
+    expt_name '_Raw'],startframe,endframe,'gray');
 
 if reclass_status == 'r'
-    imstack = readSequence([expt_folder '\' expt_name '_Object Reclassification\'...
+    objimstack = readSequence([expt_folder '\' expt_name '_Object Reclassification\'...
         expt_name '_Object Reclassification'],startframe,endframe,'gray');
 else
-    imstack = readSequence([expt_folder '\' expt_name '_Object Classification\'...
+    objimstack = readSequence([expt_folder '\' expt_name '_Object Classification\'...
         expt_name '_Object Classification'],startframe,endframe,'gray');
 end
 
 %% Get ready to track
 
-[Y,X,T] = size(imstack);
+assert(isequal(size(objimstack),size(rawimstack)), 'Raw and segmented stacks must be the same size.');
+
+[Y,X,T] = size(objimstack);
 assert(startframe <= T && endframe <= T, 'Start and end frames must be within length of movie.');
 t = startframe;
 
-orig_labels = getLabelsFromObjects(imstack(:,:,startframe));
+orig_labels = getLabelsFromObjects(rawimstack(:,:,startframe),objimstack(:,:,startframe));
 upstream_untracked_labels = orig_labels;
 upstream_tracked_labels = orig_labels;
 orig_props = regionprops(orig_labels);
@@ -69,7 +73,7 @@ imwrite(trackedim_rgb, [results_folder '\Tracked_RGB\Tracked_RGB_' sprintf('%03d
 
 for t = startframe+1:1:endframe
     disp(['Tracking time ' num2str(t)])
-    thistime_untracked_labels = getLabelsFromObjects(imstack(:,:,t));
+    thistime_untracked_labels = getLabelsFromObjects(rawimstack(:,:,t),objimstack(:,:,t));
     thistime_tracked_labels = localOptimumTrack(thistime_untracked_labels,upstream_untracked_labels,upstream_tracked_labels,max_cluster_size,max_local_dist,max_dilation_dist);
     
     %     If want to also keep track of randomly colorized image:
