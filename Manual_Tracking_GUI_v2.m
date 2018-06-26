@@ -1,35 +1,35 @@
-function varargout = Manual_Tracking_GUI(varargin)
-% MANUAL_TRACKING_GUI MATLAB code for Manual_Tracking_GUI.fig
-%      MANUAL_TRACKING_GUI, by itself, creates a new MANUAL_TRACKING_GUI or raises the existing
+function varargout = Manual_Tracking_GUI_v2(varargin)
+% MANUAL_TRACKING_GUI_V2 MATLAB code for Manual_Tracking_GUI_v2.fig
+%      MANUAL_TRACKING_GUI_V2, by itself, creates a new MANUAL_TRACKING_GUI_V2 or raises the existing
 %      singleton*.
 %
-%      H = MANUAL_TRACKING_GUI returns the handle to a new MANUAL_TRACKING_GUI or the handle to
+%      H = MANUAL_TRACKING_GUI_V2 returns the handle to a new MANUAL_TRACKING_GUI_V2 or the handle to
 %      the existing singleton*.
 %
-%      MANUAL_TRACKING_GUI('CALLBACK',hObject,eventData,handles,...) calls the local
-%      function named CALLBACK in MANUAL_TRACKING_GUI.M with the given input arguments.
+%      MANUAL_TRACKING_GUI_V2('CALLBACK',hObject,eventData,handles,...) calls the local
+%      function named CALLBACK in MANUAL_TRACKING_GUI_V2.M with the given input arguments.
 %
-%      MANUAL_TRACKING_GUI('Property','Value',...) creates a new MANUAL_TRACKING_GUI or raises the
+%      MANUAL_TRACKING_GUI_V2('Property','Value',...) creates a new MANUAL_TRACKING_GUI_V2 or raises the
 %      existing singleton*.  Starting from the left, property value pairs are
-%      applied to the GUI before Manual_Tracking_GUI_OpeningFcn gets called.  An
+%      applied to the GUI before Manual_Tracking_GUI_v2_OpeningFcn gets called.  An
 %      unrecognized property name or invalid value makes property application
-%      stop.  All inputs are passed to Manual_Tracking_GUI_OpeningFcn via varargin.
+%      stop.  All inputs are passed to Manual_Tracking_GUI_v2_OpeningFcn via varargin.
 %
 %      *See GUI Options on GUIDE's Tools menu.  Choose "GUI allows only one
 %      instance to run (singleton)".
 %
 % See also: GUIDE, GUIDATA, GUIHANDLES
 
-% Edit the above text to modify the response to help Manual_Tracking_GUI
+% Edit the above text to modify the response to help Manual_Tracking_GUI_v2
 
-% Last Modified by GUIDE v2.5 25-Apr-2018 12:18:51
+% Last Modified by GUIDE v2.5 25-Apr-2018 19:46:46
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
 gui_State = struct('gui_Name',       mfilename, ...
     'gui_Singleton',  gui_Singleton, ...
-    'gui_OpeningFcn', @Manual_Tracking_GUI_OpeningFcn, ...
-    'gui_OutputFcn',  @Manual_Tracking_GUI_OutputFcn, ...
+    'gui_OpeningFcn', @Manual_Tracking_GUI_v2_OpeningFcn, ...
+    'gui_OutputFcn',  @Manual_Tracking_GUI_v2_OutputFcn, ...
     'gui_LayoutFcn',  [] , ...
     'gui_Callback',   []);
 if nargin && ischar(varargin{1})
@@ -44,16 +44,18 @@ end
 % End initialization code - DO NOT EDIT
 
 
-% --- Executes just before Manual_Tracking_GUI is made visible.
-function Manual_Tracking_GUI_OpeningFcn(hObject, eventdata, handles, varargin)
+% --- Executes just before Manual_Tracking_GUI_v2 is made visible.
+function Manual_Tracking_GUI_v2_OpeningFcn(hObject, eventdata, handles, varargin)
 % This function has no output args, see OutputFcn.
 % hObject    handle to figure
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-% varargin   command line arguments to Manual_Tracking_GUI (see VARARGIN)
+% varargin   command line arguments to Manual_Tracking_GUI_v2 (see VARARGIN)
 
-% Choose default command line output for Manual_Tracking_GUI
+% Choose default command line output for Manual_Tracking_GUI_v2
 handles.output = hObject;
+
+
 
 % Update handles structure
 handles.raw_stacks_loaded = false;
@@ -63,9 +65,10 @@ handles.currently_tracking = false;
 handles.some_tracked = false;
 
 handles.red_balance = 20;
-handles.green_balance = 10;
+handles.green_balance = 0;
 handles.blue_balance = 0;
 
+handles.segmented_im = [];
 handles.current_tracknum = 0;
 handles.s = struct;
 handles.s.all_tracknums = [];
@@ -77,6 +80,11 @@ handles.expt_folder = 'E:\Matlab ilastik';
 handles.expt_name = 'BigStack1';
 handles.startframe = 1;
 handles.endframe = 10;
+if ~exist([handles.expt_folder '\' handles.expt_name '\'...
+        handles.expt_name '_TrackedOutlined'],'dir')
+    mkdir([handles.expt_folder '\' handles.expt_name '\'...
+        handles.expt_name '_TrackedOutlined']);
+end
 
 %Overwrite default values when GUI is called with arguments
 if length(varargin) >= 4
@@ -87,12 +95,12 @@ if length(varargin) >= 4
 end
 guidata(hObject, handles);
 
-% UIWAIT makes Manual_Tracking_GUI wait for user response (see UIRESUME)
+% UIWAIT makes Manual_Tracking_GUI_v2 wait for user response (see UIRESUME)
 % uiwait(handles.figure1);
 
 
 % --- Outputs from this function are returned to the command line.
-function varargout = Manual_Tracking_GUI_OutputFcn(hObject, eventdata, handles)
+function varargout = Manual_Tracking_GUI_v2_OutputFcn(hObject, eventdata, handles)
 % varargout  cell array for returning output args (see VARARGOUT);
 % hObject    handle to figure
 % eventdata  reserved - to be defined in a future version of MATLAB
@@ -101,56 +109,75 @@ function varargout = Manual_Tracking_GUI_OutputFcn(hObject, eventdata, handles)
 % Get default command line output from handles structure
 varargout{1} = handles.output;
 
-function displayImage(hObject, eventdata, handles)
+function handles = displayImage(hObject, eventdata, handles)
+% Why I need to return handles here and in update_t is not clear to me.
 if  ~handles.stacks_loaded
     return
 end
 t = handles.t;
 
-raw_im_red = handles.rawimstack_red(:,:,t);
-raw_im_green = handles.rawimstack_green(:,:,t);
-segmented_im = handles.segmentationstack(:,:,t);
+% raw_im_red = handles.rawimstack_red(:,:,t);
+% raw_im_green = handles.rawimstack_green(:,:,t);
+% segmented_im = handles.segmentationstack(:,:,t);
+
+handles.color_im_outlined = imread([handles.expt_folder '\' handles.expt_name '\'...
+    handles.expt_name '_TrackedOutlined\' handles.expt_name '_TrackedOutlined_'...
+    sprintf('%03d',t) '.tif']);
+segmented_im = imread([handles.expt_folder '\' handles.expt_name '\'...
+    handles.expt_name '_Object Classification\' handles.expt_name...
+    '_Object Classification_' sprintf('%03d',t) '.tif']);
+segmented_im = segmented_im > 0;
+handles.segmented_im = segmented_im;
+
+% if ~exist([handles.expt_folder '\' handles.expt_name '\'...
+%         handles.expt_name '_TrackedOutlined\' handles.expt_name '_TrackedOutlined_'...
+%         sprintf('%03d',t) '.tif'])
+%     
+%     raw_im_red = imread([handles.expt_folder '\' handles.expt_name '\'...
+%         handles.expt_name '_Raw\' handles.expt_name '_Raw_' sprintf('%03d',t) '.tif']);
+%     raw_im_green = imread([handles.expt_folder '\' handles.expt_name '\'...
+%         handles.expt_name '_Raw\' handles.expt_name '_Raw_' sprintf('%03d',t) '.tif']);
+%     
+%     color_im(:,:,1) = raw_im_red*handles.red_balance;
+%     color_im(:,:,2) = raw_im_green*handles.green_balance;
+%     color_im(:,:,3) = uint16(segmented_im)*handles.blue_balance;
+%     handles.color_im = color_im;
+%     outlines = bwperim(segmented_im);
+%     color_im_outlined = imoverlay(color_im, outlines,'white');
+%     imwrite(color_im_outlined,[handles.expt_folder '\' handles.expt_name '\'...
+%         handles.expt_name '_TrackedOutlined\' handles.expt_name '_TrackedOutlined_'...
+%         sprintf('%03d',t) '.tif']);
+% else
+%     color_im_outlined = imread([handles.expt_folder '\' handles.expt_name '\'...
+%         handles.expt_name '_TrackedOutlined\' handles.expt_name '_TrackedOutlined_'...
+%         sprintf('%03d',t) '.tif']);
+% end
+% toc
+% if handles.some_tracked
+%     all_tracked_cell_label_nums_thisframe = nonzeros(handles.s.tracks(t,:));
+%     if ~isempty(all_tracked_cell_label_nums_thisframe)
+%         tracked_labels = ismember(bwlabel(segmented_im), all_tracked_cell_label_nums_thisframe);
+%         tracked_outlines = bwperim(tracked_labels);
+%         color_im_outlined = imoverlay(color_im_outlined, tracked_outlines, 'yellow');
+%     end
+% end
+% if handles.currently_tracking
+%     this_tracked_cell_label_nums_thisframe = nonzeros(handles.s.tracks(t,handles.current_tracknum));
+%     if ~isempty(this_tracked_cell_label_nums_thisframe)
+%         foundthiscell = true;
+%         thistrack_labels = ismember(bwlabel(segmented_im), this_tracked_cell_label_nums_thisframe);
+%         thistrack_outline = bwperim(thistrack_labels);
+%         color_im_outlined = imoverlay(color_im_outlined, thistrack_outline, 'magenta');
+%     end
+% end
 ax = handles.axes1;
 set(ax,'NextPlot','replacechildren')
-color_im(:,:,1) = raw_im_red*handles.red_balance;
-color_im(:,:,2) = raw_im_green*handles.green_balance;
-color_im(:,:,3) = uint16(segmented_im)*handles.blue_balance;
-
-outlines = bwperim(segmented_im);
-color_im_outlined = imoverlay(color_im, outlines,'white');
-
-if handles.some_tracked
-    all_tracked_cell_label_nums_thisframe = nonzeros(handles.s.tracks(t,:));
-    if ~isempty(all_tracked_cell_label_nums_thisframe)
-        tracked_labels = ismember(bwlabel(segmented_im), all_tracked_cell_label_nums_thisframe);
-        tracked_outlines = bwperim(tracked_labels);
-        color_im_tracked_outlined = imoverlay(color_im_outlined, tracked_outlines, 'yellow');
-    end
-end
-if handles.currently_tracking
-    this_tracked_cell_label_nums_thisframe = nonzeros(handles.s.tracks(t,handles.current_tracknum));
-    if ~isempty(this_tracked_cell_label_nums_thisframe)
-        thistrack_labels = ismember(bwlabel(segmented_im), this_tracked_cell_label_nums_thisframe);
-        thistrack_outline = bwperim(thistrack_labels);
-        color_im_thistrack_outlined = imoverlay(color_im_tracked_outlined, thistrack_outline, 'magenta');
-    end
-end
-% Should change the color to yellow or purple if the cell has already been
-% tracked, or if it is part of this track.
-
-if ~handles.some_tracked
-display = imshow(color_im_outlined,'Parent',ax);
-elseif ~handles.currently_tracking
-    display = imshow(color_im_tracked_outlined'Parent',ax);
-else
-    display = imshow(color_im_thistrack_outlined);
-
-
-
+display = imshow(handles.color_im_outlined,'Parent',ax);
 set(display,'HitTest','off')
 guidata(hObject,handles)
 
-function t = update_t(hObject, eventdata, handles, new_t)
+function handles = update_t(hObject, eventdata, handles, new_t)
+% Why I need to return handles here and in displayImage is not clear to me.
 if new_t < 1
     handles.t = 1;
 elseif new_t > handles.T
@@ -161,8 +188,7 @@ end
 set(handles.frame_slider,'Value',handles.t);
 set(handles.frame_string_textbox,'String',['Frame ' num2str(handles.t) '/' num2str(handles.T)])
 
-t = handles.t;
-displayImage(hObject,eventdata,handles)
+handles = displayImage(hObject,eventdata,handles);
 guidata(hObject,handles)
 
 % --- Executes on button press in LoadRawStack_btn.
@@ -171,30 +197,33 @@ function LoadRawStack_btn_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-handles.rawimstack_red = readSequence([handles.expt_folder '\' handles.expt_name '\'...
-    handles.expt_name '_Raw\' handles.expt_name '_Raw'],handles.startframe,handles.endframe,'gray');
-handles.rawimstack_green = readSequence([handles.expt_folder '\' handles.expt_name '\'...
-    handles.expt_name '_Raw\' handles.expt_name '_Raw'],handles.startframe,handles.endframe,'gray');
-
-[handles.Y,handles.X,handles.T] = size(handles.rawimstack_red);
-
-handles.t = 1;
-
-set(handles.frame_slider,'Enable','on')
-set(handles.frame_slider,'Value',1);
-set(handles.frame_slider,'min',1);
-set(handles.frame_slider,'max',handles.T);
-set(handles.frame_slider,'SliderStep',[1/handles.T 1/handles.T])
-
-set(handles.axes1,'XLim',[1,handles.X]);
-set(handles.axes1,'YLim',[1,handles.Y]);
-set(handles.axes1,'YDir','reverse')
-
-handles.raw_stacks_loaded = true;
-if handles.segmentation_loaded
-    handles.stacks_loaded = true;
-end
-displayImage(hObject,eventdata,handles)
+% rawimstack_red = readSequence([handles.expt_folder '\' handles.expt_name '\'...
+%     handles.expt_name '_Raw\' handles.expt_name '_Raw'],handles.startframe,handles.endframe,'gray');
+% rawimstack_green = readSequence([handles.expt_folder '\' handles.expt_name '\'...
+%     handles.expt_name '_Raw\' handles.expt_name '_Raw'],handles.startframe,handles.endframe,'gray');
+% 
+% handles.rawimstack_red = rawimstack_red;
+% handles.rawimstack_green = rawimstack_green;
+% 
+% [handles.Y,handles.X,handles.T] = size(rawimstack_red);
+% 
+% handles.t = 1;
+% 
+% set(handles.frame_slider,'Enable','on')
+% set(handles.frame_slider,'Value',1);
+% set(handles.frame_slider,'min',1);
+% set(handles.frame_slider,'max',handles.T);
+% set(handles.frame_slider,'SliderStep',[1/handles.T 1/handles.T])
+% 
+% set(handles.axes1,'XLim',[1,handles.X]);
+% set(handles.axes1,'YLim',[1,handles.Y]);
+% set(handles.axes1,'YDir','reverse')
+% 
+% handles.raw_stacks_loaded = true;
+% if handles.segmentation_loaded
+%     handles.stacks_loaded = true;
+% end
+% displayImage(hObject,eventdata,handles)
 guidata(hObject,handles) %Don't forget to store the updated variables
 
 
@@ -208,9 +237,41 @@ segmentationstack = readSequence([handles.expt_folder '\' handles.expt_name '\'.
     handles.expt_name '_Object Classification\' handles.expt_name '_Object Classification'],handles.startframe,handles.endframe,'gray');
 handles.segmentationstack = segmentationstack > 0;
 
-if handles.raw_stacks_loaded
-    handles.stacks_loaded = true;
+[handles.Y,handles.X,handles.T] = size(segmentationstack);
+handles.s.tracks = zeros(handles.T,1);
+handles.t = 1;
+
+set(handles.frame_slider,'Enable','on')
+set(handles.frame_slider,'Value',1);
+set(handles.frame_slider,'min',1);
+set(handles.frame_slider,'max',handles.T);
+set(handles.frame_slider,'SliderStep',[1/handles.T 1/handles.T])
+
+set(handles.axes1,'XLim',[1,handles.X]);
+set(handles.axes1,'YLim',[1,handles.Y]);
+set(handles.axes1,'YDir','reverse')
+
+for t = 1:handles.T
+    disp(['Outlining image ' num2str(t)])
+    raw_im_red = imread([handles.expt_folder '\' handles.expt_name '\'...
+        handles.expt_name '_Raw\' handles.expt_name '_Raw_' sprintf('%03d',t) '.tif']);
+    raw_im_green = imread([handles.expt_folder '\' handles.expt_name '\'...
+        handles.expt_name '_Raw\' handles.expt_name '_Raw_' sprintf('%03d',t) '.tif']);
+    segmented_im = imread([handles.expt_folder '\' handles.expt_name '\'...
+        handles.expt_name '_Object Classification\' handles.expt_name...
+        '_Object Classification_' sprintf('%03d',t) '.tif']);
+    
+    color_im(:,:,1) = raw_im_red*handles.red_balance;
+    color_im(:,:,2) = raw_im_green*handles.green_balance;
+    color_im(:,:,3) = uint16(segmented_im)*handles.blue_balance;
+    outlines = bwperim(segmented_im);
+    color_im_outlined = imoverlay(color_im, outlines,'white');
+    imwrite(color_im_outlined,[handles.expt_folder '\' handles.expt_name '\'...
+        handles.expt_name '_TrackedOutlined\' handles.expt_name '_TrackedOutlined_'...
+        sprintf('%03d',t) '.tif']);
 end
+
+    handles.stacks_loaded = true;
 displayImage(hObject,eventdata,handles)
 guidata(hObject,handles)
 
@@ -227,7 +288,7 @@ if handles.stacks_loaded == false
     return
 end
 value = round(get(hObject,'Value'));
-handles.t = update_t(hObject, eventdata, handles, value);
+handles = update_t(hObject, eventdata, handles, value);
 guidata(hObject,handles)
 
 % --- Executes during object creation, after setting all properties.
@@ -284,10 +345,10 @@ if handles.stacks_loaded == false
     return
 end
 if strcmp(eventdata.Key, 'leftarrow') || strcmp(eventdata.Key, 'a')
-    handles.t = update_t(hObject,eventdata,handles,handles.t - 1);
+    handles = update_t(hObject,eventdata,handles,handles.t - 1);
 end
 if strcmp(eventdata.Key, 'rightarrow') || strcmp(eventdata.Key, 'd')
-    handles.t = update_t(hObject,eventdata,handles,handles.t + 1);
+    handles = update_t(hObject,eventdata,handles,handles.t + 1);
 end
 % if strcmp(eventdata.Key,'0') || strcmp(eventdata.Key,'1') || strcmp(eventdata.Key,'2')...
 %         || strcmp(eventdata.Key,'3') || strcmp(eventdata.Key,'4')...
@@ -309,10 +370,10 @@ if handles.stacks_loaded == false
     return
 end
 if eventdata.VerticalScrollCount == -1
-    handles.t = update_t(hObject,eventdata,handles,handles.t - 1);
+    handles = update_t(hObject,eventdata,handles,handles.t - 1);
 end
 if eventdata.VerticalScrollCount == 1
-    handles.t = update_t(hObject,eventdata,handles,handles.t + 1);
+    handles = update_t(hObject,eventdata,handles,handles.t + 1);
 end
 guidata(hObject,handles)
 
@@ -338,14 +399,23 @@ disp(['You touched the axes at ' num2str(x) ' ' num2str(y)])
 
 if handles.currently_tracking
     t = handles.t;
-    segmented_im = handles.segmentationstack(:,:,t);
-    labels = bwlabel(segmented_im > 0);
+    labels = bwlabel(handles.segmented_im > 0);
     clicked_label = labels(y,x);
     disp(['The clicked label was ' num2str(clicked_label)]);
-    handles.s.tracks(t, handles.current_tracknum) = clicked_label;
-    handles.t = update_t(hObject,eventdata,handles,handles.t + 1);
+    if clicked_label ~= 0
+        handles.s.tracks(t, handles.current_tracknum) = clicked_label;
+        segmented_im = handles.segmented_im;
+        thistrack_labels = bwlabel(segmented_im) == clicked_label;
+        thistrack_outline = bwperim(thistrack_labels);
+        color_im_outlined = handles.color_im_outlined;
+        handles = update_t(hObject,eventdata,handles,handles.t + 1);
+        % Recolor and write the image after loading the next one
+        color_im_outlined = imoverlay(color_im_outlined, thistrack_outline, 'magenta');
+        imwrite(color_im_outlined,[handles.expt_folder '\' handles.expt_name '\'...
+            handles.expt_name '_TrackedOutlined\' handles.expt_name '_TrackedOutlined_'...
+            sprintf('%03d',t) '.tif']);
+    end
 end
-
 guidata(hObject, handles);
 
 
@@ -354,12 +424,33 @@ function new_track_btn_Callback(hObject, eventdata, handles)
 % hObject    handle to new_track_btn (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-handles.t = update_t(hObject,eventdata,handles,1);
+
+% First, go through and color yellow all cells already tracked.
+for t = 1:handles.T
+    disp(['Outlining image ' num2str(t)])
+    all_tracked_cell_label_nums_thisframe = nonzeros(handles.s.tracks(t,:));
+    if ~isempty(all_tracked_cell_label_nums_thisframe)
+        segmented_im = imread([handles.expt_folder '\' handles.expt_name '\'...
+            handles.expt_name '_Object Classification\' handles.expt_name...
+            '_Object Classification_' sprintf('%03d',t) '.tif']);
+        segmented_im = segmented_im > 0;
+        tracked_labels = ismember(bwlabel(segmented_im), all_tracked_cell_label_nums_thisframe);
+        tracked_outlines = bwperim(tracked_labels);
+        color_im_outlined = imread([handles.expt_folder '\' handles.expt_name '\'...
+            handles.expt_name '_TrackedOutlined\' handles.expt_name '_TrackedOutlined_'...
+            sprintf('%03d',t) '.tif']);
+        color_im_outlined = imoverlay(color_im_outlined, tracked_outlines, 'yellow');
+        imwrite(color_im_outlined,[handles.expt_folder '\' handles.expt_name '\'...
+            handles.expt_name '_TrackedOutlined\' handles.expt_name '_TrackedOutlined_'...
+            sprintf('%03d',t) '.tif']);
+    end
+end
 handles.current_tracknum = handles.current_tracknum + 1;
 handles.s.all_tracknums = sort(unique([handles.s.all_tracknums, handles.current_tracknum]));
-handles.s.tracks(handles.T, handles.current_tracknum) = 0;
+handles.s.tracks(handles.T, handles.current_tracknum) = 0; %Expand table as far as necessary
 handles.some_tracked = true;
 handles.currently_tracking = true;
+handles = update_t(hObject,eventdata,handles,1);
 guidata(hObject, handles);
 
 % --- Executes on slider movement.

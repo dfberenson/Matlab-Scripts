@@ -5,8 +5,11 @@
 % folder = 'C:\Users\Skotheim Lab\Box Sync\Daniel Berenson''s Files\Data\FACS\161003_HMEC_size-sensors';
 % expt = 'HMEC-1G-EF1a-mCherry_60504_Single Cells_Single Cells';
 
-folder = 'C:\Users\Skotheim Lab\Box Sync\Daniel Berenson''s Files\Data\FACS\180316_HMEC_size-sensors_EGF_Palbo\GatedAndCompensated';
-expt = 'EZ-gated_MinusEGF-MinusPalbo';
+% folder = 'C:\Users\Skotheim Lab\Box Sync\Daniel Berenson''s Files\Data\FACS\180316_HMEC_size-sensors_EGF_Palbo\GatedAndCompensated';
+% expt = 'PlusEGF-MinusPalbo';
+
+folder = 'C:\Users\Skotheim Lab\Box Sync\Daniel Berenson''s Files\Data\FACS\180405_HMEC_size-sensors_EGF_Palbo\GatedAndUncompensated_mCherry-hi';
+expt = 'PlusEGF-PlusPalbo';
 
 T = readtable([folder '\' expt '.csv']);
 

@@ -1,5 +1,89 @@
 
+%%
 
+cellnum = 15;
+firstframe = 249;
+lastframe = 362;
+
+s.track_metadata(cellnum).firstframe = firstframe;
+s.track_metadata(cellnum).lastframe = lastframe;
+
+
+
+
+%% Tiff class
+
+clear all
+
+fname_base = 'F:\DFB_imaging_experiments\DFB_180110_HMEC_1GFiii_palbo_After_2\DFB_180110_HMEC_1GFiii_palbo_After_2_MMStack_Pos1';
+suffixes = '.ome.tif';
+
+imstack0 = readStack([fname_base suffixes]);
+imstack1 = readStack([fname_base '_1' suffixes]);
+imstack2 = readStack([fname_base '_2' suffixes]);
+imstack3 = readStack([fname_base '_3' suffixes]);
+
+[~,~,imstack0_length] = size(imstack0);
+[~,~,imstack1_length] = size(imstack1);
+[~,~,imstack2_length] = size(imstack2);
+[~,~,imstack3_length] = size(imstack3);
+
+destination_fpath = 'E:\TestWriteStack.tif';
+
+for i = 1:imstack0_length
+    disp(['Writing image ' num2str(i)])
+    imwrite(imstack0(:,:,i), destination_fpath, 'writemode', 'append');
+end
+
+for i = 1:imstack1_length
+    disp(['Writing image ' num2str(i)])
+    imwrite(imstack1(:,:,i), destination_fpath, 'writemode', 'append');
+end
+
+for i = 1:imstack2_length
+    disp(['Writing image ' num2str(i)])
+    imwrite(imstack2(:,:,i), destination_fpath, 'writemode', 'append');
+end
+
+for i = 1:imstack3_length
+    disp(['Writing image ' num2str(i)])
+    imwrite(imstack3(:,:,i), destination_fpath, 'writemode', 'append');
+end
+
+
+% fname = 'E:\Aivia\BigStack1.tif';
+
+t = Tiff(fname);
+t2 = Tiff(fname);
+
+% imstack = readStack(fname);
+% 
+% destination_fpath = 'E:\TestWriteStack.tif';
+% destination_fpath2 = 'E:\TestWriteStack2.tif';
+% 
+% imwrite(imstack(:,:,1),destination_fpath)
+% imwrite(imstack(:,:,2),destination_fpath,'writemode', 'append')
+% 
+% for i = 1:124
+%     disp(['Writing image ' num2str(i)])
+%     imwrite(imstack(:,:,i),destination_fpath2,'writemode','append')
+% end
+
+%% Images
+
+% for t = 300:400
+%     disp(t)
+%     imread([raw_red_prefix_e '_' sprintf('%03d',t) '.tif']);
+% end
+% toc
+% 
+
+
+
+%% Drawing
+% a = rand(200);
+% b = a > 0.5;
+% imwrite(b,'E:/b.tif')
 
 
 % 
@@ -8,6 +92,28 @@
 % M = magic(500);
 % im = imshow(M,[],'Parent',ax);
 
+
+% toc
+% red_im = imread([handles.raw_red_prefix '_' sprintf('%03d',t) '.tif'])*handles.red_balance;
+% green_im = imread([handles.raw_red_prefix '_' sprintf('%03d',t) '.tif'])*handles.green_balance;
+% blue_im = imread([handles.raw_red_prefix '_' sprintf('%03d',t) '.tif'])*handles.blue_balance;
+% 
+% white_outlines = imread([handles.outlines_prefix '_white_' sprintf('%03d',t') '.tif']);
+% yellow_outlines = imread([handles.outlines_prefix '_yellow_' sprintf('%03d',t') '.tif']);
+% magenta_outlines = imread([handles.outlines_prefix '_magenta_' sprintf('%03d',t') '.tif']);
+% toc
+% red_im(white_outlines) = 65535;
+% green_im(white_outlines) = 65535;
+% blue_im(white_outlines) = 65535;
+% red_im(yellow_outlines) = 65535;
+% green_im(yellow_outlines) = 65535;
+% blue_im(yellow_outlines) = 0;
+% red_im(magenta_outlines) = 65535;
+% green_im(magenta_outlines) = 0;
+% blue_im(magenta_outlines) = 65535;
+% color_im_outlined = cat(3, red_im, green_im, blue_im);
+% 
+% toc
 
 
 %% Compare Hungarian algorithm to brute force
@@ -37,12 +143,12 @@
 %% Separating connected cells when it's hard to get the right number
 % %
 
-raw_im = Cell_cluster_2;
-segmented = raw_im > 800;
-sep = separateConnectedCellsRawWatershed(raw_im, segmented);
-figure,imshow(raw_im,[])
-figure,imshow(segmented,[])
-figure,imshow(sep,[])
+% raw_im = Cell_cluster_2;
+% segmented = raw_im > 800;
+% sep = separateConnectedCellsRawWatershed(raw_im, segmented);
+% figure,imshow(raw_im,[])
+% figure,imshow(segmented,[])
+% figure,imshow(sep,[])
 
 % close all
 % figure,imshow(raw_im,[]),title('Raw image')

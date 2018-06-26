@@ -1,16 +1,18 @@
 clear all
 
-folder = 'C:\Users\Skotheim Lab\Box Sync\Daniel Berenson''s Files\Data\FACS\180405_HMEC_size-sensors_EGF_Palbo\GatedAndUncompensated_mCherry-hi';
+% folder = 'C:\Users\Skotheim Lab\Box Sync\Daniel Berenson''s Files\Data\FACS\180405_HMEC_size-sensors_EGF_Palbo\GatedAndUncompensated_mCherry-hi';
+folder = 'C:\Users\Skotheim Lab\Box Sync\Daniel Berenson''s Files\Data\FACS\180622_ESCs\GatedAndUncompensated';
 
-s(1).Name = 'MinusEGF-MinusPalbo';
-s(2).Name = 'MinusEGF-PlusPalbo';
-s(3).Name = 'PlusEGF-MinusPalbo';
-s(4).Name = 'PlusEGF-PlusPalbo';
+
+s(1).Name = 'Negative';
+s(2).Name = 'Sox2Clone1';
+s(3).Name = 'Sox2Clone2';
+s(4).Name = 'Sox2Clone3';
 
 for i = 1:4
     T = readtable([folder '\' s(i).Name '.csv']);
     s(i).FSC = T.FSC_A;
-    s(i).mCherry = T.mCherry_A;
+    s(i).mCherry = T.PE_TexasRed_A;
     FSC_mins(i) = min(s(i).FSC);
     FSC_maxes(i) = max(s(i).FSC);
 end
@@ -90,10 +92,17 @@ hold on
 title('mCherry vs FSC')
 xlabel('FSC')
 ylabel('mCherry')
-shadedErrorBar(binsizes,s(1).binned_mCherry_mean,s(1).binned_mCherry_StdDev,'r-',1);
-shadedErrorBar(binsizes,s(2).binned_mCherry_mean,s(2).binned_mCherry_StdDev,'m-',1);
-shadedErrorBar(binsizes,s(3).binned_mCherry_mean,s(3).binned_mCherry_StdDev,'b-',1);
-shadedErrorBar(binsizes,s(4).binned_mCherry_mean,s(4).binned_mCherry_StdDev,'c-',1);
+
+% shadedErrorBar(binsizes,s(1).binned_mCherry_mean,s(1).binned_mCherry_StdDev,'r-',1);
+% shadedErrorBar(binsizes,s(2).binned_mCherry_mean,s(2).binned_mCherry_StdDev,'m-',1);
+% shadedErrorBar(binsizes,s(3).binned_mCherry_mean,s(3).binned_mCherry_StdDev,'b-',1);
+% shadedErrorBar(binsizes,s(4).binned_mCherry_mean,s(4).binned_mCherry_StdDev,'c-',1);
+
+shadedErrorBar(binsizes,s(1).binned_mCherry_mean,s(1).binned_mCherry_StdError,'r-',1);
+shadedErrorBar(binsizes,s(2).binned_mCherry_mean,s(2).binned_mCherry_StdError,'m-',1);
+shadedErrorBar(binsizes,s(3).binned_mCherry_mean,s(3).binned_mCherry_StdError,'b-',1);
+shadedErrorBar(binsizes,s(4).binned_mCherry_mean,s(4).binned_mCherry_StdError,'c-',1);
+
 % Have to divorce the legend from the actual plots because legend gets
 % confused working with shadedErrorBar
 h(1) = plot(NaN,NaN,'r-');

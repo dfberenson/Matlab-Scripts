@@ -1,4 +1,79 @@
 
+folder = 'E:\QPM_Timelapse\Report from 13 June 18';
+file = [folder '\MEAS_Pos19.txt'];
+T = readtable(file);
+
+phase_areas = table2array(T(:,{'Surface_micron2_'}));
+phase_optical_volume = table2array(T(:,{'Optical_volume_micron3_'}));
+fluo1_areas = table2array(T(:,{'Surface_micron2__1'}));
+fluo1_optical_volume = table2array(T(:,{'Optical_volume_micron3__1'}));
+fluo2_areas = table2array(T(:,{'Surface_micron2__2'}));
+fluo2_optical_volume = table2array(T(:,{'Optical_volume_micron3__2'}));
+
+% % Check what happens with random permutations of data
+% phase_areas = phase_areas(randperm(length(phase_areas)));
+% phase_optical_volume = phase_optical_volume(randperm(length(phase_optical_volume)));
+% fluo1_areas = fluo1_areas(randperm(length(fluo1_areas)));
+% fluo1_optical_volume = fluo1_optical_volume(randperm(length(fluo1_optical_volume)));
+% fluo2_areas = fluo2_areas(randperm(length(fluo2_areas)));
+% fluo2_optical_volume = fluo2_optical_volume(randperm(length(fluo2_optical_volume)));
+
+
+phase_areas(isnan(phase_areas)) = 0;
+phase_optical_volume(isnan(phase_optical_volume)) = 0;
+fluo1_areas(isnan(fluo1_areas)) = 0;
+fluo1_optical_volume(isnan(fluo1_optical_volume)) = 0;
+fluo2_areas(isnan(fluo2_areas)) = 0;
+fluo2_optical_volume(isnan(fluo2_optical_volume)) = 0;
+
+
+% fig0 = scatter3(phase_optical_volume, fluo1_areas, fluo1_optical_volume);
+% xlabel('Phase optical volume')
+% ylabel('Fluo1 area')
+% zlabel('Fluo1 optical volume')
+
+fig0 = scatter(phase_optical_volume,fluo1_optical_volume,10,fluo1_areas,'filled')
+xlabel('Phase optical volume')
+ylabel('Fluo1 optical volume')
+colormap('Cool')
+colorbar()
+
+fig1 = plot_scatter_with_line(fluo1_areas,fluo2_areas)
+fig1.Name = 'Figure 1: Fluo2 area vs Fluo1 area';
+xlabel('Fluo1 area')
+ylabel('Fluo2 area')
+
+fig2 = plot_scatter_with_line(phase_areas, phase_optical_volume)
+fig2.Name = 'Figure 2: Phase optical volume vs Phase area';
+xlabel('Phase area')
+ylabel('Phase optical volume')
+
+fig3 = plot_scatter_with_line(fluo1_areas,fluo1_optical_volume)
+fig3.Name = 'Figure 3: Fluo1 optical volume vs Fluo1 area';
+xlabel('Fluo1 area')
+ylabel('Fluo1 optical volume')
+
+fig4 = plot_scatter_with_line(fluo2_areas,fluo2_optical_volume)
+fig4.Name = 'Figure 4: Fluo2 optical volume vs Fluo2 area';
+xlabel('Fluo2 area')
+ylabel('Fluo2 optical volume')
+
+fig5 = plot_scatter_with_line(phase_optical_volume,fluo1_optical_volume)
+fig5.Name = 'Figure 5: Fluo1 optical volume vs Phase optical volume';
+xlabel('Phase optical volume')
+ylabel('Fluo1 optical volume')
+
+fig5a = plot_scatter_with_line(phase_optical_volume(fluo1_areas < 300), fluo1_optical_volume(fluo1_areas < 300));
+fig5a.Name = 'Figure 5a: Fluo1 optical volume vs Phase optical volume, only cells with nuclear area < 300';
+xlabel('Phase optical volume')
+ylabel('Fluo1 optical volume')
+
+fig6 = plot_scatter_with_line(phase_optical_volume,fluo2_optical_volume)
+fig6.Name = 'Figure 6: Fluo2 optical volume vs Phase optical volume';
+xlabel('Phase optical volume')
+ylabel('Fluo2 optical volume')
+
+%% For expt 170906:
 
 %Plots at end censor data outside of nice central region
 
