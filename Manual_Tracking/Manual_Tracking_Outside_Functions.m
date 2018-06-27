@@ -3,9 +3,13 @@ clear all
 
 %% Initialize Variables
 
+% Need to change backslashes to forward slashes in filenames on Mac
+
 folder = 'E:\RealStack';
-expt_name = 'DFB_170308_HMEC_1Giii_1_hyperstack_Pos1';
-expt_folder = [folder '\' expt_name];
+base_expt_name = 'DFB_170308_HMEC_1Giii_1';
+pos = 1;
+full_expt_name = [base_expt_name '_Pos' num2str(pos)];
+expt_folder = [folder '\' full_expt_name];
 startframe = 1;
 endframe = 129;
 
@@ -17,30 +21,34 @@ endframe = 129;
 if ~exist(expt_folder,'dir')
     mkdir(expt_folder);
 end
-if ~exist([expt_folder  '\' expt_name '_RawGray'],'dir')
-    mkdir([expt_folder  '\' expt_name '_RawGray']);
+if ~exist([expt_folder  '\' full_expt_name '_RawGray'],'dir')
+    mkdir([expt_folder  '\' full_expt_name '_RawGray']);
 end
-if ~exist([expt_folder  '\' expt_name '_RawGreen'],'dir')
-    mkdir([expt_folder  '\' expt_name '_RawGreen']);
+if ~exist([expt_folder  '\' full_expt_name '_RawGreen'],'dir')
+    mkdir([expt_folder  '\' full_expt_name '_RawGreen']);
 end
-if ~exist([expt_folder  '\' expt_name '_RawRed'],'dir')
-    mkdir([expt_folder  '\' expt_name '_RawRed']);
+if ~exist([expt_folder  '\' full_expt_name '_RawRed'],'dir')
+    mkdir([expt_folder  '\' full_expt_name '_RawRed']);
 end
 
 init_frame = 1;
 current_frame = init_frame;
 
 for n = 0:5
-    raw_imstack = readStack([folder '\' expt_name '_' num2str(n) '.tif']);
+    if n == 0
+        raw_imstack = readStack([folder '\' base_expt_name '_MMStack_Pos' num2str(pos) '.ome.tif']);
+    else
+        raw_imstack = readStack([folder '\' base_expt_name '_MMStack_Pos' num2str(pos) '_' num2str(n) '.ome.tif']);
+    end
     size_raw_imstack = size(raw_imstack);
     for i = 1:size_raw_imstack(3)/3
         disp(['Writing image ' sprintf('%03d',current_frame)])
-        imwrite(raw_imstack(:,:,3*i-2),[expt_folder  '\' expt_name '_RawGray\'...
-            expt_name '_RawGray_' sprintf('%03d',current_frame) '.tif']);
-        imwrite(raw_imstack(:,:,3*i-1),[expt_folder  '\' expt_name '_RawGreen\'...
-            expt_name '_RawGreen_' sprintf('%03d',current_frame) '.tif']);
-        imwrite(raw_imstack(:,:,3*i-0),[expt_folder  '\' expt_name '_RawRed\'...
-            expt_name '_RawRed_' sprintf('%03d',current_frame) '.tif']);
+        imwrite(raw_imstack(:,:,3*i-2),[expt_folder  '\' full_expt_name '_RawGray\'...
+            full_expt_name '_RawGray_' sprintf('%03d',current_frame) '.tif']);
+        imwrite(raw_imstack(:,:,3*i-1),[expt_folder  '\' full_expt_name '_RawGreen\'...
+            full_expt_name '_RawGreen_' sprintf('%03d',current_frame) '.tif']);
+        imwrite(raw_imstack(:,:,3*i-0),[expt_folder  '\' full_expt_name '_RawRed\'...
+            full_expt_name '_RawRed_' sprintf('%03d',current_frame) '.tif']);
         current_frame = current_frame + 1;
     end
 end
@@ -71,8 +79,8 @@ fclose(fileID);
 
 for  i = startframe:endframe
     disp(['Segmenting frame ' num2str(i)]);
-    raw_main = imread([expt_folder  '\' expt_name '_RawRed\'...
-        expt_name '_RawRed_' sprintf('%03d',i) '.tif']);
+    raw_main = imread([expt_folder  '\' full_expt_name '_RawRed\'...
+        full_expt_name '_RawRed_' sprintf('%03d',i) '.tif']);
     
     gaussian_filtered = imgaussfilt(raw_main,gaussian_width);
 %     figure,imshow(gaussian_filtered,[])

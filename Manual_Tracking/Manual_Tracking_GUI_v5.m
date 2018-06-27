@@ -70,7 +70,7 @@ handles.blue_balance = 0;
 
 %The following default values will be overwritten when GUI is called
 %with arguments
-handles.expt_folder = 'E:\RealStack';
+handles.expt_folder = 'C:\RealStack';
 handles.expt_name = 'DFB_170308_HMEC_1Giii_1_hyperstack_Pos1';
 handles.startframe = 1;
 handles.endframe = 720;
@@ -88,6 +88,8 @@ handles.just_loaded_a_track = false;
 handles.trackorsplit_status = 1;
 
 handles.s = struct;
+handles.s.expt_folder = handles.expt_folder;
+handles.s.expt_name = handles.expt_name;
 handles.s.all_tracknums = [];
 handles.s.startframe = handles.startframe;
 handles.s.endframe = handles.endframe;
@@ -307,7 +309,7 @@ end
 if strcmp(eventdata.Key, 'rightarrow') || strcmp(eventdata.Key, 'd')
     handles = update_t(hObject,eventdata,handles,handles.t + 1);
 end
-if strcmp(eventdata.Key,'1')
+if strcmp(eventdata.Key,'1') || strcmp(eventdata.Key,'space')
     set(handles.uibuttongroup1,'SelectedObject',handles.radiobtn_1);
     handles.trackorsplit_status = 1;
 end
@@ -323,12 +325,12 @@ if strcmp(eventdata.Key,'4')
     set(handles.uibuttongroup1,'SelectedObject',handles.radiobtn_4);
     handles.trackorsplit_status = 4;
 end
-if strcmp(eventdata.Key,'space')
-    pan on
-end
-if strcmp(eventdata.Key,'shift')
-    zoom on
-end
+% if strcmp(eventdata.Key,'space')
+%     pan on
+% end
+% if strcmp(eventdata.Key,'shift')
+%     zoom on
+% end
 
 guidata(hObject,handles)
 
@@ -460,7 +462,7 @@ if ~handles.stacks_loaded
     return
 end
 
-if handles.currently_tracking && ~handles.current_track_divides
+if handles.currently_tracking && handles.current_track_end == -1
     response = questdlg(['You have not marked a division for the current cell. '...
         'Do you still want to terminate the track? If Yes, the previous frame will be marked as this track''s end.']);
     if strcmp(response,'Yes')
@@ -498,6 +500,8 @@ if handles.just_loaded_a_track && handles.current_tracknum ~= 0
     response = questdlg(['Continue tracking previous track ' num2str(handles.current_tracknum) '?']);
     if strcmp(response,'Yes')
         set(handles.currentcell_textbox,'String',['Currently tracking cell ' num2str(handles.current_tracknum)]);
+        handles.current_track_start = handles.s.track_metadata(handles.current_tracknum).firstframe;
+        handles.current_track_end = -1;
         handles.just_loaded_a_track = false;
     elseif strcmp(response,'Cancel')
         return
@@ -506,7 +510,7 @@ end
 
 % If we didn't just load a track or we don't want to keep tracking it, then
 % we need to recolor it all yellow and go to the next track.
-if ~handles.just_loaded_a_track || handles.current_tracknum == 0 || ~strcmp(response,'Yes')
+if handles.current_tracknum == 0 || ~strcmp(response,'Yes')
     
     handles.just_loaded_a_track = false;
     % First, go through and color yellow all cells already tracked.
@@ -534,6 +538,13 @@ if ~handles.just_loaded_a_track || handles.current_tracknum == 0 || ~strcmp(resp
         for i = 1:length(real_clicks_thisframe)
             thisclick = real_clicks_thisframe{i};
             all_tracked_cell_label_nums_thisframe(i) = nonzeros(labels(thisclick(2),thisclick(1)));
+            % An error here can arise if a resegmentation causes a fissure
+            % to appear on top of a previous click: when the program goes
+            % to recolorize, the right-hand side returns an empty vector
+            % and the statement gives an A(:)= B reassignement error. One
+            % workaround is to find the culprit click and change the
+            % handles.s.clicks value for that click by a few pixels so it
+            % is no longer on a fissure.
         end
         if ~isempty(all_tracked_cell_label_nums_thisframe)
             tracked_labels = ismember(bwlabel(segmented_im, 4), all_tracked_cell_label_nums_thisframe);
@@ -547,9 +558,9 @@ if ~handles.just_loaded_a_track || handles.current_tracknum == 0 || ~strcmp(resp
     end
     toc
     
-    
-    
     handles.current_tracknum = handles.current_tracknum + 1;
+    handles.current_track_start = -1;
+    handles.current_track_end = -1;
     set(handles.currentcell_textbox,'String',['Currently tracking cell ' num2str(handles.current_tracknum)]);
     handles.s.all_tracknums = sort(unique([handles.s.all_tracknums, handles.current_tracknum]));
 end
@@ -561,8 +572,6 @@ set(handles.uibuttongroup1,'SelectedObject',handles.radiobtn_1);
 handles.trackorsplit_status = 1;
 
 handles.currently_tracking = true;
-handles.current_track_start = -1;
-handles.current_track_end = -1;
 handles.current_track_divides = false;
 handles = update_t(hObject,eventdata,handles,handles.t);
 guidata(hObject, handles);
@@ -731,7 +740,7 @@ if handles.current_tracknum == 0
 end
 size_click_matrix = size(handles.s.clicks);
 if handles.current_tracknum > size_click_matrix(2)
-    disp(['The click matrix does not include a column for cell ' num2str(handles.current_tracknum)])
+    msgbox(['The click matrix does not include a column for cell ' num2str(handles.current_tracknum)])
     return
 end
 found_a_click = false;
@@ -745,6 +754,7 @@ end
 if ~found_a_click
     disp(['No clicks found for cell ' num2str(handles.current_tracknum)])
 end
+disp(['Track runs from frame ' num2str(handles.current_track_start) ' to frame ' num2str(handles.current_track_end)])
 
 
 % --- Executes on button press in terminate_track_btn.
@@ -752,9 +762,15 @@ function terminate_track_btn_Callback(hObject, eventdata, handles)
 % hObject    handle to terminate_track_btn (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-handles.current_track_end = handles.t;
 
 if handles.currently_tracking
+    response = questdlg('This frame is the last for the current track. Correct?');
+    if strcmp(response,'Yes')
+        handles.current_track_end = handles.t;
+    else
+        return
+    end
+    
     response = questdlg('Save before proceeding to next cell?');
     if strcmp(response,'Yes')
         handles.s.last_tracknum = handles.current_tracknum;

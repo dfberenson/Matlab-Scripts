@@ -54,9 +54,7 @@ overall_pos_end = max([no_refresh_end, refresh_q48h_end, refresh_q24h_end]);
 
 %% Go through each position to make measurements
 tic
-% for pos = overall_pos_start:overall_pos_end
-for pos = refresh_q24h_start:refresh_q24h_end
-    
+for pos = overall_pos_start:overall_pos_end    
     close all
     position = num2str(pos);
 
@@ -312,7 +310,7 @@ if strcmp(expt_type, 'before')
 end
 ylabel('Fraction of Geminin+ cells')
 title('No media refresh')
-saveas(gcf, [figure_folder '\All_DMSO_positions_FractionSG2.png'])
+saveas(gcf, [figure_folder '\NoMediaRefresh_FractionSG2.png'])
 
 figure,plot([startframe*framerate : 1*framerate : endframe*framerate],...
     all_sg2_cells_refresh_q48h(startframe:endframe)./all_total_cells_refresh_q48h(startframe:endframe))
@@ -322,7 +320,7 @@ if strcmp(expt_type, 'before')
 end
 ylabel('Fraction of Geminin+ cells')
 title('Media refresh q48h')
-saveas(gcf, [figure_folder '\All_DMSO_positions_FractionSG2.png'])
+saveas(gcf, [figure_folder '\Refresh_q48h_FractionSG2.png'])
 
 figure,plot([startframe*framerate : 1*framerate : endframe*framerate],...
     all_sg2_cells_refresh_q24h(startframe:endframe)./all_total_cells_refresh_q24h(startframe:endframe))
@@ -332,7 +330,7 @@ if strcmp(expt_type, 'before')
 end
 ylabel('Fraction of Geminin+ cells')
 title('Media refresh q24h')
-saveas(gcf, [figure_folder '\All_DMSO_positions_FractionSG2.png'])
+saveas(gcf, [figure_folder '\Refresh_q24h_FractionSG2.png'])
 
 figure,plot([startframe*framerate : 1*framerate : endframe*framerate],...
     all_total_cells_no_refresh(startframe:endframe)./(no_refresh_end - no_refresh_start + 1))
@@ -342,7 +340,7 @@ if strcmp(expt_type, 'before')
 end
 ylabel('Average number of cells per position')
 title('No media refresh')
-saveas(gcf, [figure_folder '\All_DMSO_positions_FractionSG2.png'])
+saveas(gcf, [figure_folder '\NoMediaRefresh_TotalCells.png'])
 
 figure,plot([startframe*framerate : 1*framerate : endframe*framerate],...
     all_total_cells_refresh_q48h(startframe:endframe)./(refresh_q48h_end - refresh_q48h_start + 1))
@@ -352,14 +350,14 @@ if strcmp(expt_type, 'before')
 end
 ylabel('Average number of cells per position')
 title('Media refresh q48h')
-saveas(gcf, [figure_folder '\All_DMSO_positions_FractionSG2.png'])
+saveas(gcf, [figure_folder '\Refresh_q48h_TotalCells.png'])
 
 figure,plot([startframe*framerate : 1*framerate : endframe*framerate],...
-    all_total_cells_refresh_q24h(startframe:endframe)./(refresh_q24h_end - refresh_q24h_start_start + 1))
+    all_total_cells_refresh_q24h(startframe:endframe)./(refresh_q24h_end - refresh_q24h_start + 1))
 xlabel('Time since DMSO addition (h)')
 if strcmp(expt_type, 'before')
     xlabel('Time since imaging start (h)')
 end
 ylabel('Average number of cells per position')
 title('Media refresh q24h')
-saveas(gcf, [figure_folder '\All_DMSO_positions_FractionSG2.png'])
+saveas(gcf, [figure_folder '\Refresh_q24h_TotalCells.png'])
