@@ -6,7 +6,10 @@ function descendant_struct = get_descendant_measurements(descendant_struct, s, m
 descendant_struct(parent_cellnum).measurements = measurement_table(:, parent_cellnum);
 [d1,d2] = find_daughters(s, parent_cellnum);
 if d1 == 0 && d2 == 0
-    descendant_struct(parent_cellnum).divides = false;
+    if s.track_metadata(parent_cellnum).mitosis > 0
+        descendant_struct(parent_cellnum).divides = true;
+    else
+        descendant_struct(parent_cellnum).divides = false;
     return
 else
     descendant_struct(parent_cellnum).divides = true;

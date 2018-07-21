@@ -19,7 +19,7 @@ load([expt_folder '\' expt_name '\TrackingData.mat']);
 s = saved_data;
 
 blank_field = double(imread('C:\Users\Skotheim Lab\Desktop\blank-field.tif'));
-blank_field_mean = mean(mean(blank_field));
+blank_field_mean = mean(blank_field(:));
 
 
 % cellnum = input('Choose a cell number to plot: ');

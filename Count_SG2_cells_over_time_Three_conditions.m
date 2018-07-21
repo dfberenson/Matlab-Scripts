@@ -1,26 +1,28 @@
+
+clear all
+close all
+
 %% Initalize variables
 all_data = struct;
 
 source_folder = 'F:\DFB_imaging_experiments';
 source_folder = 'I:\';
-expt_name = 'DFB_180703_HMEC_1GFiii_palbo_1';
-expt_type = 'after';
+expt_name = 'DFB_180712_HMEC_1GFiii_phototox_1';
+expt_type = 'before';
 infix = '_MMStack_Pos';
 suffixes = '.ome.tif';
 max_stack_num = 0;
-framerate = 1/2;
+framerate = 3;
 startframe = 1;
-palbo_conc = 40;
-hours_after_drug_addition_to_expt_start = 1.7;
-drug_addition_after_frames = [45.5];
-% Drug addition is halfway between the before- and after-frames, so
-% subtract 0.5 instead of 1.
-drug_addition_after_hours = hours_after_drug_addition_to_expt_start + (drug_addition_after_frames-0.5)*framerate;
+palbo_conc = 0;
+hours_after_drug_addition_to_expt_start = 0;
+drug_addition_after_frames = [0];
+drug_addition_after_hours = 0;
 
-order_of_colors = 'prg_skip_pg';
+order_of_colors = 'rgp';
 
 gaussian_width = 2;
-segmentation_threshold = 200;
+segmentation_threshold = 150;
 strel_shape = 'disk';
 strel_size = 1;
 se = strel(strel_shape,strel_size);
@@ -30,7 +32,7 @@ if ~exist([source_folder '\' expt_name  '\Segmentation'],'dir')
 end
 
 max_area = 900;
-geminin_threshold = 150;
+geminin_threshold = 135;
 
 fileID = fopen([source_folder '\' expt_name '\Segmentation\Segmentation_Parameters.txt'],'w');
 fprintf(fileID,['Gaussian filter width: ' num2str(gaussian_width) '\r\n']);
@@ -41,31 +43,28 @@ fprintf(fileID,['Max area: ' num2str(max_area) '\r\n']);
 fprintf(fileID,['Geminin threshold: ' num2str(geminin_threshold) '\r\n']);
 fclose(fileID);
 
-PBS_pos_start = 1;
-PBS_pos_end = 8;
-palbo_pos_start = 9;
-palbo_pos_end = 24;
+cond1_title = 'MEGM medium with constant mCherry illumination';
+cond2_title = 'MEGM medium';
+cond3_title = 'MEGM medium replaced q24h';
 
-overall_pos_start = min(PBS_pos_start, palbo_pos_start);
-overall_pos_end = max(PBS_pos_end, palbo_pos_end);
+cond1_pos_start = 1;
+cond1_pos_end = 8;
+cond2_pos_start = 9;
+cond2_pos_end = 16;
+cond3_pos_start = 17;
+cond3_pos_end = 24;
 
-PBS_positions = PBS_pos_start:PBS_pos_end;
-palbo_positions = palbo_pos_start:palbo_pos_end;
+overall_pos_start = min([cond1_pos_start,cond2_pos_start,cond3_pos_start]);
+overall_pos_end = max([cond1_pos_end,cond2_pos_end,cond3_pos_end]);
+
+cond1_positions = cond1_pos_start:cond1_pos_end;
+cond2_positions = cond2_pos_start:cond2_pos_end;
+cond3_positions = cond3_pos_start:cond3_pos_end;
 
 % PBS_positions = [1 2 3 5 6 7 8 9 10 11 12];
 
-overall_positions = [PBS_positions palbo_positions];
+overall_positions = [cond1_positions cond2_positions cond3_positions];
 
-%
-% no_refresh_start = 1;
-% no_refresh_end = 6;
-% refresh_q48h_start = 7;
-% refresh_q48h_end = 12;
-% refresh_q24h_start = 13;
-% refresh_q24h_end = 18;
-%
-% overall_pos_start = min([no_refresh_start, refresh_q48h_start, refresh_q24h_start]);
-% overall_pos_end = max([no_refresh_end, refresh_q48h_end, refresh_q24h_end]);
 
 %% Go through each position to make measurements
 tic
@@ -142,25 +141,32 @@ for pos = overall_positions
             disp(['Position ' position '. Segmenting frame ' num2str(i)]);
             
             if i <= imstack0_length/3
+                raw_ch1 = imstack0(:,:,3*i-2);
                 raw_ch2 = imstack0(:,:,3*i-1);
                 raw_ch3 = imstack0(:,:,3*i-0);
             elseif i <= (imstack0_length + imstack1_length)/3
+                raw_ch1 = imstack1(:,:,3*(i-imstack0_length/3)-2);
                 raw_ch2 = imstack1(:,:,3*(i-imstack0_length/3)-1);
                 raw_ch3 = imstack1(:,:,3*(i-imstack0_length/3)-0);
             elseif i <= (imstack0_length + imstack1_length + imstack2_length)/3
+                raw_ch1 = imstack2(:,:,3*(i-imstack0_length/3-imstack1_length/3)-2);
                 raw_ch2 = imstack2(:,:,3*(i-imstack0_length/3-imstack1_length/3)-1);
                 raw_ch3 = imstack2(:,:,3*(i-imstack0_length/3-imstack1_length/3)-0);
             elseif i <= (imstack0_length + imstack1_length + imstack2_length + imstack3_length)/3
+                raw_ch1 = imstack3(:,:,3*(i-imstack0_length/3-imstack1_length/3-imstack2_length/3)-2);
                 raw_ch2 = imstack3(:,:,3*(i-imstack0_length/3-imstack1_length/3-imstack2_length/3)-1);
                 raw_ch3 = imstack3(:,:,3*(i-imstack0_length/3-imstack1_length/3-imstack2_length/3)-0);
             end
             
-            if strcmp(order_of_colors, 'rg')
+            if strcmp(order_of_colors, 'prg')
                 raw_red = raw_ch2;
                 raw_green = raw_ch3;
-            elseif strcmp(order_of_colors, 'gr')
+            elseif strcmp(order_of_colors, 'pgr')
                 raw_green = raw_ch2;
                 raw_red = raw_ch3;
+            elseif strcmp(order_of_colors, 'rgp')
+                raw_red = raw_ch1;
+                raw_green = raw_ch2;
             end
             %     figure,imshow(raw_red,[])
             gaussian_filtered = imgaussfilt(raw_red,gaussian_width);
@@ -296,7 +302,7 @@ end
 
 save([figure_folder '\' expt_name '.mat'], 'source_folder', 'expt_name', 'infix', 'suffixes','expt_type',...
     'framerate','startframe','endframe','hours_after_drug_addition_to_expt_start','drug_addition_after_hours',...
-    'PBS_positions', 'palbo_positions', 'overall_positions', 'segmentation_threshold', 'max_area', 'geminin_threshold',...
+    'cond1_positions', 'cond2_positions', 'cond3_positions', 'overall_positions', 'segmentation_threshold', 'max_area', 'geminin_threshold',...
     'order_of_colors','all_data')
 
 % save([figure_folder '\' expt_name '.mat'], 'source_folder', 'expt_name', 'infix', 'suffixes','expt_type',...
@@ -308,23 +314,29 @@ save([figure_folder '\' expt_name '.mat'], 'source_folder', 'expt_name', 'infix'
 
 % Combine data across positions
 for i = startframe:endframe
-    all_sg2_cells_PBS(i) = 0;
-    all_total_cells_PBS(i) = 0;
-    for pos = PBS_positions
-        all_sg2_cells_PBS(i) = all_sg2_cells_PBS(i) + all_data(pos).sg2_cells(i);
-        all_total_cells_PBS(i) = all_total_cells_PBS(i) + all_data(pos).total_cells(i);
+    all_sg2_cells_cond1(i) = 0;
+    all_total_cells_cond1(i) = 0;
+    for pos = cond1_positions
+        all_sg2_cells_cond1(i) = all_sg2_cells_cond1(i) + all_data(pos).sg2_cells(i);
+        all_total_cells_cond1(i) = all_total_cells_cond1(i) + all_data(pos).total_cells(i);
     end
-    all_sg2_cells_palbo(i) = 0;
-    all_total_cells_palbo(i) = 0;
-    for pos = palbo_positions
-        all_sg2_cells_palbo(i) = all_sg2_cells_palbo(i) + all_data(pos).sg2_cells(i);
-        all_total_cells_palbo(i) = all_total_cells_palbo(i) + all_data(pos).total_cells(i);
+    all_sg2_cells_cond2(i) = 0;
+    all_total_cells_cond2(i) = 0;
+    for pos = cond2_positions
+        all_sg2_cells_cond2(i) = all_sg2_cells_cond2(i) + all_data(pos).sg2_cells(i);
+        all_total_cells_cond2(i) = all_total_cells_cond2(i) + all_data(pos).total_cells(i);
+    end
+    all_sg2_cells_cond3(i) = 0;
+    all_total_cells_cond3(i) = 0;
+    for pos = cond3_positions
+        all_sg2_cells_cond3(i) = all_sg2_cells_cond3(i) + all_data(pos).sg2_cells(i);
+        all_total_cells_cond3(i) = all_total_cells_cond3(i) + all_data(pos).total_cells(i);
     end
 end
 
 
 % Plot
-figure,plot(timepoints, all_sg2_cells_PBS(startframe:endframe)./all_total_cells_PBS(startframe:endframe))
+figure,plot(timepoints, all_sg2_cells_cond1(startframe:endframe)./all_total_cells_cond1(startframe:endframe))
 hold on
 for drug_addition_time = 1:length(drug_addition_after_hours)
     line([drug_addition_after_hours(drug_addition_time) drug_addition_after_hours(drug_addition_time)],...
@@ -336,9 +348,10 @@ if strcmp(expt_type, 'before')
     xlabel('Time since imaging start (h)')
 end
 ylabel('Fraction of Geminin+ cells')
-saveas(gcf, [figure_folder '\All_PBS_positions_FractionSG2.png'])
+title(cond1_title)
+saveas(gcf, [figure_folder '\All_cond1_positions_FractionSG2.png'])
 
-figure,plot(timepoints, all_sg2_cells_palbo(startframe:endframe)./all_total_cells_palbo(startframe:endframe))
+figure,plot(timepoints, all_sg2_cells_cond2(startframe:endframe)./all_total_cells_cond2(startframe:endframe))
 hold on
 for drug_addition_time = 1:length(drug_addition_after_hours)
     line([drug_addition_after_hours(drug_addition_time) drug_addition_after_hours(drug_addition_time)],...
@@ -350,9 +363,25 @@ if strcmp(expt_type, 'before')
     xlabel('Time since imaging start (h)')
 end
 ylabel('Fraction of Geminin+ cells')
-saveas(gcf, [figure_folder '\All_Palbo_positions_FractionSG2.png'])
+title(cond2_title)
+saveas(gcf, [figure_folder '\All_cond2_positions_FractionSG2.png'])
 
-figure,plot(timepoints, all_total_cells_PBS(startframe:endframe)./length(PBS_positions))
+figure,plot(timepoints, all_sg2_cells_cond3(startframe:endframe)./all_total_cells_cond3(startframe:endframe))
+hold on
+for drug_addition_time = 1:length(drug_addition_after_hours)
+    line([drug_addition_after_hours(drug_addition_time) drug_addition_after_hours(drug_addition_time)],...
+        [0 1], 'Color', 'k')
+end
+hold off
+xlabel(['Time since ' num2str(palbo_conc) 'nM palbo addition (h)'])
+if strcmp(expt_type, 'before')
+    xlabel('Time since imaging start (h)')
+end
+ylabel('Fraction of Geminin+ cells')
+title(cond3_title)
+saveas(gcf, [figure_folder '\All_cond3_positions_FractionSG2.png'])
+
+figure,plot(timepoints, all_total_cells_cond1(startframe:endframe)./length(cond1_positions))
 % Divide by number of corresponding positions to normalize per position
 hold on
 for drug_addition_time = 1:length(drug_addition_after_hours)
@@ -365,9 +394,10 @@ if strcmp(expt_type, 'before')
     xlabel('Time since imaging start (h)')
 end
 ylabel('Average number of cells per position')
-saveas(gcf, [figure_folder '\All_PBS_positions_TotalCells.png'])
+title(cond1_title)
+saveas(gcf, [figure_folder '\All_cond1_positions_TotalCells.png'])
 
-figure,plot(timepoints, all_total_cells_palbo(startframe:endframe)./length(palbo_positions))
+figure,plot(timepoints, all_total_cells_cond2(startframe:endframe)./length(cond2_positions))
 hold on
 for drug_addition_time = 1:length(drug_addition_after_hours)
     line([drug_addition_after_hours(drug_addition_time) drug_addition_after_hours(drug_addition_time)],...
@@ -379,9 +409,23 @@ if strcmp(expt_type, 'before')
     xlabel('Time since imaging start (h)')
 end
 ylabel('Average number of cells per position')
-saveas(gcf, [figure_folder '\All_Palbo_positions_TotalCells.png'])
+title(cond2_title)
+saveas(gcf, [figure_folder '\All_cond2_positions_TotalCells.png'])
 
-
+figure,plot(timepoints, all_total_cells_cond3(startframe:endframe)./length(cond3_positions))
+hold on
+for drug_addition_time = 1:length(drug_addition_after_hours)
+    line([drug_addition_after_hours(drug_addition_time) drug_addition_after_hours(drug_addition_time)],...
+        [0 max_total_cells], 'Color', 'k')
+end
+hold off
+xlabel(['Time since ' num2str(palbo_conc) 'nM palbo addition (h)'])
+if strcmp(expt_type, 'before')
+    xlabel('Time since imaging start (h)')
+end
+ylabel('Average number of cells per position')
+title(cond3_title)
+saveas(gcf, [figure_folder '\All_cond3_positions_TotalCells.png'])
 
 %% Plot all positions combined for refresh/no refresh comparison
 

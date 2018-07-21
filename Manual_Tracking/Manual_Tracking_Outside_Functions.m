@@ -10,8 +10,8 @@ base_expt_name = 'DFB_170308_HMEC_1Giii_1';
 pos = 1;
 full_expt_name = [base_expt_name '_Pos' num2str(pos)];
 expt_folder = [folder '\' full_expt_name];
-startframe = 1;
-endframe = 129;
+order_of_colors = 'rg';
+max_n = 5;
 
 
 
@@ -34,21 +34,30 @@ end
 init_frame = 1;
 current_frame = init_frame;
 
-for n = 0:5
+for n = 0:max_n
     if n == 0
-        raw_imstack = readStack([folder '\' base_expt_name '_MMStack_Pos' num2str(pos) '.ome.tif']);
+        raw_imstack = readStack([expt_folder '\' base_expt_name '_MMStack_Pos' num2str(pos) '.ome.tif']);
     else
-        raw_imstack = readStack([folder '\' base_expt_name '_MMStack_Pos' num2str(pos) '_' num2str(n) '.ome.tif']);
+        raw_imstack = readStack([expt_folder '\' base_expt_name '_MMStack_Pos' num2str(pos) '_' num2str(n) '.ome.tif']);
     end
     size_raw_imstack = size(raw_imstack);
     for i = 1:size_raw_imstack(3)/3
         disp(['Writing image ' sprintf('%03d',current_frame)])
-        imwrite(raw_imstack(:,:,3*i-2),[expt_folder  '\' full_expt_name '_RawGray\'...
-            full_expt_name '_RawGray_' sprintf('%03d',current_frame) '.tif']);
-        imwrite(raw_imstack(:,:,3*i-1),[expt_folder  '\' full_expt_name '_RawGreen\'...
-            full_expt_name '_RawGreen_' sprintf('%03d',current_frame) '.tif']);
-        imwrite(raw_imstack(:,:,3*i-0),[expt_folder  '\' full_expt_name '_RawRed\'...
-            full_expt_name '_RawRed_' sprintf('%03d',current_frame) '.tif']);
+        if strcmp(order_of_colors,'gr')
+            imwrite(raw_imstack(:,:,3*i-2),[expt_folder  '\' full_expt_name '_RawGray\'...
+                full_expt_name '_RawGray_' sprintf('%03d',current_frame) '.tif']);
+            imwrite(raw_imstack(:,:,3*i-1),[expt_folder  '\' full_expt_name '_RawGreen\'...
+                full_expt_name '_RawGreen_' sprintf('%03d',current_frame) '.tif']);
+            imwrite(raw_imstack(:,:,3*i-0),[expt_folder  '\' full_expt_name '_RawRed\'...
+                full_expt_name '_RawRed_' sprintf('%03d',current_frame) '.tif']);
+        elseif strcmp(order_of_colors,'rg')
+            imwrite(raw_imstack(:,:,3*i-2),[expt_folder  '\' full_expt_name '_RawGray\'...
+                full_expt_name '_RawGray_' sprintf('%03d',current_frame) '.tif']);
+            imwrite(raw_imstack(:,:,3*i-1),[expt_folder  '\' full_expt_name '_RawRed\'...
+                full_expt_name '_RawRed_' sprintf('%03d',current_frame) '.tif']);
+            imwrite(raw_imstack(:,:,3*i-0),[expt_folder  '\' full_expt_name '_RawGreen\'...
+                full_expt_name '_RawGreen_' sprintf('%03d',current_frame) '.tif']);
+        end
         current_frame = current_frame + 1;
     end
 end
@@ -83,7 +92,7 @@ for  i = startframe:endframe
         full_expt_name '_RawRed_' sprintf('%03d',i) '.tif']);
     
     gaussian_filtered = imgaussfilt(raw_main,gaussian_width);
-%     figure,imshow(gaussian_filtered,[])
+    %     figure,imshow(gaussian_filtered,[])
     thresholded = gaussian_filtered > threshold;
     % figure,imshow(thresholded)
     im_opened = imopen(thresholded,se);
@@ -93,8 +102,8 @@ for  i = startframe:endframe
     
     imwrite(im_closed,[expt_folder '\Segmentation\Segmented_' sprintf('%03d',i) '.tif']);
     
-%     im_overlaid = imoverlay_fast(raw_main*200, bwperim(im_closed));
-%     overlaid_movie(:,:,i+1-startframe) = im_overlaid;
+    %     im_overlaid = imoverlay_fast(raw_main*200, bwperim(im_closed));
+    %     overlaid_movie(:,:,i+1-startframe) = im_overlaid;
 end
 % implay(overlaid_movie)
 
