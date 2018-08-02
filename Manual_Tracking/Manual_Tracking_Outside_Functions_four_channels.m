@@ -11,8 +11,9 @@ base_expt_name = 'DFB_180627_HMEC_1GFiii_palbo_2';
 pos = 15;
 full_expt_name = [base_expt_name '_Pos' num2str(pos)];
 expt_folder = [folder '\' full_expt_name];
-order_of_colors = 'rg';
-max_n = 3;
+order_of_colors = 'pgrf';
+% phase green red farred
+max_n = 1;
 
 %% Put images in correct folders
 
@@ -60,53 +61,3 @@ for n = 0:max_n
         current_frame = current_frame + 1;
     end
 end
-
-%% Segment programatically
-
-% clear overlaid_movie
-
-
-startframe = 1;
-endframe = 421;
-gaussian_width = 2;
-threshold = 200;
-strel_shape = 'disk';
-strel_size = 1;
-se = strel(strel_shape,strel_size);
-
-if ~exist([expt_folder  '\Segmentation'],'dir')
-    mkdir([expt_folder  '\Segmentation']);
-end
-
-fileID = fopen([expt_folder '\Segmentation\Segmentation_Parameters.txt'],'w');
-fprintf(fileID,['Gaussian filter width: ' num2str(gaussian_width) '\r\n']);
-fprintf(fileID,['Threshold > ' num2str(threshold) '\r\n']);
-fprintf(fileID,['imopen with strel: ' strel_shape ' with size ' num2str(strel_size) '\r\n']);
-fprintf(fileID,['imclose with strel: ' strel_shape ' with size ' num2str(strel_size) '\r\n']);
-fclose(fileID);
-
-for  i = startframe:endframe
-    disp(['Segmenting frame ' num2str(i)]);
-    raw_main = imread([expt_folder  '\' full_expt_name '_RawRed\'...
-        full_expt_name '_RawRed_' sprintf('%03d',i) '.tif']);
-    
-    gaussian_filtered = imgaussfilt(raw_main,gaussian_width);
-    %     figure,imshow(gaussian_filtered,[])
-    thresholded = gaussian_filtered > threshold;
-    % figure,imshow(thresholded)
-    im_opened = imopen(thresholded,se);
-    % figure,imshow(im_opened)
-    im_closed = imclose(im_opened,se);
-    % figure,imshow(im_closed)
-    
-    imwrite(im_closed,[expt_folder '\Segmentation\Segmented_' sprintf('%03d',i) '.tif']);
-    
-    %     im_overlaid = imoverlay_fast(raw_main*200, bwperim(im_closed));
-    %     overlaid_movie(:,:,i+1-startframe) = im_overlaid;
-end
-% implay(overlaid_movie)
-
-if ~exist([expt_folder  '\Resegmentation\'],'dir')
-    mkdir([expt_folder  '\Resegmentation\']);
-end
-

@@ -1,35 +1,35 @@
-function varargout = Manual_Tracking_GUI_v6(varargin)
-% MANUAL_TRACKING_GUI_V6 MATLAB code for Manual_Tracking_GUI_v6.fig
-%      MANUAL_TRACKING_GUI_V6, by itself, creates a new MANUAL_TRACKING_GUI_V6 or raises the existing
+function varargout = Manual_Tracking_GUI_v4(varargin)
+% MANUAL_TRACKING_GUI_V4 MATLAB code for Manual_Tracking_GUI_v4.fig
+%      MANUAL_TRACKING_GUI_V4, by itself, creates a new MANUAL_TRACKING_GUI_V4 or raises the existing
 %      singleton*.
 %
-%      H = MANUAL_TRACKING_GUI_V6 returns the handle to a new MANUAL_TRACKING_GUI_V6 or the handle to
+%      H = MANUAL_TRACKING_GUI_V4 returns the handle to a new MANUAL_TRACKING_GUI_V4 or the handle to
 %      the existing singleton*.
 %
-%      MANUAL_TRACKING_GUI_V6('CALLBACK',hObject,eventData,handles,...) calls the local
-%      function named CALLBACK in MANUAL_TRACKING_GUI_V6.M with the given input arguments.
+%      MANUAL_TRACKING_GUI_V4('CALLBACK',hObject,eventData,handles,...) calls the local
+%      function named CALLBACK in MANUAL_TRACKING_GUI_V4.M with the given input arguments.
 %
-%      MANUAL_TRACKING_GUI_V6('Property','Value',...) creates a new MANUAL_TRACKING_GUI_V6 or raises the
+%      MANUAL_TRACKING_GUI_V4('Property','Value',...) creates a new MANUAL_TRACKING_GUI_V4 or raises the
 %      existing singleton*.  Starting from the left, property value pairs are
-%      applied to the GUI before Manual_Tracking_GUI_v6_OpeningFcn gets called.  An
+%      applied to the GUI before Manual_Tracking_GUI_v4_OpeningFcn gets called.  An
 %      unrecognized property name or invalid value makes property application
-%      stop.  All inputs are passed to Manual_Tracking_GUI_v6_OpeningFcn via varargin.
+%      stop.  All inputs are passed to Manual_Tracking_GUI_v4_OpeningFcn via varargin.
 %
 %      *See GUI Options on GUIDE's Tools menu.  Choose "GUI allows only one
 %      instance to run (singleton)".
 %
 % See also: GUIDE, GUIDATA, GUIHANDLES
 
-% Edit the above text to modify the response to help Manual_Tracking_GUI_v6
+% Edit the above text to modify the response to help Manual_Tracking_GUI_v4
 
-% Last Modified by GUIDE v2.5 26-Jun-2018 19:37:49
+% Last Modified by GUIDE v2.5 02-May-2018 13:39:52
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
 gui_State = struct('gui_Name',       mfilename, ...
     'gui_Singleton',  gui_Singleton, ...
-    'gui_OpeningFcn', @Manual_Tracking_GUI_v6_OpeningFcn, ...
-    'gui_OutputFcn',  @Manual_Tracking_GUI_v6_OutputFcn, ...
+    'gui_OpeningFcn', @Manual_Tracking_GUI_v4_OpeningFcn, ...
+    'gui_OutputFcn',  @Manual_Tracking_GUI_v4_OutputFcn, ...
     'gui_LayoutFcn',  [] , ...
     'gui_Callback',   []);
 if nargin && ischar(varargin{1})
@@ -44,15 +44,15 @@ end
 % End initialization code - DO NOT EDIT
 
 
-% --- Executes just before Manual_Tracking_GUI_v6 is made visible.
-function Manual_Tracking_GUI_v6_OpeningFcn(hObject, eventdata, handles, varargin)
+% --- Executes just before Manual_Tracking_GUI_v4 is made visible.
+function Manual_Tracking_GUI_v4_OpeningFcn(hObject, eventdata, handles, varargin)
 % This function has no output args, see OutputFcn.
 % hObject    handle to figure
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-% varargin   command line arguments to Manual_Tracking_GUI_v6 (see VARARGIN)
+% varargin   command line arguments to Manual_Tracking_GUI_v4 (see VARARGIN)
 
-% Choose default command line output for Manual_Tracking_GUI_v6
+% Choose default command line output for Manual_Tracking_GUI_v4
 handles.output = hObject;
 
 % Update handles structure
@@ -64,16 +64,16 @@ handles.current_track_divides = false;
 handles.resegmentation_undoable = false;
 
 handles.segmentation_thresh = 0;
-handles.red_balance = 200;
-handles.green_balance = 50;
+handles.red_balance = 20;
+handles.green_balance = 0;
 handles.blue_balance = 0;
 
 %The following default values will be overwritten when GUI is called
 %with arguments
-handles.expt_folder = 'C:\Users\Skotheim Lab\Desktop\Manual_Tracking';
-handles.expt_name = 'DFB_180627_HMEC_1GFiii_palbo_2_Pos15';
+handles.expt_folder = 'E:\';
+handles.expt_name = 'BigStack1';
 handles.startframe = 1;
-handles.endframe = 421;
+handles.endframe = 124;
 
 %Overwrite default values when GUI is called with arguments
 if length(varargin) >= 4
@@ -84,12 +84,9 @@ if length(varargin) >= 4
 end
 
 handles.current_tracknum = 0;
-handles.just_loaded_a_track = false;
 handles.trackorsplit_status = 1;
 
 handles.s = struct;
-handles.s.expt_folder = handles.expt_folder;
-handles.s.expt_name = handles.expt_name;
 handles.s.all_tracknums = [];
 handles.s.startframe = handles.startframe;
 handles.s.endframe = handles.endframe;
@@ -102,14 +99,16 @@ handles.s.track_metadata = struct;
 handles.s.resegmentation_clicks = [];
 
 handles.raw_red_prefix = [handles.expt_folder '\' handles.expt_name '\'...
-    handles.expt_name '_RawRed\' handles.expt_name '_RawRed'];
+    handles.expt_name '_Raw\' handles.expt_name '_Raw'];
 handles.raw_green_prefix = [handles.expt_folder '\' handles.expt_name '\'...
-    handles.expt_name '_RawGreen\' handles.expt_name '_RawGreen'];
+    handles.expt_name '_Raw\' handles.expt_name '_Raw'];
 handles.main_raw_prefix = handles.raw_red_prefix;
-handles.segmentation_prefix = [handles.expt_folder '\' handles.expt_name '\'...
-    'Segmentation\Segmented'];
-handles.resegmentation_prefix = [handles.expt_folder '\' handles.expt_name '\'...
-    'Resegmentation\Resegmented'];
+handles.reclass_prefix = [handles.expt_folder '\' handles.expt_name '\'...
+    handles.expt_name '_Object Reclassification\' handles.expt_name...
+    '_Object Reclassification'];
+handles.class_prefix = [handles.expt_folder '\' handles.expt_name '\'...
+    handles.expt_name '_Object Classification\' handles.expt_name...
+    '_Object Classification'];
 handles.trackedoutlined_prefix = [handles.expt_folder '\' handles.expt_name '\'...
     handles.expt_name '_TrackedOutlined\' handles.expt_name '_TrackedOutlined'];
 if ~exist([handles.expt_folder '\' handles.expt_name '\'...
@@ -120,12 +119,12 @@ end
 
 guidata(hObject, handles);
 
-% UIWAIT makes Manual_Tracking_GUI_v6 wait for user response (see UIRESUME)
+% UIWAIT makes Manual_Tracking_GUI_v4 wait for user response (see UIRESUME)
 % uiwait(handles.figure1);
 
 
 % --- Outputs from this function are returned to the command line.
-function varargout = Manual_Tracking_GUI_v6_OutputFcn(hObject, eventdata, handles)
+function varargout = Manual_Tracking_GUI_v4_OutputFcn(hObject, eventdata, handles)
 % varargout  cell array for returning output args (see VARARGOUT);
 % hObject    handle to figure
 % eventdata  reserved - to be defined in a future version of MATLAB
@@ -174,10 +173,10 @@ function LoadSegmentation_btn_Callback(hObject, eventdata, handles)
 
 handles.t = handles.startframe;
 
-if exist([handles.resegmentation_prefix '_' sprintf('%03d',handles.t) '.tif'])
-            segmented_im = imread([handles.resegmentation_prefix '_' sprintf('%03d',handles.t) '.tif']);
+if exist([handles.reclass_prefix '_' sprintf('%03d',handles.t) '.tif'])
+            segmented_im = imread([handles.reclass_prefix '_' sprintf('%03d',handles.t) '.tif']);
         else
-            segmented_im = imread([handles.segmentation_prefix '_' sprintf('%03d',handles.t) '.tif']);
+            segmented_im = imread([handles.class_prefix '_' sprintf('%03d',handles.t) '.tif']);
         end
 [handles.Y,handles.X] = size(segmented_im);
 handles.T = handles.endframe - handles.startframe + 1;
@@ -200,10 +199,10 @@ for t = 1:handles.T
         disp(['Outlining image ' num2str(t) ' in white.'])
         raw_im_red = imread([handles.raw_red_prefix '_' sprintf('%03d',t) '.tif']);
         raw_im_green = imread([handles.raw_green_prefix '_' sprintf('%03d',t) '.tif']);
-        if exist([handles.resegmentation_prefix '_' sprintf('%03d',t) '.tif'])
-            segmented_im = imread([handles.resegmentation_prefix '_' sprintf('%03d',t) '.tif']);
+        if exist([handles.reclass_prefix '_' sprintf('%03d',t) '.tif'])
+            segmented_im = imread([handles.reclass_prefix '_' sprintf('%03d',t) '.tif']);
         else
-            segmented_im = imread([handles.segmentation_prefix '_' sprintf('%03d',t) '.tif']);
+            segmented_im = imread([handles.class_prefix '_' sprintf('%03d',t) '.tif']);
         end
         
         color_im(:,:,1) = raw_im_red*handles.red_balance;
@@ -223,11 +222,8 @@ if strcmp(response,'Yes')
         handles.s = previous_session.saved_data;
         assert(handles.s.startframe == handles.startframe && handles.s.endframe == handles.endframe);
         handles.current_tracknum = handles.s.last_tracknum;
-        handles.just_loaded_a_track = true;
         set(handles.currentcell_textbox,'String',['Currently tracking cell ' num2str(handles.current_tracknum)]);
     end
-elseif strcmp(response,'Cancel')
-    return
 end
 
 handles.stacks_loaded = true;
@@ -309,7 +305,7 @@ end
 if strcmp(eventdata.Key, 'rightarrow') || strcmp(eventdata.Key, 'd')
     handles = update_t(hObject,eventdata,handles,handles.t + 1);
 end
-if strcmp(eventdata.Key,'1') || strcmp(eventdata.Key,'space')
+if strcmp(eventdata.Key,'1')
     set(handles.uibuttongroup1,'SelectedObject',handles.radiobtn_1);
     handles.trackorsplit_status = 1;
 end
@@ -325,22 +321,12 @@ if strcmp(eventdata.Key,'4')
     set(handles.uibuttongroup1,'SelectedObject',handles.radiobtn_4);
     handles.trackorsplit_status = 4;
 end
-if strcmp(eventdata.Key,'5')
-    if ~handles.resegmentation_undoable
-        return
-    end
-    imwrite(handles.old_segmented_im, [handles.resegmentation_prefix '_' sprintf('%03d',handles.t) '.tif']);
-    imwrite(handles.old_color_im_outlined, [handles.trackedoutlined_prefix '_' sprintf('%03d',handles.t) '.tif']);
-    handles = update_t(hObject,eventdata,handles,handles.t);
-    handles.s.resegmentation_clicks = handles.s.resegmentation_clicks(1:end-1);
-    handles.resegmentation_undoable = false;
+if strcmp(eventdata.Key,'space')
+    pan on
 end
-% if strcmp(eventdata.Key,'space')
-%     pan on
-% end
-% if strcmp(eventdata.Key,'shift')
-%     zoom on
-% end
+if strcmp(eventdata.Key,'shift')
+    zoom on
+end
 
 guidata(hObject,handles)
 
@@ -382,10 +368,10 @@ y = round(eventdata.IntersectionPoint(2));
 disp(['You touched the axes at ' num2str(x) ' ' num2str(y)])
 if handles.currently_tracking
     t = handles.t;
-    if exist([handles.resegmentation_prefix '_' sprintf('%03d',t) '.tif'])
-        segmented_im = imread([handles.resegmentation_prefix '_' sprintf('%03d',t) '.tif']);
+    if exist([handles.reclass_prefix '_' sprintf('%03d',t) '.tif'])
+        segmented_im = imread([handles.reclass_prefix '_' sprintf('%03d',t) '.tif']);
     else
-        segmented_im = imread([handles.segmentation_prefix '_' sprintf('%03d',t) '.tif']);
+        segmented_im = imread([handles.class_prefix '_' sprintf('%03d',t) '.tif']);
     end
     color_im_outlined = imread([handles.trackedoutlined_prefix '_'...
         sprintf('%03d',handles.t) '.tif']);
@@ -423,9 +409,9 @@ if handles.currently_tracking
             handles = update_t(hObject,eventdata,handles,handles.t + 1);
             [daughters_x,daughters_y] = ginput_white(2);
             handles.s.track_metadata(handles.current_tracknum).daughter1_xy...
-                = [round(daughters_x(1)) round(daughters_y(1))];
+                = [daughters_x(1) daughters_y(1)];
             handles.s.track_metadata(handles.current_tracknum).daughter2_xy...
-                = [round(daughters_x(2)) round(daughters_y(2))];
+                = [daughters_x(2) daughters_y(2)];
         else
             props = regionprops(labels,'Image','BoundingBox');
             boundingBox_vals = props(clicked_label).BoundingBox;
@@ -443,7 +429,7 @@ if handles.currently_tracking
             segmented_im(y_min:y_max, x_min:x_max) = segmented_bounding_box;
             
             % Save the new segmentation as a reclassified image
-            imwrite(segmented_im, [handles.resegmentation_prefix '_' sprintf('%03d',t) '.tif']);
+            imwrite(segmented_im, [handles.reclass_prefix '_' sprintf('%03d',t) '.tif']);
             
             % Save the new cell boundaries
             newperim = bwperim(separated_cells);
@@ -454,7 +440,7 @@ if handles.currently_tracking
                 sprintf('%03d',t) '.tif']);
             
             handles = update_t(hObject,eventdata,handles,handles.t);
-            handles.s.resegmentation_clicks = [handles.s.resegmentation_clicks; {[handles.trackorsplit_status,handles.t,x,y]}];
+            handles.s.resegmentation_clicks = [handles.resegmentation_clicks; {[handles.trackorsplit_status,x,y]}];
             handles.resegmentation_undoable = true;
         end
     end
@@ -472,108 +458,52 @@ if ~handles.stacks_loaded
     return
 end
 
-if handles.currently_tracking && handles.current_track_end == -1
-    response = questdlg(['You have not marked a division for the current cell. '...
-        'Do you still want to terminate the track? If Yes, the previous frame will be marked as this track''s end.']);
+if handles.currently_tracking && ~handles.current_track_divides
+    response = questdlg('You have not marked a division for the current cell. Terminate track after this frame anyways?');
     if strcmp(response,'Yes')
-        handles.current_track_end = handles.t-1;
+        handles.current_track_end = handles.t;
     else
         return
     end
 end
 
-if handles.currently_tracking
-    response = questdlg('Save before proceeding to next cell?');
-    if strcmp(response,'Yes')
-        handles.s.last_tracknum = handles.current_tracknum;
-        handles.s.track_metadata(handles.current_tracknum).firstframe = handles.current_track_start;
-        handles.s.track_metadata(handles.current_tracknum).lastframe = handles.current_track_end;
-        saved_data = handles.s;
-        if exist([handles.expt_folder '\' handles.expt_name '\TrackingData.mat'])
-            response = questdlg('There is already a saved file. Overwrite?');
-            if strcmp(response,'Yes')
-                save([handles.expt_folder '\' handles.expt_name '\TrackingData.mat'],'saved_data');
-                msgbox('Saved!');
-            end
-        else
-            save([handles.expt_folder '\' handles.expt_name '\TrackingData.mat'],'saved_data');
-            msgbox('Saved!');
-        end
-    elseif strcmp(response,'Cancel')
-        return
-    end
+% First, go through and color yellow all cells already tracked.
+tic
+recolorize_start = 1;
+recolorize_end = handles.T;
+
+if handles.current_track_start ~= -1 && handles.current_track_end ~= -1
+    recolorize_start = handles.current_track_start;
+    recolorize_end = handles.current_track_end;
 end
 
-% If we just loaded a track, we might want to continue tracking it.
-response = 'No';
-if handles.just_loaded_a_track && handles.current_tracknum ~= 0
-    response = questdlg(['Continue tracking previous track ' num2str(handles.current_tracknum) '?']);
-    if strcmp(response,'Yes')
-        set(handles.currentcell_textbox,'String',['Currently tracking cell ' num2str(handles.current_tracknum)]);
-        handles.current_track_start = handles.s.track_metadata(handles.current_tracknum).firstframe;
-        handles.current_track_end = -1;
-        handles.just_loaded_a_track = false;
-    elseif strcmp(response,'Cancel')
-        return
-    end
-end
-
-% If we didn't just load a track or we don't want to keep tracking it, then
-% we need to recolor it all yellow and go to the next track.
-if handles.current_tracknum == 0 || ~strcmp(response,'Yes')
-    
-    handles.just_loaded_a_track = false;
-    % First, go through and color yellow all cells already tracked.
-    tic
-    recolorize_start = 1;
-    recolorize_end = handles.T;
-    
-    if handles.current_track_start ~= -1 && handles.current_track_end ~= -1
-        recolorize_start = handles.current_track_start;
-        recolorize_end = handles.current_track_end;
-    end
-    
-    for t = recolorize_start:recolorize_end
-        disp(['Outlining image ' num2str(t) ' in yellow.'])
-        if exist([handles.resegmentation_prefix '_' sprintf('%03d',t) '.tif'])
-            segmented_im = imread([handles.resegmentation_prefix '_' sprintf('%03d',t) '.tif']);
+for t = recolorize_start:recolorize_end
+    disp(['Outlining image ' num2str(t) ' in yellow.'])
+        if exist([handles.reclass_prefix '_' sprintf('%03d',t) '.tif'])
+            segmented_im = imread([handles.reclass_prefix '_' sprintf('%03d',t) '.tif']);
         else
-            segmented_im = imread([handles.segmentation_prefix '_' sprintf('%03d',t) '.tif']);
+            segmented_im = imread([handles.class_prefix '_' sprintf('%03d',t) '.tif']);
         end
-        segmented_im = segmented_im > handles.segmentation_thresh;
-        labels = bwlabel(segmented_im, 4);
-        potential_clicks_thisframe = handles.s.clicks(t,:);
-        real_clicks_thisframe = potential_clicks_thisframe(~cellfun('isempty',potential_clicks_thisframe));
-        all_tracked_cell_label_nums_thisframe = [];
-        for i = 1:length(real_clicks_thisframe)
-            thisclick = real_clicks_thisframe{i};
-            all_tracked_cell_label_nums_thisframe(i) = nonzeros(labels(thisclick(2),thisclick(1)));
-            % An error here can arise if a resegmentation causes a fissure
-            % to appear on top of a previous click: when the program goes
-            % to recolorize, the right-hand side returns an empty vector
-            % and the statement gives an A(:)= B reassignement error. One
-            % workaround is to find the culprit click and change the
-            % handles.s.clicks value for that click by a few pixels so it
-            % is no longer on a fissure.
-        end
-        if ~isempty(all_tracked_cell_label_nums_thisframe)
-            tracked_labels = ismember(bwlabel(segmented_im, 4), all_tracked_cell_label_nums_thisframe);
-            tracked_outlines = bwperim(tracked_labels);
-            color_im_outlined = imread([handles.trackedoutlined_prefix '_'...
-                sprintf('%03d',t) '.tif']);
-            color_im_outlined = imoverlay_fast(color_im_outlined, tracked_outlines, 'yellow');
-            imwrite(color_im_outlined,[handles.trackedoutlined_prefix '_'...
-                sprintf('%03d',t) '.tif']);
-        end
+    segmented_im = segmented_im > handles.segmentation_thresh;
+    labels = bwlabel(segmented_im, 4);
+    potential_clicks_thisframe = handles.s.clicks(t,:);
+    real_clicks_thisframe = potential_clicks_thisframe(~cellfun('isempty',potential_clicks_thisframe));      
+    all_tracked_cell_label_nums_thisframe = [];
+    for i = 1:length(real_clicks_thisframe)
+        thisclick = real_clicks_thisframe{i};
+        all_tracked_cell_label_nums_thisframe(i) = nonzeros(labels(thisclick(2),thisclick(1)));
     end
-    toc
-    
-    handles.current_tracknum = handles.current_tracknum + 1;
-    handles.current_track_start = -1;
-    handles.current_track_end = -1;
-    set(handles.currentcell_textbox,'String',['Currently tracking cell ' num2str(handles.current_tracknum)]);
-    handles.s.all_tracknums = sort(unique([handles.s.all_tracknums, handles.current_tracknum]));
+    if ~isempty(all_tracked_cell_label_nums_thisframe)
+        tracked_labels = ismember(bwlabel(segmented_im, 4), all_tracked_cell_label_nums_thisframe);
+        tracked_outlines = bwperim(tracked_labels);
+        color_im_outlined = imread([handles.trackedoutlined_prefix '_'...
+            sprintf('%03d',t) '.tif']);
+        color_im_outlined = imoverlay_fast(color_im_outlined, tracked_outlines, 'yellow');
+        imwrite(color_im_outlined,[handles.trackedoutlined_prefix '_'...
+            sprintf('%03d',t) '.tif']);
+    end
 end
+toc
 
 % Reset radio button group to track mode
 buttongroup = handles.uibuttongroup1;
@@ -581,7 +511,12 @@ radiobutton_1 = handles.radiobtn_1;
 set(handles.uibuttongroup1,'SelectedObject',handles.radiobtn_1);
 handles.trackorsplit_status = 1;
 
+handles.current_tracknum = handles.current_tracknum + 1;
+set(handles.currentcell_textbox,'String',['Currently tracking cell ' num2str(handles.current_tracknum)]);
+handles.s.all_tracknums = sort(unique([handles.s.all_tracknums, handles.current_tracknum]));
 handles.currently_tracking = true;
+handles.current_track_start = -1;
+handles.current_track_end = -1;
 handles.current_track_divides = false;
 handles = update_t(hObject,eventdata,handles,handles.t);
 guidata(hObject, handles);
@@ -658,9 +593,11 @@ function save_results_btn_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
+% disp(handles.s)
+% disp(handles.s.clicks)
+% response = questdlg('Save the data to a .mat file? This will overwrite the previous data.');
+
 handles.s.last_tracknum = handles.current_tracknum;
-handles.s.track_metadata(handles.current_tracknum).firstframe = handles.current_track_start;
-handles.s.track_metadata(handles.current_tracknum).lastframe = handles.current_track_end;
 saved_data = handles.s;
 
 if exist([handles.expt_folder '\' handles.expt_name '\TrackingData.mat'])
@@ -686,10 +623,10 @@ for t = 1:handles.T
         disp(['Outlining image ' num2str(t) ' in white.'])
         raw_im_red = imread([handles.raw_red_prefix '_' sprintf('%03d',t) '.tif']);
         raw_im_green = imread([handles.raw_green_prefix '_' sprintf('%03d',t) '.tif']);
-        if exist([handles.resegmentation_prefix '_' sprintf('%03d',t) '.tif'])
-            segmented_im = imread([handles.resegmentation_prefix '_' sprintf('%03d',t) '.tif']);
+        if exist([handles.reclass_prefix '_' sprintf('%03d',t) '.tif'])
+            segmented_im = imread([handles.reclass_prefix '_' sprintf('%03d',t) '.tif']);
         else
-            segmented_im = imread([handles.segmentation_prefix '_' sprintf('%03d',t) '.tif']);
+            segmented_im = imread([handles.class_prefix '_' sprintf('%03d',t) '.tif']);
         end
         
         color_im(:,:,1) = raw_im_red*handles.red_balance;
@@ -729,7 +666,7 @@ function undosplit_btn_Callback(hObject, eventdata, handles)
 if ~handles.resegmentation_undoable
     return
 end
-imwrite(handles.old_segmented_im, [handles.resegmentation_prefix '_' sprintf('%03d',handles.t) '.tif']);
+imwrite(handles.old_segmented_im, [handles.reclass_prefix '_' sprintf('%03d',handles.t) '.tif']);
 imwrite(handles.old_color_im_outlined, [handles.trackedoutlined_prefix '_' sprintf('%03d',handles.t) '.tif']);
 handles = update_t(hObject,eventdata,handles,handles.t);
 handles.s.resegmentation_clicks = handles.s.resegmentation_clicks(1:end-1);
@@ -750,55 +687,8 @@ if handles.current_tracknum == 0
 end
 size_click_matrix = size(handles.s.clicks);
 if handles.current_tracknum > size_click_matrix(2)
-    msgbox(['The click matrix does not include a column for cell ' num2str(handles.current_tracknum)])
     return
 end
-found_a_click = false;
 for t = handles.startframe:handles.endframe
-    click = handles.s.clicks{t,handles.current_tracknum};
-    if ~isempty(click)
-        found_a_click = true;
-        disp(['Tracked click at frame ' num2str(t) ': ' num2str(click)])
-    end
+    disp(['Tracked click at frame ' num2str(t) ': ' num2str(handles.s.clicks{t,handles.current_tracknum})])
 end
-if ~found_a_click
-    disp(['No clicks found for cell ' num2str(handles.current_tracknum)])
-end
-disp(['Track runs from frame ' num2str(handles.current_track_start) ' to frame ' num2str(handles.current_track_end)])
-
-
-% --- Executes on button press in terminate_track_btn.
-function terminate_track_btn_Callback(hObject, eventdata, handles)
-% hObject    handle to terminate_track_btn (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-if handles.currently_tracking
-    response = questdlg('This frame is the last for the current track. Correct?');
-    if strcmp(response,'Yes')
-        handles.current_track_end = handles.t;
-    else
-        return
-    end
-    
-    response = questdlg('Save before proceeding to next cell?');
-    if strcmp(response,'Yes')
-        handles.s.last_tracknum = handles.current_tracknum;
-        handles.s.track_metadata(handles.current_tracknum).firstframe = handles.current_track_start;
-        handles.s.track_metadata(handles.current_tracknum).lastframe = handles.current_track_end;
-        saved_data = handles.s;
-        if exist([handles.expt_folder '\' handles.expt_name '\TrackingData.mat'])
-            response = questdlg('There is already a saved file. Overwrite?');
-            if strcmp(response,'Yes')
-                save([handles.expt_folder '\' handles.expt_name '\TrackingData.mat'],'saved_data');
-                msgbox('Saved!');
-            end
-        else
-            save([handles.expt_folder '\' handles.expt_name '\TrackingData.mat'],'saved_data');
-            msgbox('Saved!');
-        end
-    elseif strcmp(response,'Cancel')
-        return
-    end
-end
-guidata(hObject,handles)

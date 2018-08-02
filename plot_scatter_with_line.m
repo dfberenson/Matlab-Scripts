@@ -1,6 +1,6 @@
 
 function fig = plot_scatter_with_line(x,y)
-    fig = figure()
+    fig = figure();
     hold on
     scatter(x,y)
     fit = polyfit(x,y,1);

@@ -3,8 +3,8 @@
 close all
 clear all
 
-expt_folder = 'E:\RealStack';
-expt_name = 'DFB_170308_HMEC_1Giii_1_hyperstack_Pos1';
+expt_folder = 'C:\Users\Skotheim Lab\Desktop\Manual_Tracking';
+expt_name = 'DFB_180627_HMEC_1GFiii_palbo_2_Pos15';
 
 segmentation_prefix = [expt_folder '\' expt_name '\'...
     'Segmentation\Segmented'];
@@ -120,6 +120,14 @@ measurements_struct.all_green_flat_integrated_intensity_traces = all_green_flat_
 save([expt_folder '\' expt_name '\Measurements.mat'], 'measurements_struct');
 
 %% Plot data
+
+
+response = questdlg('Plot cells?');
+if strcmp(response,'Yes')
+    
+else
+    return
+end
 
 for cellnum = cells_to_track
     cellnum = 203

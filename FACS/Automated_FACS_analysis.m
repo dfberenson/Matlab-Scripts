@@ -2,10 +2,11 @@
 clear all
 close all
 
-folder = 'C:\Users\Skotheim Lab\Box Sync\Daniel Berenson''s Files\Data\FACS\180718_HMEC_Crimson_size\FlowJo CSVs';
-specimen_prefix = [];
-specimens = [{'A2'},{'A3'},{'A6'},{'B1'},{'B2'},{'B3'},{'B4'}];
-specimen_subpopulations = [{'Single Cells - Confirmed'}];
+folder = 'C:\Users\Skotheim Lab\Box Sync\Daniel Berenson''s Files\Data\FACS\180725_HMEC_Rb-Clov_Gem-mCherry_EF1a-Crimson\FlowJo CSVs';
+specimen_prefix = ['export_Specimen_001'];
+specimens = [{'1GFiii_004'},{'A1_003'},{'D2_001'},{'D5_002'}];
+% Don't forget to adjust which samples use which color for size below
+specimen_subpopulations = [{'Single Cells - Confirmed'},{'G1'},{'SG2M'},{'High-FSC_Low-SSC'},{'Low-FSC_High-SSC'}];
 
 for spec = specimens
     for subpop = specimen_subpopulations
@@ -18,6 +19,11 @@ for spec = specimens
         else
             data_fpath = [folder '\' specimen_prefix '_' specimen_name '_' subpop_name '.csv'];
         end
+        
+        if ~exist(data_fpath,'file')
+            continue
+        end
+            
         table = readtable(data_fpath);
         
         for plot_type = [{'FSC'},{'SSC'}]
@@ -29,13 +35,23 @@ for spec = specimens
             elseif strcmp(plot_name, 'SSC')
                 X = table.SSC_A;
             end
-            Y = table.Comp_R670_A;
+            
+            specimen_label = strrep(specimen_name(1:end-4), '_', '__');
+            subpop_label = strrep(subpop_name, '_', '__');
             
             %Label figure
-            figTitle = [{['Specimen: ' specimen_name]},...
-                {['Subpopulation: ' subpop_name]}];
+            figTitle = [{['Specimen: ' specimen_label]},...
+                {['Subpopulation: ' subpop_label]}];
             xAxis = plot_name;
-            yAxis = 'mCherry';
+            
+            % Don't forget to adjust here which samples use which color for size
+            if strcmp(specimen_name,'1GFiii_004')
+                Y = table.Comp_Y610_A;
+                yAxis = 'mCherry';
+            else
+                Y = table.Comp_R670_A;
+                yAxis = 'Crimson';
+            end
             
             [numcells,one] = size(X);
             

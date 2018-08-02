@@ -1,35 +1,35 @@
-function varargout = Manual_Tracking_GUI_v6(varargin)
-% MANUAL_TRACKING_GUI_V6 MATLAB code for Manual_Tracking_GUI_v6.fig
-%      MANUAL_TRACKING_GUI_V6, by itself, creates a new MANUAL_TRACKING_GUI_V6 or raises the existing
+function varargout = Manual_Tracking_GUI_v5(varargin)
+% MANUAL_TRACKING_GUI_V5 MATLAB code for Manual_Tracking_GUI_v5.fig
+%      MANUAL_TRACKING_GUI_V5, by itself, creates a new MANUAL_TRACKING_GUI_V5 or raises the existing
 %      singleton*.
 %
-%      H = MANUAL_TRACKING_GUI_V6 returns the handle to a new MANUAL_TRACKING_GUI_V6 or the handle to
+%      H = MANUAL_TRACKING_GUI_V5 returns the handle to a new MANUAL_TRACKING_GUI_V5 or the handle to
 %      the existing singleton*.
 %
-%      MANUAL_TRACKING_GUI_V6('CALLBACK',hObject,eventData,handles,...) calls the local
-%      function named CALLBACK in MANUAL_TRACKING_GUI_V6.M with the given input arguments.
+%      MANUAL_TRACKING_GUI_V5('CALLBACK',hObject,eventData,handles,...) calls the local
+%      function named CALLBACK in MANUAL_TRACKING_GUI_V5.M with the given input arguments.
 %
-%      MANUAL_TRACKING_GUI_V6('Property','Value',...) creates a new MANUAL_TRACKING_GUI_V6 or raises the
+%      MANUAL_TRACKING_GUI_V5('Property','Value',...) creates a new MANUAL_TRACKING_GUI_V5 or raises the
 %      existing singleton*.  Starting from the left, property value pairs are
-%      applied to the GUI before Manual_Tracking_GUI_v6_OpeningFcn gets called.  An
+%      applied to the GUI before Manual_Tracking_GUI_v5_OpeningFcn gets called.  An
 %      unrecognized property name or invalid value makes property application
-%      stop.  All inputs are passed to Manual_Tracking_GUI_v6_OpeningFcn via varargin.
+%      stop.  All inputs are passed to Manual_Tracking_GUI_v5_OpeningFcn via varargin.
 %
 %      *See GUI Options on GUIDE's Tools menu.  Choose "GUI allows only one
 %      instance to run (singleton)".
 %
 % See also: GUIDE, GUIDATA, GUIHANDLES
 
-% Edit the above text to modify the response to help Manual_Tracking_GUI_v6
+% Edit the above text to modify the response to help Manual_Tracking_GUI_v5
 
-% Last Modified by GUIDE v2.5 26-Jun-2018 19:37:49
+% Last Modified by GUIDE v2.5 09-May-2018 15:40:14
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
 gui_State = struct('gui_Name',       mfilename, ...
     'gui_Singleton',  gui_Singleton, ...
-    'gui_OpeningFcn', @Manual_Tracking_GUI_v6_OpeningFcn, ...
-    'gui_OutputFcn',  @Manual_Tracking_GUI_v6_OutputFcn, ...
+    'gui_OpeningFcn', @Manual_Tracking_GUI_v5_OpeningFcn, ...
+    'gui_OutputFcn',  @Manual_Tracking_GUI_v5_OutputFcn, ...
     'gui_LayoutFcn',  [] , ...
     'gui_Callback',   []);
 if nargin && ischar(varargin{1})
@@ -44,15 +44,15 @@ end
 % End initialization code - DO NOT EDIT
 
 
-% --- Executes just before Manual_Tracking_GUI_v6 is made visible.
-function Manual_Tracking_GUI_v6_OpeningFcn(hObject, eventdata, handles, varargin)
+% --- Executes just before Manual_Tracking_GUI_v5 is made visible.
+function Manual_Tracking_GUI_v5_OpeningFcn(hObject, eventdata, handles, varargin)
 % This function has no output args, see OutputFcn.
 % hObject    handle to figure
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-% varargin   command line arguments to Manual_Tracking_GUI_v6 (see VARARGIN)
+% varargin   command line arguments to Manual_Tracking_GUI_v5 (see VARARGIN)
 
-% Choose default command line output for Manual_Tracking_GUI_v6
+% Choose default command line output for Manual_Tracking_GUI_v5
 handles.output = hObject;
 
 % Update handles structure
@@ -70,10 +70,10 @@ handles.blue_balance = 0;
 
 %The following default values will be overwritten when GUI is called
 %with arguments
-handles.expt_folder = 'C:\Users\Skotheim Lab\Desktop\Manual_Tracking';
-handles.expt_name = 'DFB_180627_HMEC_1GFiii_palbo_2_Pos15';
+handles.expt_folder = 'C:\RealStack';
+handles.expt_name = 'DFB_170308_HMEC_1Giii_1_hyperstack_Pos1';
 handles.startframe = 1;
-handles.endframe = 421;
+handles.endframe = 720;
 
 %Overwrite default values when GUI is called with arguments
 if length(varargin) >= 4
@@ -120,12 +120,12 @@ end
 
 guidata(hObject, handles);
 
-% UIWAIT makes Manual_Tracking_GUI_v6 wait for user response (see UIRESUME)
+% UIWAIT makes Manual_Tracking_GUI_v5 wait for user response (see UIRESUME)
 % uiwait(handles.figure1);
 
 
 % --- Outputs from this function are returned to the command line.
-function varargout = Manual_Tracking_GUI_v6_OutputFcn(hObject, eventdata, handles)
+function varargout = Manual_Tracking_GUI_v5_OutputFcn(hObject, eventdata, handles)
 % varargout  cell array for returning output args (see VARARGOUT);
 % hObject    handle to figure
 % eventdata  reserved - to be defined in a future version of MATLAB
@@ -324,16 +324,6 @@ end
 if strcmp(eventdata.Key,'4')
     set(handles.uibuttongroup1,'SelectedObject',handles.radiobtn_4);
     handles.trackorsplit_status = 4;
-end
-if strcmp(eventdata.Key,'5')
-    if ~handles.resegmentation_undoable
-        return
-    end
-    imwrite(handles.old_segmented_im, [handles.resegmentation_prefix '_' sprintf('%03d',handles.t) '.tif']);
-    imwrite(handles.old_color_im_outlined, [handles.trackedoutlined_prefix '_' sprintf('%03d',handles.t) '.tif']);
-    handles = update_t(hObject,eventdata,handles,handles.t);
-    handles.s.resegmentation_clicks = handles.s.resegmentation_clicks(1:end-1);
-    handles.resegmentation_undoable = false;
 end
 % if strcmp(eventdata.Key,'space')
 %     pan on
