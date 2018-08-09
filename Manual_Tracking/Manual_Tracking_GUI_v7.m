@@ -1,35 +1,35 @@
-function varargout = Manual_Tracking_GUI_v6(varargin)
-% MANUAL_TRACKING_GUI_V6 MATLAB code for Manual_Tracking_GUI_v6.fig
-%      MANUAL_TRACKING_GUI_V6, by itself, creates a new MANUAL_TRACKING_GUI_V6 or raises the existing
+function varargout = Manual_Tracking_GUI_v7(varargin)
+% MANUAL_TRACKING_GUI_V7 MATLAB code for Manual_Tracking_GUI_v7.fig
+%      MANUAL_TRACKING_GUI_V7, by itself, creates a new MANUAL_TRACKING_GUI_V7 or raises the existing
 %      singleton*.
 %
-%      H = MANUAL_TRACKING_GUI_V6 returns the handle to a new MANUAL_TRACKING_GUI_V6 or the handle to
+%      H = MANUAL_TRACKING_GUI_V7 returns the handle to a new MANUAL_TRACKING_GUI_V7 or the handle to
 %      the existing singleton*.
 %
-%      MANUAL_TRACKING_GUI_V6('CALLBACK',hObject,eventData,handles,...) calls the local
-%      function named CALLBACK in MANUAL_TRACKING_GUI_V6.M with the given input arguments.
+%      MANUAL_TRACKING_GUI_V7('CALLBACK',hObject,eventData,handles,...) calls the local
+%      function named CALLBACK in MANUAL_TRACKING_GUI_V7.M with the given input arguments.
 %
-%      MANUAL_TRACKING_GUI_V6('Property','Value',...) creates a new MANUAL_TRACKING_GUI_V6 or raises the
+%      MANUAL_TRACKING_GUI_V7('Property','Value',...) creates a new MANUAL_TRACKING_GUI_V7 or raises the
 %      existing singleton*.  Starting from the left, property value pairs are
-%      applied to the GUI before Manual_Tracking_GUI_v6_OpeningFcn gets called.  An
+%      applied to the GUI before Manual_Tracking_GUI_v7_OpeningFcn gets called.  An
 %      unrecognized property name or invalid value makes property application
-%      stop.  All inputs are passed to Manual_Tracking_GUI_v6_OpeningFcn via varargin.
+%      stop.  All inputs are passed to Manual_Tracking_GUI_v7_OpeningFcn via varargin.
 %
 %      *See GUI Options on GUIDE's Tools menu.  Choose "GUI allows only one
 %      instance to run (singleton)".
 %
 % See also: GUIDE, GUIDATA, GUIHANDLES
 
-% Edit the above text to modify the response to help Manual_Tracking_GUI_v6
+% Edit the above text to modify the response to help Manual_Tracking_GUI_v7
 
-% Last Modified by GUIDE v2.5 26-Jun-2018 19:37:49
+% Last Modified by GUIDE v2.5 09-Aug-2018 11:22:52
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
 gui_State = struct('gui_Name',       mfilename, ...
     'gui_Singleton',  gui_Singleton, ...
-    'gui_OpeningFcn', @Manual_Tracking_GUI_v6_OpeningFcn, ...
-    'gui_OutputFcn',  @Manual_Tracking_GUI_v6_OutputFcn, ...
+    'gui_OpeningFcn', @Manual_Tracking_GUI_v7_OpeningFcn, ...
+    'gui_OutputFcn',  @Manual_Tracking_GUI_v7_OutputFcn, ...
     'gui_LayoutFcn',  [] , ...
     'gui_Callback',   []);
 if nargin && ischar(varargin{1})
@@ -44,15 +44,15 @@ end
 % End initialization code - DO NOT EDIT
 
 
-% --- Executes just before Manual_Tracking_GUI_v6 is made visible.
-function Manual_Tracking_GUI_v6_OpeningFcn(hObject, eventdata, handles, varargin)
+% --- Executes just before Manual_Tracking_GUI_v7 is made visible.
+function Manual_Tracking_GUI_v7_OpeningFcn(hObject, eventdata, handles, varargin)
 % This function has no output args, see OutputFcn.
 % hObject    handle to figure
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-% varargin   command line arguments to Manual_Tracking_GUI_v6 (see VARARGIN)
+% varargin   command line arguments to Manual_Tracking_GUI_v7 (see VARARGIN)
 
-% Choose default command line output for Manual_Tracking_GUI_v6
+% Choose default command line output for Manual_Tracking_GUI_v7
 handles.output = hObject;
 
 % Update handles structure
@@ -64,17 +64,21 @@ handles.current_track_divides = false;
 handles.resegmentation_undoable = false;
 
 handles.segmentation_thresh = 0;
-% For expt 180627:
-handles.red_balance = 200;
-handles.green_balance = 50;
+% % For expt 180627:
+% handles.red_balance = 200;
+% handles.green_balance = 50;
+% handles.blue_balance = 0;
+% For expt 180803:
+handles.red_balance = 100;
+handles.green_balance = 200;
 handles.blue_balance = 0;
 
 %The following default values will be overwritten when GUI is called
 %with arguments
 handles.expt_folder = 'C:\Users\Skotheim Lab\Desktop\Manual_Tracking';
-handles.expt_name = 'DFB_180627_HMEC_1GFiii_palbo_2_Pos15';
+handles.expt_name = 'DFB_180803_HMEC_D5_1_Pos1';
 handles.startframe = 1;
-handles.endframe = 421;
+handles.endframe = 432;
 
 %Overwrite default values when GUI is called with arguments
 if length(varargin) >= 4
@@ -102,11 +106,13 @@ handles.s.track_metadata = struct;
 % well as any other information. This structure is indexed by cellnum.
 handles.s.resegmentation_clicks = [];
 
+handles.raw_farred_prefix = [handles.expt_folder '\' handles.expt_name '\'...
+    handles.expt_name '_RawFarRed\' handles.expt_name '_RawFarRed'];
 handles.raw_red_prefix = [handles.expt_folder '\' handles.expt_name '\'...
     handles.expt_name '_RawRed\' handles.expt_name '_RawRed'];
 handles.raw_green_prefix = [handles.expt_folder '\' handles.expt_name '\'...
     handles.expt_name '_RawGreen\' handles.expt_name '_RawGreen'];
-handles.main_raw_prefix = handles.raw_red_prefix;
+handles.main_raw_prefix = handles.raw_farred_prefix;
 handles.segmentation_prefix = [handles.expt_folder '\' handles.expt_name '\'...
     'Segmentation\Segmented'];
 handles.resegmentation_prefix = [handles.expt_folder '\' handles.expt_name '\'...
@@ -121,12 +127,12 @@ end
 
 guidata(hObject, handles);
 
-% UIWAIT makes Manual_Tracking_GUI_v6 wait for user response (see UIRESUME)
+% UIWAIT makes Manual_Tracking_GUI_v7 wait for user response (see UIRESUME)
 % uiwait(handles.figure1);
 
 
 % --- Outputs from this function are returned to the command line.
-function varargout = Manual_Tracking_GUI_v6_OutputFcn(hObject, eventdata, handles)
+function varargout = Manual_Tracking_GUI_v7_OutputFcn(hObject, eventdata, handles)
 % varargout  cell array for returning output args (see VARARGOUT);
 % hObject    handle to figure
 % eventdata  reserved - to be defined in a future version of MATLAB
@@ -199,6 +205,7 @@ for t = 1:handles.T
     if ~exist([handles.trackedoutlined_prefix '_'...
             sprintf('%03d',t) '.tif'])
         disp(['Outlining image ' num2str(t) ' in white.'])
+        raw_im_farred = imread([handles.raw_farred_prefix '_' sprintf('%03d',t) '.tif']);
         raw_im_red = imread([handles.raw_red_prefix '_' sprintf('%03d',t) '.tif']);
         raw_im_green = imread([handles.raw_green_prefix '_' sprintf('%03d',t) '.tif']);
         if exist([handles.resegmentation_prefix '_' sprintf('%03d',t) '.tif'])
@@ -207,9 +214,12 @@ for t = 1:handles.T
             segmented_im = imread([handles.segmentation_prefix '_' sprintf('%03d',t) '.tif']);
         end
         
-        color_im(:,:,1) = raw_im_red*handles.red_balance;
-        color_im(:,:,2) = raw_im_green*handles.green_balance;
-        color_im(:,:,3) = uint16(segmented_im)*handles.blue_balance;
+        % color_im comprises three channels in RGB order.
+        % Here farred will look red, red will look green, and green will
+        % look blue.
+        color_im(:,:,1) = raw_im_farred*handles.red_balance;
+        color_im(:,:,2) = raw_im_red*handles.green_balance;
+        color_im(:,:,3) = raw_im_green*handles.blue_balance;
         outlines = bwperim(segmented_im);
         color_im_outlined = imoverlay_fast(color_im, outlines,'white');
         imwrite(color_im_outlined,[handles.trackedoutlined_prefix '_'...
@@ -407,7 +417,7 @@ if handles.currently_tracking
             thistrack_outline = bwperim(thistrack_labels);
             % Recolor and write the image *after* loading the next one
             handles = update_t(hObject,eventdata,handles,handles.t + 1);
-            color_im_outlined = imoverlay_fast(color_im_outlined, thistrack_outline, 'magenta');
+            color_im_outlined = imoverlay_fast(color_im_outlined, thistrack_outline, 'yellow');
             imwrite(color_im_outlined,[handles.trackedoutlined_prefix '_'...
                 sprintf('%03d',t) '.tif']);
             if handles.t == handles.T
@@ -535,7 +545,7 @@ if handles.current_tracknum == 0 || ~strcmp(response,'Yes')
     end
     
     for t = recolorize_start:recolorize_end
-        disp(['Outlining image ' num2str(t) ' in yellow.'])
+        disp(['Outlining image ' num2str(t) ' in magenta.'])
         if exist([handles.resegmentation_prefix '_' sprintf('%03d',t) '.tif'])
             segmented_im = imread([handles.resegmentation_prefix '_' sprintf('%03d',t) '.tif']);
         else
@@ -562,7 +572,7 @@ if handles.current_tracknum == 0 || ~strcmp(response,'Yes')
             tracked_outlines = bwperim(tracked_labels);
             color_im_outlined = imread([handles.trackedoutlined_prefix '_'...
                 sprintf('%03d',t) '.tif']);
-            color_im_outlined = imoverlay_fast(color_im_outlined, tracked_outlines, 'yellow');
+            color_im_outlined = imoverlay_fast(color_im_outlined, tracked_outlines, 'magenta');
             imwrite(color_im_outlined,[handles.trackedoutlined_prefix '_'...
                 sprintf('%03d',t) '.tif']);
         end
@@ -684,7 +694,8 @@ if ~handles.stacks_loaded
     return
 end
 for t = 1:handles.T
-        disp(['Outlining image ' num2str(t) ' in white.'])
+    disp(['Outlining image ' num2str(t) ' in white.'])
+        raw_im_farred = imread([handles.raw_farred_prefix '_' sprintf('%03d',t) '.tif']);
         raw_im_red = imread([handles.raw_red_prefix '_' sprintf('%03d',t) '.tif']);
         raw_im_green = imread([handles.raw_green_prefix '_' sprintf('%03d',t) '.tif']);
         if exist([handles.resegmentation_prefix '_' sprintf('%03d',t) '.tif'])
@@ -693,13 +704,16 @@ for t = 1:handles.T
             segmented_im = imread([handles.segmentation_prefix '_' sprintf('%03d',t) '.tif']);
         end
         
-        color_im(:,:,1) = raw_im_red*handles.red_balance;
-        color_im(:,:,2) = raw_im_green*handles.green_balance;
-        color_im(:,:,3) = uint16(segmented_im)*handles.blue_balance;
+        % color_im comprises three channels in RGB order.
+        % Here farred will look red, red will look green, and green will
+        % look blue.
+        color_im(:,:,1) = raw_im_farred*handles.red_balance;
+        color_im(:,:,2) = raw_im_red*handles.green_balance;
+        color_im(:,:,3) = raw_im_green*handles.blue_balance;
         outlines = bwperim(segmented_im);
         color_im_outlined = imoverlay_fast(color_im, outlines,'white');
         imwrite(color_im_outlined,[handles.trackedoutlined_prefix '_'...
-            sprintf('%03d',t) '.tif']);
+            sprintf('%03d',t) '.tif']);   
 end
 handles = update_t(hObject,eventdata,handles,1);
 

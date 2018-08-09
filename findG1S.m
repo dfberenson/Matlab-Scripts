@@ -1,6 +1,12 @@
 %Arguments are (trace as a column vector , ~frames to skip at start , ~frames to skip at end, ~'plot')
 function t = findG1S(trace,varargin)
 
+    [h,w] = size(trace);
+    assert(h == 1 || w == 1)
+    if h == 1
+        trace = trace';
+    end
+
     %Eliminate NaN
     clean_trace = trace(trace > -1000000);
     if nargin == 2
@@ -12,8 +18,7 @@ function t = findG1S(trace,varargin)
         clean_trace = clean_trace(beginningframestoskip + 1 : end - endingframestoskip);
     end
     
-    times = 1:length(clean_trace);
-    times = times.';
+    times = [1:length(clean_trace)]';
     ftype = fittype('max(a,b*x+c)');
     maxfit = fit(times,clean_trace,ftype,'StartPoint',[1 1 1]);
     t = (maxfit.a - maxfit.c)/maxfit.b;

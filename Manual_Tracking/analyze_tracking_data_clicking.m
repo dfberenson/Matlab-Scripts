@@ -1,5 +1,11 @@
 
-function analyzed_values = analyze_tracking_data(tracking_measurements, tree, analysis_parameters);
+function analyzed_values = analyze_tracking_data_clicking(tracking_measurements, tree, analysis_parameters);
+
+% Call this function once per position.
+% Take as input the tracking measurements from the manually clicked cells,
+% the lineage tree, and the analysis parameters struct
+
+% Return a cellwise structure with all the relevant data for each cell
 
 analyzed_values = struct;
 
@@ -41,6 +47,9 @@ for c = tracking_measurements.all_tracknums
         thiscell = mother;
         mother = tree(thiscell).mother_id;
     end
+    
+    % Check whether born early or late in movie
+    analyzed_values(c).is_born_early_in_movie = analyzed_values(c).firstframe < analysis_parameters.birth_frame_threshold;
     
     % Check mitosis
     analyzed_values(c).has_mitosis = ~isempty(tracking_measurements.track_metadata(c).mitosis);
@@ -104,45 +113,57 @@ for c = tracking_measurements.all_tracknums
     % Measure birth size
     if analyzed_values(c).is_born
         areas_near_birth = analyzed_values(c).area_measurements(analysis_parameters.birthsize_measuring_frames);
-        analyzed_values(c).birth_area = median(areas_near_birth);        
+        analyzed_values(c).birth_area = median(areas_near_birth);
         sizes_near_birth = analyzed_values(c).size_measurements(analysis_parameters.birthsize_measuring_frames);
         analyzed_values(c).birth_size = median(sizes_near_birth);
     end
     
     % Measure G1S transition time and cell cycle phase lengths
     if analyzed_values(c).has_complete_cycle
-        analyzed_values(c).g1s_frame_bilinear_notsmooth = findG1S(analyzed_values(c).geminin_measurements);
-        analyzed_values(c).g1s_frame_bilinear_smooth = findG1S(analyzed_values(c).geminin_measurements_smooth);
+        analyzed_values(c).g1s_frame_bilinear_notsmooth = get_g1s_frame(analyzed_values(c).geminin_measurements,analysis_parameters);
+        analyzed_values(c).g1s_frame_bilinear_smooth = get_g1s_frame(analyzed_values(c).geminin_measurements_smooth,analysis_parameters);
         analyzed_values(c).g1_length_hours_v1 = analyzed_values(c).g1s_frame_bilinear_notsmooth * analysis_parameters.framerate;
         analyzed_values(c).g1_length_hours_v2 = analyzed_values(c).g1s_frame_bilinear_smooth * analysis_parameters.framerate;
-
+        
+        analyzed_values(c).g1s_frame = analyzed_values(c).g1s_frame_bilinear_notsmooth;
         analyzed_values(c).g1_length_hours = analyzed_values(c).g1_length_hours_v1;
         
         analyzed_values(c).sg2_length_hours = analyzed_values(c).trace_duration_hours - analyzed_values(c).g1_length_hours;
     end
     
+    % Measure sizes at G1S and G2M
+    if analyzed_values(c).has_complete_cycle
+        analyzed_values(c).g1s_size = analyzed_values(c).size_measurements_smooth(round(analyzed_values(c).g1s_frame));
+        analyzed_values(c).g2m_size = analyzed_values(c).size_measurements_smooth(end - frames_to_avoid_at_end);
+        
+        analyzed_values(c).g1_growth = analyzed_values(c).g1s_size - analyzed_values(c).birth_size;
+        analyzed_values(c).sg2_growth = analyzed_values(c).g2m_size - analyzed_values(c).g1s_size;
+        analyzed_values(c).complete_cycle_growth = analyzed_values(c).g2m_size - analyzed_values(c).birth_size;
+    end
     
-%     
-%     % Plot some cells
-%         if analyzed_values(c).has_complete_cycle && ismember(c,[38 42])
-%             figure()
-%             hold on
-%             xlabel('Cell age (h)')
-%             yyaxis left
-%             plot(analyzed_values(c).birth_aligned_hours, analyzed_values(c).size_measurements,'r');
-%             plot(analyzed_values(c).birth_aligned_hours, analyzed_values(c).size_measurements_smooth,'m');
-%             ax = gca;
-%             ax.YColor = 'r';
-%             ylabel('EF1a-mCherry size measurement')
-%             axis([0 inf 0 200000]);
-%             yyaxis right
-%             plot(analyzed_values(c).birth_aligned_hours, analyzed_values(c).geminin_measurements,'g');
-%             plot(analyzed_values(c).birth_aligned_hours, analyzed_values(c).geminin_measurements_smooth,'c')
-%             ax = gca;
-%             ax.YColor = 'g';
-%             ylabel('Geminin-GFP')
-%             axis([0 inf 0 1000000]);
-%             hold off
-%         end
+    
     %
+    %     % Plot some cells
+    %         if analyzed_values(c).has_complete_cycle && ismember(c,[38 42])
+    %             figure()
+    %             hold on
+    %             xlabel('Cell age (h)')
+    %             yyaxis left
+    %             plot(analyzed_values(c).birth_aligned_hours, analyzed_values(c).size_measurements,'r');
+    %             plot(analyzed_values(c).birth_aligned_hours, analyzed_values(c).size_measurements_smooth,'m');
+    %             ax = gca;
+    %             ax.YColor = 'r';
+    %             ylabel('EF1a-mCherry size measurement')
+    %             axis([0 inf 0 200000]);
+    %             yyaxis right
+    %             plot(analyzed_values(c).birth_aligned_hours, analyzed_values(c).geminin_measurements,'g');
+    %             plot(analyzed_values(c).birth_aligned_hours, analyzed_values(c).geminin_measurements_smooth,'c')
+    %             ax = gca;
+    %             ax.YColor = 'g';
+    %             ylabel('Geminin-GFP')
+    %             axis([0 inf 0 1000000]);
+    %             hold off
+    %         end
+    %
+end
 end

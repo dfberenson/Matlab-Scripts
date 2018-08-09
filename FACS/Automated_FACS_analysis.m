@@ -2,11 +2,11 @@
 clear all
 close all
 
-folder = 'C:\Users\Skotheim Lab\Box Sync\Daniel Berenson''s Files\Data\FACS\180725_HMEC_Rb-Clov_Gem-mCherry_EF1a-Crimson\FlowJo CSVs';
+folder = 'C:\Users\Skotheim Lab\Box Sync\Daniel Berenson''s Files\Data\FACS\180802_HMEC_Rb-Clov_Gem-mCherry_EF1a-Crimson\FlowJo CSVs';
 specimen_prefix = ['export_Specimen_001'];
-specimens = [{'1GFiii_004'},{'A1_003'},{'D2_001'},{'D5_002'}];
+specimens = [{'1GFiii_006'},{'B4_005'},{'D2+Hoechst_002'},{'D2-no_Hoechst_001'},{'D5+Hoechst_004'},{'D5-no_Hoechst_003'}];
 % Don't forget to adjust which samples use which color for size below
-specimen_subpopulations = [{'Single Cells - Confirmed'},{'G1'},{'SG2M'},{'High-FSC_Low-SSC'},{'Low-FSC_High-SSC'}];
+specimen_subpopulations = [{'Single Cells - Confirmed'},{'G1'},{'SG2'},{'High-FSC_Low-SSC'},{'Low-FSC_High-SSC'}];
 
 for spec = specimens
     for subpop = specimen_subpopulations
@@ -45,7 +45,7 @@ for spec = specimens
             xAxis = plot_name;
             
             % Don't forget to adjust here which samples use which color for size
-            if strcmp(specimen_name,'1GFiii_004')
+            if strcmp(specimen_name,'1GFiii_006')
                 Y = table.Comp_Y610_A;
                 yAxis = 'mCherry';
             else
