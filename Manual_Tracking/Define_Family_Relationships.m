@@ -1,13 +1,14 @@
 
 clear all
 
-folder = 'E:\Manually tracked measurements';
-expt_name = 'DFB_180627_HMEC_1GFiii_palbo_2';
+folder = 'F:\Manually tracked imaging experiments';
+expt_name = 'DFB_180803_HMEC_D5_1';
 expt_folder = [folder '\' expt_name];
-positions_list = [1 2 3 13 14 15];
+positions_list = [1];
 
 for pos = positions_list
-    position_folder = [expt_folder '\Pos' num2str(pos)];
+    %     position_folder = [expt_folder '\Pos' num2str(pos)];
+    position_folder = [expt_folder '_Pos' num2str(pos)];
     load([position_folder '\TrackingData.mat']);
     s = saved_data;
     s.expt_folder = 'F:\Manually tracked imaging experiments';

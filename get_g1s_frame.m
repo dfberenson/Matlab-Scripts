@@ -1,7 +1,19 @@
 % Function written by Anna Rajaratnam and Daniel Berenson 7 Aug 2018
 
+
 function g1s_frame = get_g1s_frame(geminin_trace, analysis_params)
 % geminin_trace should be a column vector of the geminin values
+% analysis_params needs the following fields:
+% strategy = which strategy to employ
+% num_first_frames_to_avoid = how many frames to skip at start
+% num_last_frames_to_avoid = how many frames to skip at end
+% threshold = Geminin threshold
+% frames_to_check_nearby = how many frames to look ahead or behind
+% min_frames_above = how many frames must be above threshold
+% plot = whether or not to plot
+
+% Returns a whole number index corresponding to where the kink occurs; or,
+% returns [] if no good kink is discovered.
 
 [h,w] = size(geminin_trace);
 assert(h == 1 || w == 1)
@@ -13,15 +25,24 @@ if h == 1
     geminin_trace = geminin_trace';
 end
 
+% The trace needs to be at least a certain number of frames before it is
+% even worth trying to find where G1/S occurs
+if length(geminin_trace) < analysis_params.min_total_trace_frames
+    g1s_frame = [];
+    return
+end
+
 % Clean up geminin trace by replacing negative numbers or NaNs with 0
 geminin_trace(~(geminin_trace > 0)) = 0;
+% Clean up geminin trace by replacing Inf with 0
+geminin_trace(isinf(geminin_trace)) = 0;
 
 x_vals = (1:length(geminin_trace))';
 
 if strcmp(analysis_params.strategy,'threshold')
     has_it_previously_crossed_thresh_and_stayed_above = false;
     
-    for i = analysis_params.num_first_frames_to_avoid:length(geminin_trace)
+    for i = analysis_params.num_first_frames_to_avoid + 1 : length(geminin_trace)
         frames_above = 0;
         
         if geminin_trace(i) > analysis_params.threshold
@@ -120,7 +141,7 @@ elseif strcmp(analysis_params.strategy,'bilinear')
     
     ftype = fittype('max(a,b*x+c)');
     maxfit = fit(clean_x_vals,clean_trace,ftype,'StartPoint',[1 1 1]);
-    g1s_frame = (maxfit.a - maxfit.c)/maxfit.b + analysis_params.num_first_frames_to_avoid;
+    g1s_frame = round((maxfit.a - maxfit.c)/maxfit.b + analysis_params.num_first_frames_to_avoid);
     
     if analysis_params.plot == true
         figure()
@@ -138,6 +159,10 @@ elseif strcmp(analysis_params.strategy,'bilinear')
         g1s_frame = [];
     end
     
+    if isfield(analysis_params, 'second_line_min_slope') && maxfit.b < analysis_params.second_line_min_slope
+        g1s_frame = [];
+    end
+    
 elseif strcmp(analysis_params.strategy,'all')
     plot_final = analysis_params.plot;
     analysis_params.plot = false;
@@ -150,6 +175,23 @@ elseif strcmp(analysis_params.strategy,'all')
     analysis_params.strategy = 'all';
     g1s_frame = median([g1s_frame_by_threshold, g1s_frame_by_derivative, g1s_frame_by_bilinear]);
     
+    tight_clustering = true;
+    if analysis_params.require_tight_clustering_of_strategies == true
+        % If we require tight clustering of strategies, check to make sure
+        % all strategies returned nonempty values, and then check to make
+        % sure at least two of them are closer than the
+        % max_g1s_noise_frames
+        if isempty(g1s_frame_by_threshold) || isempty(g1s_frame_by_derivative)...
+                || isempty(g1s_frame_by_bilinear) ||...
+                min([abs(g1s_frame_by_threshold - g1s_frame_by_derivative),...
+                abs(g1s_frame_by_derivative - g1s_frame_by_threshold),...
+                abs(g1s_frame_by_bilinear - g1s_frame_by_threshold)]) >...
+                analysis_params.max_g1s_noise_frames
+            g1s_frame = [];
+            tight_clustering = false;
+        end
+    end
+    
     if plot_final == true
         figure()
         hold on
@@ -157,6 +199,11 @@ elseif strcmp(analysis_params.strategy,'all')
         scatter(g1s_frame_by_derivative, geminin_trace(round(g1s_frame_by_derivative)), 360,'g+')
         scatter(g1s_frame_by_bilinear, geminin_trace(round(g1s_frame_by_bilinear)), 360,'rd')
         scatter(g1s_frame,geminin_trace(round(g1s_frame)),720,'bx')
+        if tight_clustering == true
+            title('Good tight clustering')
+        else
+            title('Bad not tight clustering')
+        end
         legend('Threshold','Derivative','Bilinear','Median')
         plot(x_vals, geminin_trace)
         hold off
