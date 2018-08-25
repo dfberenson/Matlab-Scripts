@@ -2,6 +2,8 @@
 clear all
 close all
 
+for pos = [5, 6 , 17, 18]
+
 %% Initialize Variables
 
 % Need to change backslashes to forward slashes in filenames on Mac
@@ -9,7 +11,7 @@ close all
 % folder = 'C:\Users\Skotheim Lab\Desktop\Manual_Tracking';
 folder = 'F:\DFB_imaging_experiments_2';
 base_expt_name = 'DFB_180803_HMEC_D5_1';
-pos = 3;
+% pos = 13;
 full_expt_name = [base_expt_name '_Pos' num2str(pos)];
 expt_folder = [folder '\' full_expt_name];
 order_of_colors = 'pgrf';
@@ -214,4 +216,6 @@ end
 
 if ~exist([expt_folder  '\Resegmentation\'],'dir')
     mkdir([expt_folder  '\Resegmentation\']);
+end
+
 end

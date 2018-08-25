@@ -152,9 +152,12 @@ for c = tracking_measurements.all_tracknums
         analyzed_values(c).birth_size = median(sizes_near_birth);
     end
     
-    % Measure G1S transition time and cell cycle phase lengths
+    analyzed_values(c).passes_g1s = [];
     
+    % Measure G1S transition time and cell cycle phase lengths
     if ~is_four_channels
+        % If not a four-channel movie, can look only at complete cell
+        % cycles.
         if analyzed_values(c).has_complete_cycle
             analyzed_values(c).g1s_frame_bilinear_notsmooth = get_g1s_frame(analyzed_values(c).geminin_measurements,analysis_parameters);
             analyzed_values(c).g1s_frame_bilinear_smooth = get_g1s_frame(analyzed_values(c).geminin_measurements_smooth,analysis_parameters);
@@ -164,7 +167,46 @@ for c = tracking_measurements.all_tracknums
             analyzed_values(c).g1s_frame = analyzed_values(c).g1s_frame_bilinear_notsmooth;
             analyzed_values(c).g1_length_hours = analyzed_values(c).g1_length_hours_v1;
             
-            analyzed_values(c).sg2_length_hours = analyzed_values(c).trace_duration_hours - analyzed_values(c).g1_length_hours;
+            % If no G1S frame was found, count it no longer as a complete
+            % cycle.
+            if isempty(analyzed_values(c).g1s_frame)
+                analyzed_values(c).passes_g1s = false;
+                analyzed_values(c).has_complete_cycle = false;
+                
+                % Else record some measurements around G1/S
+            else
+                analyzed_values(c).passes_g1s = true;
+                analyzed_values(c).sg2_length_hours = analyzed_values(c).trace_duration_hours - analyzed_values(c).g1_length_hours;
+                analyzed_values(c).g1s_size = analyzed_values(c).size_measurements_smooth(analyzed_values(c).g1s_frame);
+                analyzed_values(c).frame_to_start_measuring = max(1, analyzed_values(c).g1s_frame - analysis_parameters.frames_before_g1s_to_examine);
+                
+                analyzed_values(c).instantaneous_sizes_during_g1 = analyzed_values(c).size_measurements(1:analyzed_values(c).g1s_frame);
+                analyzed_values(c).instantaneous_sizes_during_sg2 = analyzed_values(c).size_measurements(analyzed_values(c).g1s_frame + 1 : end);
+                
+                analyzed_values(c).frame_indices_wrt_g1s_nextframe = (analyzed_values(c).frame_to_start_measuring - analyzed_values(c).g1s_frame : -1)';
+                analyzed_values(c).g1s_happens_here_nextframe = logical(zeros(length(analyzed_values(c).frame_indices_wrt_g1s_nextframe),1));
+                analyzed_values(c).g1s_happens_here_nextframe(end) = 1;
+                analyzed_values(c).areas_up_to_g1s_nextframe = analyzed_values(c).area_measurements(analyzed_values(c).frame_to_start_measuring : analyzed_values(c).g1s_frame - 1);
+                analyzed_values(c).sizes_up_to_g1s_nextframe = analyzed_values(c).size_measurements(analyzed_values(c).frame_to_start_measuring : analyzed_values(c).g1s_frame - 1);
+                analyzed_values(c).geminin_up_to_g1s_nextframe = analyzed_values(c).geminin_measurements(analyzed_values(c).frame_to_start_measuring : analyzed_values(c).g1s_frame - 1);
+                
+                if analyzed_values(c).is_born
+                    analyzed_values(c).age_in_frames_up_to_g1s_nextframe = (analyzed_values(c).frame_to_start_measuring : analyzed_values(c).g1s_frame - 1)';
+                    analyzed_values(c).age_in_hours_up_to_g1s_nextframe = analyzed_values(c).age_in_frames_up_to_g1s_nextframe * analysis_parameters.framerate;
+                end
+                
+                analyzed_values(c).frame_indices_wrt_g1s_thisframe = (analyzed_values(c).frame_to_start_measuring - analyzed_values(c).g1s_frame : 0)';
+                analyzed_values(c).g1s_happens_here_thisframe = logical(zeros(length(analyzed_values(c).frame_indices_wrt_g1s_thisframe),1));
+                analyzed_values(c).g1s_happens_here_thisframe(end) = 1;
+                analyzed_values(c).areas_up_to_g1s_thisframe = analyzed_values(c).area_measurements(analyzed_values(c).frame_to_start_measuring : analyzed_values(c).g1s_frame - 0);
+                analyzed_values(c).sizes_up_to_g1s_thisframe = analyzed_values(c).size_measurements(analyzed_values(c).frame_to_start_measuring : analyzed_values(c).g1s_frame - 0);
+                analyzed_values(c).geminin_up_to_g1s_thisframe = analyzed_values(c).geminin_measurements(analyzed_values(c).frame_to_start_measuring : analyzed_values(c).g1s_frame - 0);
+                
+                if analyzed_values(c).is_born
+                    analyzed_values(c).age_in_frames_up_to_g1s_thisframe = (analyzed_values(c).frame_to_start_measuring : analyzed_values(c).g1s_frame - 0)';
+                    analyzed_values(c).age_in_hours_up_to_g1s_thisframe = analyzed_values(c).age_in_frames_up_to_g1s_thisframe * analysis_parameters.framerate;
+                end
+            end
         end
         
         % Measure sizes at G1S and G2M
@@ -182,26 +224,54 @@ for c = tracking_measurements.all_tracknums
         % the size-Crimson signal so that the Geminin curve is flat and
         % then slopes up.
         disp(['Finding G1S for cell ' num2str(c)])
-%         if c == 47
-%             disp('Stop here')
-%         end
+        %         if c == 47
+        %             disp('Stop here')
+        %         end
         analyzed_values(c).g1s_frame = get_g1s_frame(...
             analyzed_values(c).geminin_measurements ./ analyzed_values(c).size_measurements_smooth,...
             analysis_parameters);
         analyzed_values(c).passes_g1s = ~isempty(analyzed_values(c).g1s_frame);
-        if ~isempty(analyzed_values(c).g1s_frame)
+        
+        %Examine all cell that pass G1/S, even if they don't have complete
+        %cycles.
+        if analyzed_values(c).passes_g1s
             analyzed_values(c).hours_before_g1s = analyzed_values(c).g1s_frame * analysis_parameters.framerate;
             analyzed_values(c).hours_after_g1s = analyzed_values(c).trace_duration_hours - analyzed_values(c).hours_before_g1s;
-            
+            analyzed_values(c).g1s_size = analyzed_values(c).size_measurements_smooth(analyzed_values(c).g1s_frame);
             analyzed_values(c).frame_to_start_measuring = max(1, analyzed_values(c).g1s_frame - analysis_parameters.frames_before_g1s_to_examine);
-            analyzed_values(c).frame_indices_wrt_g1s = (analyzed_values(c).frame_to_start_measuring - analyzed_values(c).g1s_frame : 0)';
-            analyzed_values(c).g1s_happens_here = logical(zeros(length(analyzed_values(c).frame_indices_wrt_g1s),1));
-            analyzed_values(c).g1s_happens_here(end) = 1;
-            analyzed_values(c).areas_up_to_g1s = analyzed_values(c).area_measurements(analyzed_values(c).frame_to_start_measuring : analyzed_values(c).g1s_frame);
-            analyzed_values(c).sizes_up_to_g1s = analyzed_values(c).size_measurements(analyzed_values(c).frame_to_start_measuring : analyzed_values(c).g1s_frame);
-            analyzed_values(c).protein_amt_up_to_g1s = analyzed_values(c).protein_measurements(analyzed_values(c).frame_to_start_measuring : analyzed_values(c).g1s_frame);
-            analyzed_values(c).protein_per_area_up_to_g1s = analyzed_values(c).protein_amt_up_to_g1s ./ analyzed_values(c).areas_up_to_g1s;
-            analyzed_values(c).protein_per_size_up_to_g1s = analyzed_values(c).protein_amt_up_to_g1s ./ analyzed_values(c).sizes_up_to_g1s;
+            
+            analyzed_values(c).instantaneous_sizes_during_g1 = analyzed_values(c).size_measurements(1:analyzed_values(c).g1s_frame);
+            analyzed_values(c).instantaneous_sizes_during_sg2 = analyzed_values(c).size_measurements(analyzed_values(c).g1s_frame + 1 : end);
+            
+            analyzed_values(c).frame_indices_wrt_g1s_nextframe = (analyzed_values(c).frame_to_start_measuring - analyzed_values(c).g1s_frame : -1)';
+            analyzed_values(c).g1s_happens_here_nextframe = logical(zeros(length(analyzed_values(c).frame_indices_wrt_g1s_nextframe),1));
+            analyzed_values(c).g1s_happens_here_nextframe(end) = 1;
+            analyzed_values(c).areas_up_to_g1s_nextframe = analyzed_values(c).area_measurements(analyzed_values(c).frame_to_start_measuring : analyzed_values(c).g1s_frame - 1);
+            analyzed_values(c).sizes_up_to_g1s_nextframe = analyzed_values(c).size_measurements(analyzed_values(c).frame_to_start_measuring : analyzed_values(c).g1s_frame - 1);
+            analyzed_values(c).geminin_up_to_g1s_nextframe = analyzed_values(c).geminin_measurements(analyzed_values(c).frame_to_start_measuring : analyzed_values(c).g1s_frame - 1);
+            analyzed_values(c).protein_amt_up_to_g1s_nextframe = analyzed_values(c).protein_measurements(analyzed_values(c).frame_to_start_measuring : analyzed_values(c).g1s_frame - 1);
+            analyzed_values(c).protein_per_area_up_to_g1s_nextframe = analyzed_values(c).protein_amt_up_to_g1s_nextframe ./ analyzed_values(c).areas_up_to_g1s_nextframe;
+            analyzed_values(c).protein_per_size_up_to_g1s_nextframe = analyzed_values(c).protein_amt_up_to_g1s_nextframe ./ analyzed_values(c).sizes_up_to_g1s_nextframe;
+            
+            if analyzed_values(c).is_born
+                analyzed_values(c).age_in_frames_up_to_g1s_nextframe = (analyzed_values(c).frame_to_start_measuring : analyzed_values(c).g1s_frame - 1)';
+                analyzed_values(c).age_in_hours_up_to_g1s_nextframe = analyzed_values(c).age_in_frames_up_to_g1s_nextframe * analysis_parameters.framerate;
+            end
+            
+            analyzed_values(c).frame_indices_wrt_g1s_thisframe = (analyzed_values(c).frame_to_start_measuring - analyzed_values(c).g1s_frame : 0)';
+            analyzed_values(c).g1s_happens_here_thisframe = logical(zeros(length(analyzed_values(c).frame_indices_wrt_g1s_thisframe),1));
+            analyzed_values(c).g1s_happens_here_thisframe(end) = 1;
+            analyzed_values(c).areas_up_to_g1s_thisframe = analyzed_values(c).area_measurements(analyzed_values(c).frame_to_start_measuring : analyzed_values(c).g1s_frame - 0);
+            analyzed_values(c).sizes_up_to_g1s_thisframe = analyzed_values(c).size_measurements(analyzed_values(c).frame_to_start_measuring : analyzed_values(c).g1s_frame - 0);
+            analyzed_values(c).geminin_up_to_g1s_thisframe = analyzed_values(c).geminin_measurements(analyzed_values(c).frame_to_start_measuring : analyzed_values(c).g1s_frame - 0);
+            analyzed_values(c).protein_amt_up_to_g1s_thisframe = analyzed_values(c).protein_measurements(analyzed_values(c).frame_to_start_measuring : analyzed_values(c).g1s_frame - 0);
+            analyzed_values(c).protein_per_area_up_to_g1s_thisframe = analyzed_values(c).protein_amt_up_to_g1s_thisframe ./ analyzed_values(c).areas_up_to_g1s_thisframe;
+            analyzed_values(c).protein_per_size_up_to_g1s_thisframe = analyzed_values(c).protein_amt_up_to_g1s_thisframe ./ analyzed_values(c).sizes_up_to_g1s_thisframe;
+            
+            if analyzed_values(c).is_born
+                analyzed_values(c).age_in_frames_up_to_g1s_thisframe = (analyzed_values(c).frame_to_start_measuring : analyzed_values(c).g1s_frame - 0)';
+                analyzed_values(c).age_in_hours_up_to_g1s_thisframe = analyzed_values(c).age_in_frames_up_to_g1s_thisframe * analysis_parameters.framerate;
+            end
         end
     end
     

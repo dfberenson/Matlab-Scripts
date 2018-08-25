@@ -68,6 +68,7 @@ handles.segmentation_thresh = 0;
 % handles.red_balance = 200;
 % handles.green_balance = 50;
 % handles.blue_balance = 0;
+
 % For expt 180803:
 handles.red_balance = 100;
 handles.green_balance = 200;
@@ -76,7 +77,7 @@ handles.blue_balance = 0;
 %The following default values will be overwritten when GUI is called
 %with arguments
 handles.expt_folder = 'C:\Users\Skotheim Lab\Desktop\Manual_Tracking';
-handles.expt_name = 'DFB_180803_HMEC_D5_1_Pos1';
+handles.expt_name = 'DFB_180803_HMEC_D5_1_Pos13';
 handles.startframe = 1;
 handles.endframe = 432;
 

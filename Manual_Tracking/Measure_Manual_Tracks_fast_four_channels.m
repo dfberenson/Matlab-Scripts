@@ -4,7 +4,7 @@ close all
 clear all
 
 expt_folder = 'C:\Users\Skotheim Lab\Desktop\Manual_Tracking';
-expt_name = 'DFB_180803_HMEC_D5_1_Pos1';
+expt_name = 'DFB_180803_HMEC_D5_1_Pos13';
 
 segmentation_prefix = [expt_folder '\' expt_name '\'...
     'Segmentation\Segmented'];

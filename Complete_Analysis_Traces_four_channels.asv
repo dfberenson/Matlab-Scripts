@@ -401,8 +401,8 @@ end
 if measure_lengths_of_phases
     for cond = 1:num_conditions
         
-        data(cond).incomplete_g1_lengths_due_to_movie_end_hours = [];
-        data(cond).incomplete_g1_lengths_due_to_untrackability_hours = [];
+        data(cond).incomplete_g1_lengths_due_to_movie_end = [];
+        data(cond).incomplete_g1_lengths_due_to_untrackability = [];
         
         data(cond).all_complete_cycle_lengths = [];
         data(cond).first_gen_complete_cycle_lengths = [];
@@ -441,16 +441,20 @@ if measure_lengths_of_phases
             for c = data(cond).position(pos).tracking_measurements.all_tracknums
                 
                 % Look at cells that are born but don't pass G1
-                if ~isempty(data(cond).position(pos).analysis(c).is_born) && data(cond).position(pos).analysis(c).is_born &&...
-                        (isempty(data(cond).position(pos).analysis(c).passes_g1s) || data(cond).position(pos).analysis(c).passes_g1s == false)
-                    thiscell_lastframe = data(cond).position(pos).analysis(c).lastframe;
+                if data(cond).position(pos).analysis(c).isborn &&...
+                        (isempty(data(cond).position(pos).analysis(c).passes_g1s) || data(cond).position(pos).analysis(c).passes_g1s = false)
+                    
+                    thiscell_lastframe = data(cond).position(pos).analysis(c).lastframe
+                    
                     if thiscell_lastframe == analysis_parameters.movie_end_frame
-                        data(cond).incomplete_g1_lengths_due_to_movie_end_hours = [data(cond).incomplete_g1_lengths_due_to_movie_end_hours;...
-                            (thiscell_lastframe - data(cond).position(pos).analysis(c).firstframe) * analysis_parameters.framerate];
+                    data(cond).incomplete_g1_lengths_due_to_movie_end = [data(cond).incomplete_g1_lengths_due_to_movie_end;...
+                        thiscell_lastframe];
                     else
-                        data(cond).incomplete_g1_lengths_due_to_untrackability_hours = [data(cond).incomplete_g1_lengths_due_to_untrackability_hours;...
-                            (thiscell_lastframe - data(cond).position(pos).analysis(c).firstframe) * analysis_parameters.framerate];
+                    data(cond).incomplete_g1_lengths_due_to_untrackability = [data(cond).incomplete_g1_lengths_due_to_untrackability;...
+                        thiscell_lastframe];
                     end
+                    
+                    
                 end
                 
                 if data(cond).position(pos).analysis(c).passes_g1s
@@ -682,7 +686,7 @@ end
 % g1s sizes, sg2 lengths
 if measure_sizes_at_birth_and_other_times && measure_lengths_of_phases
     all_data_types_to_plot = {'Birth_sizes','Complete_cell_cycle_length','G1_length','G1S_size','SG2_length'};
-    all_cell_classes_to_plot = {'all','first_gen','second_gen','early','late','incomplete_movie_ends','incomplete_untrackability'};
+    all_cell_classes_to_plot = {'all','first_gen','second_gen','early','late'};
     all_plottypes = {'histogram','cdf'};
     
     % all_data_types_to_plot = {'G1 lengths'};
@@ -748,12 +752,6 @@ if measure_sizes_at_birth_and_other_times && measure_lengths_of_phases
                         elseif strcmp(cell_class_to_plot,'late')
                             data_to_plot(cond).to_plot = data(cond).late_g1_lengths;
                             graph_title = ['Cells born after frame ' num2str(analysis_parameters.birth_frame_threshold)];
-                        elseif strcmp(cell_class_to_plot,'incomplete_movie_ends')
-                            data_to_plot(cond).to_plot = data(cond).incomplete_g1_lengths_due_to_movie_end_hours;
-                            graph_title = ['Cells with incomplete G1 due to movie end'];
-                        elseif strcmp(cell_class_to_plot,'incomplete_untrackability')
-                            data_to_plot(cond).to_plot = data(cond).incomplete_g1_lengths_due_to_untrackability_hours;
-                            graph_title = ['Cells with incomplete G1 due to untrackability'];
                         end
                         
                     elseif strcmp(data_type_to_plot,'G1S_size')
@@ -990,7 +988,7 @@ end
 
 if measure_g1s_probabilities
     disp(['Condition 1: number of cells that pass G1/S = ' num2str(sum(data(1).all_g1s_happens_here_thisframe))])
-    disp(['Condition 2: number of cells that pass G1/S = ' num2str(sum(data(2).all_g1s_happens_here_thisframe))])
+    disp(['Condition 1: number of cells that pass G1/S = ' num2str(sum(data(2).all_g1s_happens_here_thisframe))])
     all_data_types_to_plot = {...
         %         'Relative_frame_vs_G1S_probability',...
         'Age_vs_G1S_probability','Area_vs_G1S_probability',...

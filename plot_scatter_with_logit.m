@@ -1,13 +1,14 @@
 
-function fig = plot_scatter_with_logit(x,y)
+function fig = plot_scatter_with_logit(X,Y)
 fig = figure();
 hold on
 yyaxis left
-scatter(x,y)
+scatter(X,Y)
 ylabel('Binary outcome')
 yyaxis right
-fit = glmfit(x,y,'binomial');
-domain = linspace(min(x),max(x),100);
+fit = glmfit(X,Y,'binomial');
+domain = linspace(min(X),max(X),100);
 plot(domain,glmval(fit,domain,'logit'))
 ylabel('Probability')
+axis([-inf inf 0 0.2])
 hold off

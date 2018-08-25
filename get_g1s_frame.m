@@ -173,22 +173,25 @@ elseif strcmp(analysis_params.strategy,'all')
     analysis_params.strategy = 'bilinear';
     g1s_frame_by_bilinear = get_g1s_frame(geminin_trace, analysis_params);
     analysis_params.strategy = 'all';
-    g1s_frame = median([g1s_frame_by_threshold, g1s_frame_by_derivative, g1s_frame_by_bilinear]);
+    g1s_frame = round(median([g1s_frame_by_threshold, g1s_frame_by_derivative, g1s_frame_by_bilinear]));
     
-    tight_clustering = true;
-    if analysis_params.require_tight_clustering_of_strategies == true
+    g1s_passes_quality_control = true;
+    if analysis_params.g1s_quality_control == true
         % If we require tight clustering of strategies, check to make sure
-        % all strategies returned nonempty values, and then check to make
+        % all strategies returned nonempty values, and that G1/S happens
+        % not at the very start or end of the trace, and then check to make
         % sure at least two of them are closer than the
         % max_g1s_noise_frames
         if isempty(g1s_frame_by_threshold) || isempty(g1s_frame_by_derivative)...
                 || isempty(g1s_frame_by_bilinear) ||...
+                g1s_frame < analysis_params.g1_frames_reqd_before_g1s || ...
+                g1s_frame > length(geminin_trace) - analysis_params.sg2_frames_reqd_after_g1s ||...
                 min([abs(g1s_frame_by_threshold - g1s_frame_by_derivative),...
                 abs(g1s_frame_by_derivative - g1s_frame_by_threshold),...
                 abs(g1s_frame_by_bilinear - g1s_frame_by_threshold)]) >...
                 analysis_params.max_g1s_noise_frames
             g1s_frame = [];
-            tight_clustering = false;
+            g1s_passes_quality_control = false;
         end
     end
     
@@ -199,12 +202,12 @@ elseif strcmp(analysis_params.strategy,'all')
         scatter(g1s_frame_by_derivative, geminin_trace(round(g1s_frame_by_derivative)), 360,'g+')
         scatter(g1s_frame_by_bilinear, geminin_trace(round(g1s_frame_by_bilinear)), 360,'rd')
         scatter(g1s_frame,geminin_trace(round(g1s_frame)),720,'bx')
-        if tight_clustering == true
-            title('Good tight clustering')
+        if g1s_passes_quality_control == true
+            title('G1S PASSES quality control')
         else
-            title('Bad not tight clustering')
+            title('G1S FAILS quality control')
         end
-        legend('Threshold','Derivative','Bilinear','Median')
+        legend('Threshold','Derivative','Bilinear','Median','Location','northwest')
         plot(x_vals, geminin_trace)
         hold off
     end

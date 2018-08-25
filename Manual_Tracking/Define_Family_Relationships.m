@@ -4,7 +4,7 @@ clear all
 folder = 'F:\Manually tracked imaging experiments';
 expt_name = 'DFB_180803_HMEC_D5_1';
 expt_folder = [folder '\' expt_name];
-positions_list = [1];
+positions_list = [13];
 
 for pos = positions_list
     %     position_folder = [expt_folder '\Pos' num2str(pos)];
@@ -28,6 +28,9 @@ for pos = positions_list
             if tree(c).daughter2_id > 0
                 tree(tree(c).daughter2_id).mother_id = c;
             end
+        else
+            tree(c).daughter1_id = [];
+            tree(c).daughter2_id = [];
         end
     end
     
