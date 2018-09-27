@@ -25,8 +25,18 @@ else
 end
 
 [L,~] = bwlabel(segmented_im,4);
-daughter1_label = L(daughter1_xy(2), daughter1_xy(1));
-daughter2_label = L(daughter2_xy(2), daughter2_xy(1));
+
+[Y,X] = size(L);
+if daughter1_xy(1) > X || daughter1_xy(2) > Y || daughter1_xy(1) <=0 || daughter1_xy(2) <= 0
+    daughter1_label = 0;
+else
+    daughter1_label = L(daughter1_xy(2), daughter1_xy(1));
+end
+if daughter2_xy(1) > X || daughter2_xy(2) > Y || daughter2_xy(1) <=0 || daughter2_xy(2) <= 0
+    daughter2_label = 0;
+else
+    daughter2_label = L(daughter2_xy(2), daughter2_xy(1));
+end
 
 for n = s.all_tracknums
     click_table_size = size(s.clicks);

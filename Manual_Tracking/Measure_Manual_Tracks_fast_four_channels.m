@@ -3,8 +3,10 @@
 close all
 clear all
 
-expt_folder = 'C:\Users\Skotheim Lab\Desktop\Manual_Tracking';
-expt_name = 'DFB_180803_HMEC_D5_1_Pos13';
+for pos = [1 3 13 14 15 16]
+
+expt_folder = 'F:\Manually tracked imaging experiments';
+expt_name = ['DFB_180803_HMEC_D5_1_Pos' num2str(pos)];
 
 segmentation_prefix = [expt_folder '\' expt_name '\'...
     'Segmentation\Segmented'];
@@ -47,11 +49,15 @@ for t = s.startframe:s.endframe
     
     raw_im_farred_mode = mode(raw_im_farred(:));
     raw_im_red_mode = mode(raw_im_red(:));
-    raw_im_green_mode = mode(raw_im_green(:));
+    %     raw_im_green_mode = mode(raw_im_green(:));
+    % Can't just use the mode for green in a four-channel movie with
+    % Rb-Clover because the uneven background is overpowering. Instead use
+    % the darkfield value from the corners of the image.
+    raw_im_green_dark = 110;
     
     zeroed_im_farred = raw_im_farred - raw_im_farred_mode;
     zeroed_im_red = raw_im_red - raw_im_red_mode;
-    zeroed_im_green = raw_im_green - raw_im_green_mode;
+    zeroed_im_green = raw_im_green - raw_im_green_dark;
     flatfielded_im_farred = zeroed_im_farred * blank_field_mean ./ blank_field;
     flatfielded_im_red = zeroed_im_red * blank_field_mean ./ blank_field;
     flatfielded_im_green = zeroed_im_green * blank_field_mean ./ blank_field;
@@ -68,7 +74,7 @@ for t = s.startframe:s.endframe
             green_raw_integrated_intensity_trace = [];
             farred_flat_integrated_intensity_trace = [];
             red_flat_integrated_intensity_trace = [];
-            green_flat_integrated_intensity_trace= [];
+            green_flat_integrated_intensity_trace = [];
             
             click = s.clicks{t,cellnum};
             if ~isempty(click)
@@ -124,7 +130,7 @@ for t = s.startframe:s.endframe
                 all_green_raw_integrated_intensity_traces(t,cellnum) = green_raw_integrated_intensity_trace(t);
                 all_farred_flat_integrated_intensity_traces(t,cellnum) = farred_flat_integrated_intensity_trace(t);
                 all_red_flat_integrated_intensity_traces(t,cellnum) = red_flat_integrated_intensity_trace(t);
-                all_green_flat_integrated_intensity_traces(t,cellnum) = green_raw_integrated_intensity_trace(t);
+                all_green_flat_integrated_intensity_traces(t,cellnum) = green_flat_integrated_intensity_trace(t);
                 
             else
                 % It might be that the click is empty even though the cell
@@ -147,7 +153,7 @@ for t = s.startframe:s.endframe
                     all_green_raw_integrated_intensity_traces(t,cellnum) = green_raw_integrated_intensity_trace(t);
                     all_farred_flat_integrated_intensity_traces(t,cellnum) = farred_flat_integrated_intensity_trace(t);
                     all_red_flat_integrated_intensity_traces(t,cellnum) = red_flat_integrated_intensity_trace(t);
-                    all_green_flat_integrated_intensity_traces(t,cellnum) = green_raw_integrated_intensity_trace(t);
+                    all_green_flat_integrated_intensity_traces(t,cellnum) = green_flat_integrated_intensity_trace(t);
                 end
             end
         end
@@ -168,7 +174,7 @@ save([expt_folder '\' expt_name '\Measurements.mat'], 'measurements_struct');
 load([expt_folder '\' expt_name '\Measurements.mat']);
 
 % response = questdlg('Plot cells?');
-response = 'Yes';
+response = 'No';
 if strcmp(response,'Yes')
     
 else
@@ -285,4 +291,6 @@ for cellnum = cells_to_track
         %         drawnow
         %         hold off
     end
+end
+
 end

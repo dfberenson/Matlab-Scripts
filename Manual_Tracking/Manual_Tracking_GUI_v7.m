@@ -1,3 +1,6 @@
+% When switching code between three and four color versions, look for this:
+% DEPENDS_ON_NUM_COLORS
+
 function varargout = Manual_Tracking_GUI_v7(varargin)
 % MANUAL_TRACKING_GUI_V7 MATLAB code for Manual_Tracking_GUI_v7.fig
 %      MANUAL_TRACKING_GUI_V7, by itself, creates a new MANUAL_TRACKING_GUI_V7 or raises the existing
@@ -77,7 +80,9 @@ handles.blue_balance = 0;
 %The following default values will be overwritten when GUI is called
 %with arguments
 handles.expt_folder = 'C:\Users\Skotheim Lab\Desktop\Manual_Tracking';
-handles.expt_name = 'DFB_180803_HMEC_D5_1_Pos13';
+% handles.expt_name = 'DFB_180822_HMEC_1GFiii_1_Pos1';
+% handles.expt_folder = 'F:\Manually tracked imaging experiments';
+handles.expt_name = 'DFB_180803_HMEC_D5_1_Pos16';
 handles.startframe = 1;
 handles.endframe = 432;
 
@@ -113,7 +118,11 @@ handles.raw_red_prefix = [handles.expt_folder '\' handles.expt_name '\'...
     handles.expt_name '_RawRed\' handles.expt_name '_RawRed'];
 handles.raw_green_prefix = [handles.expt_folder '\' handles.expt_name '\'...
     handles.expt_name '_RawGreen\' handles.expt_name '_RawGreen'];
+
+% DEPENDS_ON_NUM_COLORS
+% handles.main_raw_prefix = handles.raw_red_prefix;
 handles.main_raw_prefix = handles.raw_farred_prefix;
+
 handles.segmentation_prefix = [handles.expt_folder '\' handles.expt_name '\'...
     'Segmentation\Segmented'];
 handles.resegmentation_prefix = [handles.expt_folder '\' handles.expt_name '\'...
@@ -188,6 +197,7 @@ if exist([handles.resegmentation_prefix '_' sprintf('%03d',handles.t) '.tif'])
             segmented_im = imread([handles.segmentation_prefix '_' sprintf('%03d',handles.t) '.tif']);
         end
 [handles.Y,handles.X] = size(segmented_im);
+handles.blank_im = zeros(handles.Y,handles.X);
 handles.T = handles.endframe - handles.startframe + 1;
 
 handles.s.clicks = cell(handles.T,1);
@@ -206,21 +216,29 @@ for t = 1:handles.T
     if ~exist([handles.trackedoutlined_prefix '_'...
             sprintf('%03d',t) '.tif'])
         disp(['Outlining image ' num2str(t) ' in white.'])
+        
+        % DEPENDS_ON_NUM_COLORS
         raw_im_farred = imread([handles.raw_farred_prefix '_' sprintf('%03d',t) '.tif']);
         raw_im_red = imread([handles.raw_red_prefix '_' sprintf('%03d',t) '.tif']);
         raw_im_green = imread([handles.raw_green_prefix '_' sprintf('%03d',t) '.tif']);
+        
         if exist([handles.resegmentation_prefix '_' sprintf('%03d',t) '.tif'])
             segmented_im = imread([handles.resegmentation_prefix '_' sprintf('%03d',t) '.tif']);
         else
             segmented_im = imread([handles.segmentation_prefix '_' sprintf('%03d',t) '.tif']);
         end
         
+        % DEPENDS_ON_NUM_COLORS
         % color_im comprises three channels in RGB order.
         % Here farred will look red, red will look green, and green will
         % look blue.
-        color_im(:,:,1) = raw_im_farred*handles.red_balance;
-        color_im(:,:,2) = raw_im_red*handles.green_balance;
-        color_im(:,:,3) = raw_im_green*handles.blue_balance;
+        color_im(:,:,1) = raw_im_farred * handles.red_balance;
+        color_im(:,:,2) = raw_im_red * handles.green_balance;
+%         color_im(:,:,1) = raw_im_red*handles.red_balance;
+%         color_im(:,:,2) = raw_im_green*handles.green_balance;
+%         color_im(:,:,3) = raw_im_green*handles.blue_balance;
+        color_im(:,:,3) = handles.blank_im;
+        
         outlines = bwperim(segmented_im);
         color_im_outlined = imoverlay_fast(color_im, outlines,'white');
         imwrite(color_im_outlined,[handles.trackedoutlined_prefix '_'...
@@ -695,26 +713,31 @@ if ~handles.stacks_loaded
     return
 end
 for t = 1:handles.T
-    disp(['Outlining image ' num2str(t) ' in white.'])
-        raw_im_farred = imread([handles.raw_farred_prefix '_' sprintf('%03d',t) '.tif']);
-        raw_im_red = imread([handles.raw_red_prefix '_' sprintf('%03d',t) '.tif']);
-        raw_im_green = imread([handles.raw_green_prefix '_' sprintf('%03d',t) '.tif']);
-        if exist([handles.resegmentation_prefix '_' sprintf('%03d',t) '.tif'])
-            segmented_im = imread([handles.resegmentation_prefix '_' sprintf('%03d',t) '.tif']);
-        else
-            segmented_im = imread([handles.segmentation_prefix '_' sprintf('%03d',t) '.tif']);
-        end
-        
-        % color_im comprises three channels in RGB order.
-        % Here farred will look red, red will look green, and green will
-        % look blue.
-        color_im(:,:,1) = raw_im_farred*handles.red_balance;
-        color_im(:,:,2) = raw_im_red*handles.green_balance;
-        color_im(:,:,3) = raw_im_green*handles.blue_balance;
-        outlines = bwperim(segmented_im);
-        color_im_outlined = imoverlay_fast(color_im, outlines,'white');
-        imwrite(color_im_outlined,[handles.trackedoutlined_prefix '_'...
-            sprintf('%03d',t) '.tif']);   
+    disp(['Clearing colors for frame ' num2str(t)])
+    % DEPENDS_ON_NUM_COLORS
+    %         raw_im_farred = imread([handles.raw_farred_prefix '_' sprintf('%03d',t) '.tif']);
+    raw_im_red = imread([handles.raw_red_prefix '_' sprintf('%03d',t) '.tif']);
+    raw_im_green = imread([handles.raw_green_prefix '_' sprintf('%03d',t) '.tif']);
+    
+    if exist([handles.resegmentation_prefix '_' sprintf('%03d',t) '.tif'])
+        segmented_im = imread([handles.resegmentation_prefix '_' sprintf('%03d',t) '.tif']);
+    else
+        segmented_im = imread([handles.segmentation_prefix '_' sprintf('%03d',t) '.tif']);
+    end
+    
+    % DEPENDS_ON_NUM_COLORS
+    % color_im comprises three channels in RGB order.
+    % Here farred will look red, red will look green, and green will
+    % look blue.
+    color_im(:,:,1) = raw_im_red*handles.red_balance;
+    color_im(:,:,2) = raw_im_green*handles.green_balance;
+    %         color_im(:,:,3) = raw_im_green*handles.blue_balance;
+    color_im(:,:,3) = handles.blank_im;
+    
+    outlines = bwperim(segmented_im);
+    color_im_outlined = imoverlay_fast(color_im, outlines,'white');
+    imwrite(color_im_outlined,[handles.trackedoutlined_prefix '_'...
+        sprintf('%03d',t) '.tif']);
 end
 handles = update_t(hObject,eventdata,handles,1);
 

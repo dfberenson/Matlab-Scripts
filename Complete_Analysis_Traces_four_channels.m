@@ -3,18 +3,30 @@ close all
 
 %% Set parameters
 
-tracking_strategy = 'clicking';
-% tracking_strategy = 'aivia';
+% tracking_strategy = 'clicking';
+tracking_strategy = 'aivia';
 
-source_folder = 'E:\Manually tracked measurements';
-expt_name = 'DFB_180627_HMEC_1GFiii_palbo_2';
-measure_protein_concentrations = false;
+% MUST CHANGE BACKGROUND SUBTRACTION FORMULA DEPENDING ON WHAT KIND OF
+% MOVIE
 
-% source_folder = 'F:\Manually tracked imaging experiments';
-% expt_name = 'DFB_180803_HMEC_D5_1';
-% measure_protein_concentrations = true;
+% source_folder = 'E:\Manually tracked measurements';
+% expt_name = 'DFB_180627_HMEC_1GFiii_palbo_2';
+% table_expt_folder = [source_folder '\' expt_name];
+% measure_protein_concentrations = false;
 
-expt_folder = [source_folder '\' expt_name];
+% table_source_folder = 'E:\Manually tracked measurements';
+table_source_folder = 'E:\Aivia';
+image_source_folder = 'F:\Manually tracked imaging experiments';
+expt_name = 'DFB_180803_HMEC_D5_1';
+table_expt_folder = [table_source_folder '\' expt_name];
+image_expt_folder = [image_source_folder '\' expt_name];
+measure_protein_concentrations = true;
+
+% source_folder = 'E:\Manually tracked measurements';
+% expt_name = 'DFB_180822_HMEC_1GFiii_1';
+% table_expt_folder = [source_folder '\' expt_name];
+% measure_protein_concentrations = false;
+
 
 num_conditions = 2;
 
@@ -40,16 +52,27 @@ switch expt_name
         analysis_parameters.second_line_min_slope = 50000/20;
         
     case 'DFB_180803_HMEC_D5_1'
-        analysis_parameters.segmentation_parameters.threshold = 272;
-        analysis_parameters.segmentation_parameters.strel_size = 3;
-        analysis_parameters.threshold = 0.15;
-        analysis_parameters.second_line_min_slope = 0.05/20;
         analysis_parameters.order_of_channels = 'pgrf';
         analysis_parameters.size_channel = 'f';
         analysis_parameters.geminin_channel = 'r';
         analysis_parameters.protein_channel = 'g';
         analysis_parameters.movie_start_frame = 1;
         analysis_parameters.movie_end_frame = 432;
+        analysis_parameters.segmentation_parameters.threshold = 272;
+        analysis_parameters.segmentation_parameters.strel_size = 3;
+        analysis_parameters.threshold = 0.17;
+        analysis_parameters.second_line_min_slope = 0.05/20;
+        
+    case 'DFB_180822_HMEC_1GFiii_1'
+        analysis_parameters.order_of_channels = 'prg';
+        analysis_parameters.size_channel = 'r';
+        analysis_parameters.geminin_channel = 'g';
+        analysis_parameters.movie_start_frame = 1;
+        analysis_parameters.movie_end_frame = 432;
+        analysis_parameters.segmentation_parameters.threshold = 200;
+        analysis_parameters.segmentation_parameters.strel_size = 1;
+        analysis_parameters.threshold = 20000;
+        analysis_parameters.second_line_min_slope = 50000/20;
 end
 
 analysis_parameters.segmentation_parameters.gaussian_width = 2;
@@ -64,10 +87,11 @@ analysis_parameters.min_frames_above = 15;
 analysis_parameters.plot = false;
 analysis_parameters.strategy = 'all';
 analysis_parameters.min_total_trace_frames = 30;
+analysis_parameters.compare_birth_size_to_sister = false;
 
 analysis_parameters.g1s_quality_control = true;
-analysis_parameters.g1_frames_reqd_before_g1s = 10;
-analysis_parameters.sg2_frames_reqd_after_g1s = 10;
+analysis_parameters.g1_frames_reqd_before_g1s = 4 / analysis_parameters.framerate;
+analysis_parameters.sg2_frames_reqd_after_g1s = 2 / analysis_parameters.framerate;
 analysis_parameters.max_g1s_noise_frames = 10;
 analysis_parameters.frames_before_g1s_to_examine = 5 / analysis_parameters.framerate;
 analysis_parameters.birthsize_measuring_frames = [6:12];
@@ -100,18 +124,26 @@ for cond = 1:num_conditions
             case 'DFB_180803_HMEC_D5_1'
                 switch tracking_strategy
                     case 'clicking'
+                        data(cond).positions_list = [1 3];
+                    case 'aivia'
+                        data(cond).positions_list = [1 2 3 4 5 6 7 8 9];
+                end
+                
+            case 'DFB_180822_HMEC_1GFiii_1'
+                switch tracking_strategy
+                    case 'clicking'
                         data(cond).positions_list = [1];
                     case 'aivia'
-                        data(cond).positions_list = [1 2 3 4];
+                        data(cond).positions_list = [];
                 end
         end
         
         
         
     elseif cond == 2
-        data(cond).treatment = '40 nM palbociclib';
         switch expt_name
             case 'DFB_180627_HMEC_1GFiii_palbo_2'
+                data(cond).treatment = '40 nM palbociclib';
                 switch tracking_strategy
                     case 'clicking'
                         data(cond).positions_list = [13 14 15];
@@ -120,11 +152,21 @@ for cond = 1:num_conditions
                 end
                 
             case 'DFB_180803_HMEC_D5_1'
+                data(cond).treatment = '40 nM palbociclib';
                 switch tracking_strategy
                     case 'clicking'
                         data(cond).positions_list = [13];
                     case 'aivia'
-                        data(cond).positions_list = [13 14 15 16];
+                        data(cond).positions_list = [13 14 15 16 17 18 19 20 21];
+                end
+                
+            case 'DFB_180822_HMEC_1GFiii_1'
+                data(cond).treatment = '100 nM palbociclib';
+                switch tracking_strategy
+                    case 'clicking'
+                        data(cond).positions_list = [25];
+                    case 'aivia'
+                        data(cond).positions_list = [];
                 end
         end
         
@@ -136,7 +178,7 @@ end
 if strcmp(tracking_strategy,'clicking')
     for cond = 1:num_conditions
         for pos = data(cond).positions_list
-            position_folder = [expt_folder '\Pos' num2str(pos)];
+            position_folder = [table_expt_folder '\Pos' num2str(pos)];
             load([position_folder '\TrackingData.mat']);
             load([position_folder '\Measurements.mat']);
             load([position_folder '\Family_Relationships.mat']);
@@ -164,13 +206,23 @@ elseif strcmp(tracking_strategy,'aivia')
         for pos = data(cond).positions_list
             disp(['Analyzing tracking data for position ' num2str(pos) '.'])
             [data(cond).position(pos).analysis, data(cond).position(pos).tree] =...
-                analyze_tracking_data_aivia(expt_folder, expt_name, pos, analysis_parameters);
+                analyze_tracking_data_aivia(table_expt_folder, image_expt_folder, expt_name, pos, analysis_parameters);
             data(cond).position(pos).tracking_measurements.all_tracknums =...
                 1:length(data(cond).position(pos).analysis);
         end
     end
 end
 
+% %% Fictional data to test analysis
+%
+% clear data
+% data = struct;
+% data(1).position(1).analysis = d(1).position(1).analysis;
+% num_conditions = 1;
+% data(1).positions_list = 1;
+% data(1).position(1).tracking_measurements.all_tracknums = d(1).position(1).tracking_measurements.all_tracknums;
+% data(1).position(1).tree = d(1).position(1).tree;
+% data(1).treatment = 'test';
 
 %% Collate measurements
 
@@ -199,7 +251,8 @@ if measure_area_vs_fluorescence
                     data(cond).position(pos).analysis(c).size_measurements_avoiding_ends];
                 
                 data(cond).all_instantaneous_size_measurements_avoiding_ends_nolast = [data(cond).all_instantaneous_size_measurements_avoiding_ends_nolast;...
-                    data(cond).position(pos).analysis(c).size_measurements_avoiding_ends(1 : end - analysis_parameters.average_instantaneous_growth_rate_over_num_frames)];
+                    (data(cond).position(pos).analysis(c).size_measurements_avoiding_ends(1 + analysis_parameters.average_instantaneous_growth_rate_over_num_frames : end) +...
+                    data(cond).position(pos).analysis(c).size_measurements_avoiding_ends(1 : end - analysis_parameters.average_instantaneous_growth_rate_over_num_frames))/2];
                 data(cond).all_instantaneous_size_increase_measurements_avoiding_ends = [data(cond).all_instantaneous_size_increase_measurements_avoiding_ends;...
                     (data(cond).position(pos).analysis(c).size_measurements_avoiding_ends(1 + analysis_parameters.average_instantaneous_growth_rate_over_num_frames : end) -...
                     data(cond).position(pos).analysis(c).size_measurements_avoiding_ends(1 : end - analysis_parameters.average_instantaneous_growth_rate_over_num_frames))];
@@ -207,8 +260,8 @@ if measure_area_vs_fluorescence
                 % In case of
                 % analysis_parameters.average_instantaneous_growth_rate_over_num_frames
                 % is equal to 1, can just use diff function
-%                 data(cond).all_instantaneous_size_increase_measurements_avoiding_ends = [data(cond).all_instantaneous_size_increase_measurements_avoiding_ends;...
-%                     diff(data(cond).position(pos).analysis(c).size_measurements_avoiding_ends)];
+                %                 data(cond).all_instantaneous_size_increase_measurements_avoiding_ends = [data(cond).all_instantaneous_size_increase_measurements_avoiding_ends;...
+                %                     diff(data(cond).position(pos).analysis(c).size_measurements_avoiding_ends)];
             end
         end
     end
@@ -216,6 +269,7 @@ end
 
 % Collate birth sizes, G1/S sizes, G2/M sizes
 if measure_sizes_at_birth_and_other_times
+    
     for cond = 1:num_conditions
         num_total_born_cells = 0;
         num_total_born_cells_similar_to_sister = 0;
@@ -254,6 +308,14 @@ if measure_sizes_at_birth_and_other_times
         data(cond).all_instantaneous_sg2_sizes_nolast = [];
         data(cond).all_instantaneous_sg2_size_increases = [];
         
+        data(cond).good_size_traces = {};
+        data(cond).good_smooth_size_traces = {};
+        data(cond).good_area_traces = {};
+        data(cond).good_smooth_area_traces = {};
+        data(cond).good_geminin_traces = {};
+        data(cond).good_smooth_geminin_traces = {};
+        data(cond).unique_cell_id = 1;
+        
         for pos = data(cond).positions_list
             for c = data(cond).position(pos).tracking_measurements.all_tracknums
                 if data(cond).position(pos).analysis(c).is_born
@@ -285,110 +347,128 @@ if measure_sizes_at_birth_and_other_times
                             disp(['Cell ' num2str(c) ' has birth size: ' num2str(thiscell_birth_size)])
                             disp(['Cell ' num2str(sister) ' has birth size: ' num2str(sister_birth_size)])
                         else
-                            
-                            % If sister checks out, add it to birth size list
                             data(cond).position(pos).analysis(c).birth_size_is_similar_to_sister = true;
                             num_total_born_cells_similar_to_sister = num_total_born_cells_similar_to_sister + 1;
-                            
-                            data(cond).all_birth_sizes = [data(cond).all_birth_sizes,...
+                        end
+                    end
+                    
+                    if ~analysis_parameters.compare_birth_size_to_sister ||...
+                            (~isempty(data(cond).position(pos).birth_size_is_similar_to_sister &&...
+                            data(cond).position(pos).birth_size_is_similar_to_sister))
+                        
+                        % If sister checks out, add it to birth size list
+                        
+                        data(cond).all_birth_sizes = [data(cond).all_birth_sizes,...
+                            data(cond).position(pos).analysis(c).birth_size];
+                        if data(cond).position(pos).analysis(c).generation == 1
+                            data(cond).first_gen_birth_sizes = [data(cond).first_gen_birth_sizes,...
                                 data(cond).position(pos).analysis(c).birth_size];
+                        elseif data(cond).position(pos).analysis(c).generation == 2
+                            data(cond).second_gen_birth_sizes = [data(cond).second_gen_birth_sizes,...
+                                data(cond).position(pos).analysis(c).birth_size];
+                        elseif data(cond).position(pos).analysis(c).generation >= 3
+                            data(cond).third_gen_and_beyond_birth_sizes = [data(cond).third_gen_and_beyond_birth_sizes,...
+                                data(cond).position(pos).analysis(c).birth_size];
+                        end
+                        if data(cond).position(pos).analysis(c).is_born_early_in_movie
+                            data(cond).early_birth_sizes = [data(cond).early_birth_sizes,...
+                                data(cond).position(pos).analysis(c).birth_size];
+                        else
+                            data(cond).late_birth_sizes = [data(cond).late_birth_sizes,...
+                                data(cond).position(pos).analysis(c).birth_size];
+                        end
+                        
+                        % Quality checks: if it has a complete cell
+                        % cycle and passes G1/S
+                        % and is born smaller than a set maximum size, add
+                        % it to the "good" list
+                        if ~isempty(data(cond).position(pos).analysis(c).has_complete_cycle) &&...
+                                data(cond).position(pos).analysis(c).has_complete_cycle &&...
+                                data(cond).position(pos).analysis(c).passes_g1s &&...
+                                data(cond).position(pos).analysis(c).birth_size < analysis_parameters.max_birth_size
+                            data(cond).all_good_birth_sizes = [data(cond).all_good_birth_sizes,...
+                                data(cond).position(pos).analysis(c).birth_size];
+                            data(cond).all_good_birth_areas = [data(cond).all_good_birth_areas,...
+                                data(cond).position(pos).analysis(c).birth_area];
+                            
+                            data(cond).all_good_g1s_sizes = [data(cond).all_good_g1s_sizes,...
+                                data(cond).position(pos).analysis(c).g1s_size];
                             if data(cond).position(pos).analysis(c).generation == 1
-                                data(cond).first_gen_birth_sizes = [data(cond).first_gen_birth_sizes,...
-                                    data(cond).position(pos).analysis(c).birth_size];
+                                data(cond).first_gen_good_g1s_sizes = [data(cond).first_gen_good_g1s_sizes,...
+                                    data(cond).position(pos).analysis(c).g1s_size];
                             elseif data(cond).position(pos).analysis(c).generation == 2
-                                data(cond).second_gen_birth_sizes = [data(cond).second_gen_birth_sizes,...
-                                    data(cond).position(pos).analysis(c).birth_size];
+                                data(cond).second_gen_good_g1s_sizes = [data(cond).second_gen_good_g1s_sizes,...
+                                    data(cond).position(pos).analysis(c).g1s_size];
                             elseif data(cond).position(pos).analysis(c).generation >= 3
-                                data(cond).third_gen_and_beyond_birth_sizes = [data(cond).third_gen_and_beyond_birth_sizes,...
-                                    data(cond).position(pos).analysis(c).birth_size];
-                            end
-                            if data(cond).position(pos).analysis(c).is_born_early_in_movie
-                                data(cond).early_birth_sizes = [data(cond).early_birth_sizes,...
-                                    data(cond).position(pos).analysis(c).birth_size];
-                            else
-                                data(cond).late_birth_sizes = [data(cond).late_birth_sizes,...
-                                    data(cond).position(pos).analysis(c).birth_size];
+                                data(cond).third_gen_and_beyond_good_g1s_sizes = [data(cond).third_gen_and_beyond_good_g1s_sizes,...
+                                    data(cond).position(pos).analysis(c).g1s_size];
                             end
                             
-                            % Quality checks: if it has a complete cell
-                            % cycle and passes G1/S
-                            % and is born smaller than a set maximum size, add
-                            % it to the "good" list
-                            if data(cond).position(pos).analysis(c).has_complete_cycle && data(cond).position(pos).analysis(c).passes_g1s &&...
-                                    data(cond).position(pos).analysis(c).birth_size < analysis_parameters.max_birth_size
-                                data(cond).all_good_birth_sizes = [data(cond).all_good_birth_sizes,...
+                            
+                            data(cond).all_good_g2m_sizes = [data(cond).all_good_g2m_sizes,...
+                                data(cond).position(pos).analysis(c).g2m_size];
+                            
+                            data(cond).all_good_g1_growths = [data(cond).all_good_g1_growths,...
+                                data(cond).position(pos).analysis(c).g1_growth];
+                            data(cond).all_good_sg2_growths = [data(cond).all_good_sg2_growths,...
+                                data(cond).position(pos).analysis(c).sg2_growth];
+                            data(cond).all_good_complete_cycle_growths = [data(cond).all_good_complete_cycle_growths,...
+                                data(cond).position(pos).analysis(c).complete_cycle_growth];
+                            
+                            if data(cond).position(pos).analysis(c).generation == 1
+                                data(cond).first_gen_good_birth_sizes = [data(cond).first_gen_good_birth_sizes,...
                                     data(cond).position(pos).analysis(c).birth_size];
-                                data(cond).all_good_birth_areas = [data(cond).all_good_birth_areas,...
+                                data(cond).first_gen_good_birth_areas = [data(cond).first_gen_good_birth_areas,...
                                     data(cond).position(pos).analysis(c).birth_area];
-                                
-                                data(cond).all_good_g1s_sizes = [data(cond).all_good_g1s_sizes,...
-                                    data(cond).position(pos).analysis(c).g1s_size];
-                                if data(cond).position(pos).analysis(c).generation == 1
-                                    data(cond).first_gen_good_g1s_sizes = [data(cond).first_gen_good_g1s_sizes,...
-                                        data(cond).position(pos).analysis(c).g1s_size];
-                                elseif data(cond).position(pos).analysis(c).generation == 2
-                                    data(cond).second_gen_good_g1s_sizes = [data(cond).second_gen_good_g1s_sizes,...
-                                        data(cond).position(pos).analysis(c).g1s_size];
-                                elseif data(cond).position(pos).analysis(c).generation >= 3
-                                    data(cond).third_gen_and_beyond_good_g1s_sizes = [data(cond).third_gen_and_beyond_good_g1s_sizes,...
-                                        data(cond).position(pos).analysis(c).g1s_size];
-                                end
-                                
-                                
-                                data(cond).all_good_g2m_sizes = [data(cond).all_good_g2m_sizes,...
-                                    data(cond).position(pos).analysis(c).g2m_size];
-                                
-                                data(cond).all_good_g1_growths = [data(cond).all_good_g1_growths,...
-                                    data(cond).position(pos).analysis(c).g1_growth];
-                                data(cond).all_good_sg2_growths = [data(cond).all_good_sg2_growths,...
-                                    data(cond).position(pos).analysis(c).sg2_growth];
-                                data(cond).all_good_complete_cycle_growths = [data(cond).all_good_complete_cycle_growths,...
-                                    data(cond).position(pos).analysis(c).complete_cycle_growth];
-                                
-                                if data(cond).position(pos).analysis(c).generation == 1
-                                    data(cond).first_gen_good_birth_sizes = [data(cond).first_gen_good_birth_sizes,...
-                                        data(cond).position(pos).analysis(c).birth_size];
-                                    data(cond).first_gen_good_birth_areas = [data(cond).first_gen_good_birth_areas,...
-                                        data(cond).position(pos).analysis(c).birth_area];
-                                elseif data(cond).position(pos).analysis(c).generation == 2
-                                    data(cond).second_gen_good_birth_sizes = [data(cond).second_gen_good_birth_sizes,...
-                                        data(cond).position(pos).analysis(c).birth_size];
-                                    data(cond).second_gen_good_birth_areas = [data(cond).second_gen_good_birth_areas,...
-                                        data(cond).position(pos).analysis(c).birth_area];
-                                elseif data(cond).position(pos).analysis(c).generation >= 3
-                                    data(cond).third_gen_and_beyond_good_birth_sizes = [data(cond).third_gen_and_beyond_good_birth_sizes,...
-                                        data(cond).position(pos).analysis(c).birth_size];
-                                    data(cond).third_gen_and_beyond_good_birth_areas = [data(cond).third_gen_and_beyond_good_birth_areas,...
-                                        data(cond).position(pos).analysis(c).birth_area];
-                                end
-                                
-                                
-                                data(cond).all_instantaneous_g1_sizes_nolast = [data(cond).all_instantaneous_g1_sizes_nolast;...
-                                    data(cond).position(pos).analysis(c).instantaneous_sizes_during_g1(1 : end - analysis_parameters.average_instantaneous_growth_rate_over_num_frames)];
-                                data(cond).all_instantaneous_g1_size_increases = [data(cond).all_instantaneous_g1_size_increases;...
-                                    (data(cond).position(pos).analysis(c).instantaneous_sizes_during_g1(1 + analysis_parameters.average_instantaneous_growth_rate_over_num_frames : end) -...
-                                    data(cond).position(pos).analysis(c).instantaneous_sizes_during_g1(1 : end - analysis_parameters.average_instantaneous_growth_rate_over_num_frames))];
-                                
-                                data(cond).all_instantaneous_sg2_sizes_nolast = [data(cond).all_instantaneous_sg2_sizes_nolast;...
-                                    data(cond).position(pos).analysis(c).instantaneous_sizes_during_sg2(1 : end - analysis_parameters.average_instantaneous_growth_rate_over_num_frames)];
-                                data(cond).all_instantaneous_sg2_size_increases = [data(cond).all_instantaneous_sg2_size_increases;...
-                                    (data(cond).position(pos).analysis(c).instantaneous_sizes_during_sg2(1 + analysis_parameters.average_instantaneous_growth_rate_over_num_frames : end) -...
-                                    data(cond).position(pos).analysis(c).instantaneous_sizes_during_sg2(1 : end - analysis_parameters.average_instantaneous_growth_rate_over_num_frames))];
-                                
-                                % In case of
-                                % analysis_parameters.average_instantaneous_growth_rate_over_num_frames
-                                % is equal to 1, can just use diff function
-                                %                                 data(cond).all_instantaneous_g1_sizes_nolast = [data(cond).all_instantaneous_g1_sizes_nolast;...
-                                %                                     data(cond).position(pos).analysis(c).instantaneous_sizes_during_g1(1:end-1)];
-%                                 data(cond).all_instantaneous_g1_size_increases = [data(cond).all_instantaneous_g1_size_increases;...
-%                                     diff(data(cond).position(pos).analysis(c).instantaneous_sizes_during_g1)];
-%                                 data(cond).all_instantaneous_sg2_sizes_nolast = [data(cond).all_instantaneous_sg2_sizes_nolast;...
-%                                     data(cond).position(pos).analysis(c).instantaneous_sizes_during_sg2(1:end-1)];
-%                                 data(cond).all_instantaneous_sg2_size_increases = [data(cond).all_instantaneous_sg2_size_increases;...
-%                                     diff(data(cond).position(pos).analysis(c).instantaneous_sizes_during_sg2)];
-                                
-                                
+                            elseif data(cond).position(pos).analysis(c).generation == 2
+                                data(cond).second_gen_good_birth_sizes = [data(cond).second_gen_good_birth_sizes,...
+                                    data(cond).position(pos).analysis(c).birth_size];
+                                data(cond).second_gen_good_birth_areas = [data(cond).second_gen_good_birth_areas,...
+                                    data(cond).position(pos).analysis(c).birth_area];
+                            elseif data(cond).position(pos).analysis(c).generation >= 3
+                                data(cond).third_gen_and_beyond_good_birth_sizes = [data(cond).third_gen_and_beyond_good_birth_sizes,...
+                                    data(cond).position(pos).analysis(c).birth_size];
+                                data(cond).third_gen_and_beyond_good_birth_areas = [data(cond).third_gen_and_beyond_good_birth_areas,...
+                                    data(cond).position(pos).analysis(c).birth_area];
                             end
+                            
+                            
+                            data(cond).all_instantaneous_g1_sizes_nolast = [data(cond).all_instantaneous_g1_sizes_nolast;...
+                                (data(cond).position(pos).analysis(c).instantaneous_sizes_during_g1(1 + analysis_parameters.average_instantaneous_growth_rate_over_num_frames : end) +...
+                                data(cond).position(pos).analysis(c).instantaneous_sizes_during_g1(1 : end - analysis_parameters.average_instantaneous_growth_rate_over_num_frames))/2];
+                            data(cond).all_instantaneous_g1_size_increases = [data(cond).all_instantaneous_g1_size_increases;...
+                                (data(cond).position(pos).analysis(c).instantaneous_sizes_during_g1(1 + analysis_parameters.average_instantaneous_growth_rate_over_num_frames : end) -...
+                                data(cond).position(pos).analysis(c).instantaneous_sizes_during_g1(1 : end - analysis_parameters.average_instantaneous_growth_rate_over_num_frames))];
+                            
+                            data(cond).all_instantaneous_sg2_sizes_nolast = [data(cond).all_instantaneous_sg2_sizes_nolast;...
+                                (data(cond).position(pos).analysis(c).instantaneous_sizes_during_sg2(1 + analysis_parameters.average_instantaneous_growth_rate_over_num_frames : end) +...
+                                data(cond).position(pos).analysis(c).instantaneous_sizes_during_sg2(1 : end - analysis_parameters.average_instantaneous_growth_rate_over_num_frames))/2];
+                            data(cond).all_instantaneous_sg2_size_increases = [data(cond).all_instantaneous_sg2_size_increases;...
+                                (data(cond).position(pos).analysis(c).instantaneous_sizes_during_sg2(1 + analysis_parameters.average_instantaneous_growth_rate_over_num_frames : end) -...
+                                data(cond).position(pos).analysis(c).instantaneous_sizes_during_sg2(1 : end - analysis_parameters.average_instantaneous_growth_rate_over_num_frames))];
+                            
+                            data(cond).good_size_traces{data(cond).unique_cell_id} = data(cond).position(pos).analysis(c).size_measurements;
+                            data(cond).good_smooth_size_traces{data(cond).unique_cell_id} = data(cond).position(pos).analysis(c).size_measurements_smooth;
+                            data(cond).good_area_traces{data(cond).unique_cell_id} = data(cond).position(pos).analysis(c).area_measurements;
+                            data(cond).good_smooth_area_traces{data(cond).unique_cell_id} = data(cond).position(pos).analysis(c).area_measurements_smooth;
+                            data(cond).good_geminin_traces{data(cond).unique_cell_id} = data(cond).position(pos).analysis(c).geminin_measurements;
+                            data(cond).good_smooth_geminin_traces{data(cond).unique_cell_id} = data(cond).position(pos).analysis(c).geminin_measurements_smooth;
+                            
+                            data(cond).unique_cell_id =  data(cond).unique_cell_id + 1;
+                            
+                            % In case of
+                            % analysis_parameters.average_instantaneous_growth_rate_over_num_frames
+                            % is equal to 1, can just use diff function
+                            %                                 data(cond).all_instantaneous_g1_sizes_nolast = [data(cond).all_instantaneous_g1_sizes_nolast;...
+                            %                                     data(cond).position(pos).analysis(c).instantaneous_sizes_during_g1(1:end-1)];
+                            %                                 data(cond).all_instantaneous_g1_size_increases = [data(cond).all_instantaneous_g1_size_increases;...
+                            %                                     diff(data(cond).position(pos).analysis(c).instantaneous_sizes_during_g1)];
+                            %                                 data(cond).all_instantaneous_sg2_sizes_nolast = [data(cond).all_instantaneous_sg2_sizes_nolast;...
+                            %                                     data(cond).position(pos).analysis(c).instantaneous_sizes_during_sg2(1:end-1)];
+                            %                                 data(cond).all_instantaneous_sg2_size_increases = [data(cond).all_instantaneous_sg2_size_increases;...
+                            %                                     diff(data(cond).position(pos).analysis(c).instantaneous_sizes_during_sg2)];
+                            
+                            
                         end
                     end
                 end
@@ -498,8 +578,9 @@ if measure_lengths_of_phases
                         % quality tests.
                         if data(cond).position(pos).analysis(c).has_valid_birth_size &&...
                                 data(cond).position(pos).analysis(c).birth_size < analysis_parameters.max_birth_size &&...
-                                ~isempty(data(cond).position(pos).analysis(c).birth_size_is_similar_to_sister) &&...
-                                data(cond).position(pos).analysis(c).birth_size_is_similar_to_sister
+                                (~analysis_parameters.compare_birth_size_to_sister ||...
+                                (~isempty(data(cond).position(pos).birth_size_is_similar_to_sister &&...
+                                data(cond).position(pos).birth_size_is_similar_to_sister)))
                             
                             data(cond).all_good_complete_cycle_lengths = [data(cond).all_good_complete_cycle_lengths,...
                                 data(cond).position(pos).analysis(c).trace_duration_hours];
@@ -538,10 +619,102 @@ if measure_lengths_of_phases
     end
 end
 
-% For these measurements, gather only cells that pass G1/S. (Need not have
-% complete cycle.)
+% Also measure protein accumulation during SG2
+if measure_protein_concentrations
+    for cond = 1:num_conditions
+        data(cond).g1s_protein_amts_for_cells_that_divide = [];
+        data(cond).sg2_protein_increases_for_cells_that_divide = [];
+        data(cond).sg2_protein_accumulation_rates_for_cells_that_divide = [];
+        data(cond).g1s_sizes_for_cells_that_divide = [];
+        data(cond).sg2_lengths_for_cells_that_divide = [];
+        
+        for pos = data(cond).positions_list
+            for c = data(cond).position(pos).tracking_measurements.all_tracknums
+                if ~isempty(data(cond).position(pos).analysis(c).passes_g1s) &&...
+                        data(cond).position(pos).analysis(c).passes_g1s &&...
+                        data(cond).position(pos).analysis(c).has_mitosis
+                    %                         data(cond).position(pos).analysis(c).has_complete_cycle &&...
+                    %                         data(cond).position(pos).analysis(c).has_valid_birth_size &&...
+                    %                         data(cond).position(pos).analysis(c).birth_size < analysis_parameters.max_birth_size &&...
+                    %                         ~isempty(data(cond).position(pos).analysis(c).birth_size_is_similar_to_sister) &&...
+                    %                         data(cond).position(pos).analysis(c).birth_size_is_similar_to_sister
+                    %
+                    %                     figure,plot(data(cond).position(pos).analysis(c).protein_measurements)
+                    %                     title(['Condition ' num2str(cond) ' position ' num2str(pos) ' cell ' num2str(c)])
+                    
+                    
+                    disp(['Condition ' num2str(cond) ' cell ' num2str(c) ': '])
+                    disp(['Inc ' num2str(data(cond).position(pos).analysis(c).sg2_protein_increase)])
+                    disp(['Rate ' num2str(data(cond).position(pos).analysis(c).sg2_protein_accumulation_slope_perframe)])
+                    disp(['Size ' num2str(data(cond).position(pos).analysis(c).g1s_size)])
+                    disp(['Length ' num2str(data(cond).position(pos).analysis(c).sg2_length_hours)])
+                    
+                    data(cond).g1s_protein_amts_for_cells_that_divide = [data(cond).g1s_protein_amts_for_cells_that_divide,...
+                        data(cond).position(pos).analysis(c).g1s_protein_amt];
+                    data(cond).sg2_protein_increases_for_cells_that_divide = [data(cond).sg2_protein_increases_for_cells_that_divide,...
+                        data(cond).position(pos).analysis(c).sg2_protein_increase];
+                    data(cond).sg2_protein_accumulation_rates_for_cells_that_divide = [data(cond).sg2_protein_accumulation_rates_for_cells_that_divide,...
+                        data(cond).position(pos).analysis(c).sg2_protein_accumulation_slope_perframe];
+                    data(cond).g1s_sizes_for_cells_that_divide = [data(cond).g1s_sizes_for_cells_that_divide,...
+                        data(cond).position(pos).analysis(c).g1s_size];
+                    data(cond).sg2_lengths_for_cells_that_divide = [data(cond).sg2_lengths_for_cells_that_divide,...
+                        data(cond).position(pos).analysis(c).sg2_length_hours];
+                end
+            end
+        end
+    end
+end
+
+% Also measure birth size and G1 lengths for cells that are born and passed G1/S,
+% regardless of whether they complete the cell cycle.
+if measure_lengths_of_phases && measure_sizes_at_birth_and_other_times
+    for cond = 1:num_conditions
+        
+        data(cond).birth_sizes_cells_born_and_pass_g1s = [];
+        data(cond).birth_areas_cells_born_and_pass_g1s = [];
+        data(cond).g1s_sizes_cells_born_and_pass_g1s = [];
+        data(cond).g1_lengths_cells_born_and_pass_g1s = [];
+        
+        for pos = data(cond).positions_list
+            for c = data(cond).position(pos).tracking_measurements.all_tracknums
+                if ~data(cond).position(pos).analysis(c).has_something_gone_horribly_wrong &&...
+                        data(cond).position(pos).analysis(c).is_born &&...
+                        ~isempty(data(cond).position(pos).analysis(c).passes_g1s) &&...
+                        data(cond).position(pos).analysis(c).passes_g1s &&...
+                        ~isempty(data(cond).position(pos).analysis(c).g1_length_hours) &&...
+                        data(cond).position(pos).analysis(c).has_valid_birth_size &&...
+                        data(cond).position(pos).analysis(c).birth_size < analysis_parameters.max_birth_size &&...
+                        (~analysis_parameters.compare_birth_size_to_sister ||...
+                        (~isempty(data(cond).position(pos).birth_size_is_similar_to_sister &&...
+                        data(cond).position(pos).birth_size_is_similar_to_sister)))
+                    
+                    data(cond).birth_sizes_cells_born_and_pass_g1s = [data(cond).birth_sizes_cells_born_and_pass_g1s,...
+                        data(cond).position(pos).analysis(c).birth_size];
+                    data(cond).birth_areas_cells_born_and_pass_g1s = [data(cond).birth_areas_cells_born_and_pass_g1s,...
+                        data(cond).position(pos).analysis(c).birth_area];
+                    data(cond).g1s_sizes_cells_born_and_pass_g1s = [data(cond).g1s_sizes_cells_born_and_pass_g1s,...
+                        data(cond).position(pos).analysis(c).g1s_size];
+                    data(cond).g1_lengths_cells_born_and_pass_g1s = [data(cond).g1_lengths_cells_born_and_pass_g1s,...
+                        data(cond).position(pos).analysis(c).g1_length_hours];
+                end
+            end
+        end
+    end
+end
+
+% For these instantaneous measurements, gather only cells that pass G1/S.
+% (Need not have complete cycle.)
 if measure_g1s_probabilities
     for cond = 1:num_conditions
+        
+        data(cond).all_individual_traces_frame_indices_wrt_g1s = cell(0);
+        data(cond).all_individual_traces_areas = cell(0);
+        data(cond).all_individual_traces_sizes = cell(0);
+        data(cond).all_individual_traces_geminin = cell(0);
+        data(cond).all_individual_traces_protein_amts = cell(0);
+        data(cond).all_individual_traces_protein_per_area = cell(0);
+        data(cond).all_individual_traces_protein_per_volume = cell(0);
+        data(cond).all_individual_traces_protein_per_size = cell(0);
         
         data(cond).all_frame_indices_wrt_g1s_thisframe = [];
         data(cond).all_g1s_happens_here_thisframe = [];
@@ -569,9 +742,57 @@ if measure_g1s_probabilities
         data(cond).all_g1s_happens_here_for_born_cells_nextframe = [];
         data(cond).all_sizes_up_to_g1s_for_born_cells_nextframe = [];
         
+        data(cond).all_frame_indices_wrt_g1s_2hrs_ahead = [];
+        data(cond).all_g1s_happens_here_2hrs_ahead = [];
+        data(cond).all_areas_up_to_g1s_2hrs_ahead = [];
+        data(cond).all_sizes_up_to_g1s_2hrs_ahead = [];
+        data(cond).all_geminins_up_to_g1s_2hrs_ahead = [];
+        data(cond).all_protein_amts_up_to_g1s_2hrs_ahead = [];
+        data(cond).all_protein_per_area_up_to_g1s_2hrs_ahead = [];
+        data(cond).all_protein_per_size_up_to_g1s_2hrs_ahead = [];
+        data(cond).all_protein_per_size_up_to_g1s_for_born_cells_2hrs_ahead = [];
+        data(cond).all_ages_in_hours_up_to_g1s_for_born_cells_2hrs_ahead = [];
+        data(cond).all_g1s_happens_here_for_born_cells_2hrs_ahead = [];
+        data(cond).all_sizes_up_to_g1s_for_born_cells_2hrs_ahead = [];
+        
+        data(cond).all_frame_indices_wrt_g1s_3hrs_ahead = [];
+        data(cond).all_g1s_happens_here_3hrs_ahead = [];
+        data(cond).all_areas_up_to_g1s_3hrs_ahead = [];
+        data(cond).all_sizes_up_to_g1s_3hrs_ahead = [];
+        data(cond).all_geminins_up_to_g1s_3hrs_ahead = [];
+        data(cond).all_protein_amts_up_to_g1s_3hrs_ahead = [];
+        data(cond).all_protein_per_area_up_to_g1s_3hrs_ahead = [];
+        data(cond).all_protein_per_size_up_to_g1s_3hrs_ahead = [];
+        data(cond).all_protein_per_size_up_to_g1s_for_born_cells_3hrs_ahead = [];
+        data(cond).all_ages_in_hours_up_to_g1s_for_born_cells_3hrs_ahead = [];
+        data(cond).all_g1s_happens_here_for_born_cells_3hrs_ahead = [];
+        data(cond).all_sizes_up_to_g1s_for_born_cells_3hrs_ahead = [];
+        
         for pos = data(cond).positions_list
             for c = data(cond).position(pos).tracking_measurements.all_tracknums
                 if data(cond).position(pos).analysis(c).passes_g1s
+                    
+                    % For each cell that passes G1/S, store its individual
+                    % trace as part of a cell array
+                    data(cond).all_individual_traces_frame_indices_wrt_g1s = [data(cond).all_individual_traces_frame_indices_wrt_g1s;...
+                        data(cond).position(pos).analysis(c).all_frame_indices_wrt_g1s];
+                    data(cond).all_individual_traces_areas = [data(cond).all_individual_traces_areas;...
+                        data(cond).position(pos).analysis(c).area_measurements];
+                    data(cond).all_individual_traces_sizes = [data(cond).all_individual_traces_sizes;...
+                        data(cond).position(pos).analysis(c).size_measurements];
+                    data(cond).all_individual_traces_geminin = [data(cond).all_individual_traces_geminin;...
+                        data(cond).position(pos).analysis(c).geminin_measurements];
+                    if measure_protein_concentrations
+                        data(cond).all_individual_traces_protein_amts = [data(cond).all_individual_traces_protein_amts;...
+                            data(cond).position(pos).analysis(c).protein_measurements];
+                        data(cond).all_individual_traces_protein_per_area [data(cond).all_individual_traces_protein_per_area;...
+                            data(cond).position(pos).analysis(c).protein_measurements ./ data(cond).position(pos).analysis(c).area_measurements_smooth];
+                        data(cond).all_individual_traces_protein_per_volume [data(cond).all_individual_traces_protein_per_volume;...
+                            data(cond).position(pos).analysis(c).protein_measurements ./ data(cond).position(pos).analysis(c).area_measurements_smooth .^ 1.5];
+                        data(cond).all_individual_traces_protein_per_size [data(cond).all_individual_traces_protein_per_size;...
+                            data(cond).position(pos).analysis(c).protein_measurements ./ data(cond).position(pos).analysis(c).size_measurements_smooth];
+                    end
+                    
                     data(cond).all_frame_indices_wrt_g1s_thisframe = [data(cond).all_frame_indices_wrt_g1s_thisframe;...
                         data(cond).position(pos).analysis(c).frame_indices_wrt_g1s_thisframe];
                     data(cond).all_g1s_happens_here_thisframe = [data(cond).all_g1s_happens_here_thisframe;...
@@ -639,11 +860,11 @@ if measure_g1s_probabilities
     end
 end
 
-save([expt_folder '\' tracking_strategy '_Data.mat'],'data');
+save([table_expt_folder '\' tracking_strategy '_Data.mat'],'data');
 
 %% Plot results
 
-% load([expt_folder '\' tracking_strategy '_Data.mat'])
+% load([table_expt_folder '\' tracking_strategy '_Data.mat'])
 
 figure_folder = 'C:\Users\Skotheim Lab\Box Sync\Daniel Berenson''s Files\Data\Plots';
 if strcmp(tracking_strategy,'clicking')
@@ -651,9 +872,13 @@ if strcmp(tracking_strategy,'clicking')
 elseif strcmp(tracking_strategy,'aivia')
     figure_subfolder = [figure_folder '\' expt_name '\Aivia'];
 end
+
+% figure_subfolder = ['C:\Users\Skotheim Lab\Desktop\Test'];
+
 if ~exist(figure_subfolder,'dir')
     mkdir(figure_subfolder)
 end
+
 
 % Plot size vs area
 if measure_area_vs_fluorescence
@@ -663,8 +888,8 @@ if measure_area_vs_fluorescence
         scatter(data(cond).all_area_measurements, data(cond).all_size_measurements)
         scatter(data(cond).all_area_measurements_avoiding_ends, data(cond).all_size_measurements_avoiding_ends)
         title(data(cond).treatment)
-        xlabel('Area measurements')
-        ylabel('Size measurements')
+        xlabel('Nuclear area measurements (px2)')
+        ylabel('Size measurements (AU)')
         legend('All cells','Avoiding ends')
         hold off
         saveas(gcf, [figure_subfolder '\AllAreaMeasurements_' data(cond).treatment '.png'])
@@ -672,9 +897,18 @@ if measure_area_vs_fluorescence
         plot_scatter_with_line(data(cond).all_area_measurements_avoiding_ends,...
             data(cond).all_size_measurements_avoiding_ends);
         title(data(cond).treatment)
-        xlabel('Area measurements')
-        ylabel('Size measurements')
+        xlabel('Area measurements (px2)')
+        ylabel('Size measurements (AU)')
+        legend('Avoiding ends')
         saveas(gcf, [figure_subfolder '\AllAreaMeasurements_WithLine_' data(cond).treatment '.png'])
+        
+        plot_scatter_with_line(data(cond).all_area_measurements_avoiding_ends.^1.5,...
+            data(cond).all_size_measurements_avoiding_ends);
+        title(data(cond).treatment)
+        xlabel('Volume estimate assuming spherical nucleus (px3)')
+        ylabel('Size measurements (AU)')
+        legend('Avoiding ends')
+        saveas(gcf, [figure_subfolder '\AllVolumeMeasurements_WithLine_' data(cond).treatment '.png'])
     end
 end
 
@@ -682,7 +916,8 @@ end
 % g1s sizes, sg2 lengths
 if measure_sizes_at_birth_and_other_times && measure_lengths_of_phases
     all_data_types_to_plot = {'Birth_sizes','Complete_cell_cycle_length','G1_length','G1S_size','SG2_length'};
-    all_cell_classes_to_plot = {'all','first_gen','second_gen','early','late','incomplete_movie_ends','incomplete_untrackability'};
+    all_cell_classes_to_plot = {'all','first_gen','second_gen','early','late',...
+        'incomplete_movie_ends','incomplete_untrackability'};
     all_plottypes = {'histogram','cdf'};
     
     % all_data_types_to_plot = {'G1 lengths'};
@@ -783,6 +1018,10 @@ if measure_sizes_at_birth_and_other_times && measure_lengths_of_phases
                         end
                     end
                     
+                    if isempty(data_to_plot(cond).to_plot)
+                        continue
+                    end
+                    
                     if strcmp(plottype,'histogram')
                         histogram(data_to_plot(cond).to_plot)
                         y_axis_label = 'Count';
@@ -814,8 +1053,12 @@ end
 % birth_size_is_similar_to_sister.
 if measure_sizes_at_birth_and_other_times && measure_lengths_of_phases
     all_data_types_to_plot = {'Birth_size_vs_G1_length','Birth_size_vs_SG2_length','Birth_size_vs_Complete_cycle_length',...
-        'Birth_area_vs_G1_length','G1S_size_vs_SG2_length','Birth_size_vs_G1_growth','G1S_size_vs_SG2_growth','Instantaneous_sizes_vs_growths'};
-    all_cell_classes_to_plot = {'all_good','first_gen_good','second_gen_good','G1_cells_good','SG2_cells_good'};
+        'Birth_area_vs_G1_length','G1S_size_vs_SG2_length','Birth_size_vs_G1_growth','G1S_size_vs_SG2_growth',...
+        'Instantaneous_sizes_vs_growths'};
+    if measure_protein_concentrations
+        all_data_types_to_plot = {all_data_types_to_plot{:},'G1S_size_vs_SG2_protein_increase','G1S_size_vs_SG2_protein_accumulation_rate'};
+    end
+    all_cell_classes_to_plot = {'all_good','first_gen_good','second_gen_good','G1_cells_good','SG2_cells_good','pass_g1s_not_necessarily_complete'};
     all_plottypes = {'scatter_with_line'};
     
     % all_data_types_to_plot = {'Birth_size_vs_G1_growth'};
@@ -866,6 +1109,11 @@ if measure_sizes_at_birth_and_other_times && measure_lengths_of_phases
                             data_to_scatter(cond).x = data(cond).second_gen_good_birth_sizes;
                             data_to_scatter(cond).y = data(cond).second_gen_good_g1_lengths;
                             graph_title = [data(cond).treatment ', second generation cells that complete cycle'];
+                            is_there_something_to_plot = true;
+                        elseif strcmp(cell_class_to_plot,'pass_g1s_not_necessarily_complete')
+                            data_to_scatter(cond).x = data(cond).birth_sizes_cells_born_and_pass_g1s;
+                            data_to_scatter(cond).y = data(cond).g1_lengths_cells_born_and_pass_g1s;
+                            graph_title = [data(cond).treatment ', cells that are born and pass G1/S'];
                             is_there_something_to_plot = true;
                         end
                         
@@ -930,6 +1178,11 @@ if measure_sizes_at_birth_and_other_times && measure_lengths_of_phases
                             data_to_scatter(cond).y = data(cond).second_gen_good_g1_lengths;
                             graph_title = [data(cond).treatment ', second generation cells that complete cycle'];
                             is_there_something_to_plot = true;
+                        elseif strcmp(cell_class_to_plot,'pass_g1s_not_necessarily_complete')
+                            data_to_scatter(cond).x = data(cond).birth_areas_cells_born_and_pass_g1s;
+                            data_to_scatter(cond).y = data(cond).g1_lengths_cells_born_and_pass_g1s;
+                            graph_title = [data(cond).treatment ', cells that are born and pass G1/S'];
+                            is_there_something_to_plot = true;
                         end
                         
                     elseif strcmp(data_type_to_plot,'G1S_size_vs_SG2_length')
@@ -964,6 +1217,26 @@ if measure_sizes_at_birth_and_other_times && measure_lengths_of_phases
                             graph_title = [data(cond).treatment ', all cells that complete cycle'];
                             is_there_something_to_plot = true;
                         end
+                        
+                    elseif strcmp(data_type_to_plot,'G1S_size_vs_SG2_protein_increase')
+                        x_axis_label = 'G1S size';
+                        y_axis_label = 'Increase in Rb amt during SG2 (AU)';
+                        if strcmp(cell_class_to_plot,'all_good')
+                            data_to_scatter(cond).x = data(cond).g1s_sizes_for_cells_that_divide;
+                            data_to_scatter(cond).y = data(cond).sg2_protein_increases_for_cells_that_divide;
+                            graph_title = [data(cond).treatment ', all cells that complete cycle'];
+                            is_there_something_to_plot = true;
+                        end
+                        
+                    elseif strcmp(data_type_to_plot,'G1S_size_vs_SG2_protein_accumulation_rate')
+                        x_axis_label = 'G1S size';
+                        y_axis_label = 'Average Rb accumulation rate during SG2 (AU/h)';
+                        if strcmp(cell_class_to_plot,'all_good')
+                            data_to_scatter(cond).x = data(cond).g1s_sizes_for_cells_that_divide;
+                            data_to_scatter(cond).y = data(cond).sg2_protein_accumulation_rates_for_cells_that_divide / analysis_parameters.framerate;
+                            graph_title = [data(cond).treatment ', all cells that complete cycle'];
+                            is_there_something_to_plot = true;
+                        end
                     end
                     
                     if isempty(data_to_scatter(cond).x) || isempty(data_to_scatter(cond).y)
@@ -988,6 +1261,80 @@ if measure_sizes_at_birth_and_other_times && measure_lengths_of_phases
     end
 end
 
+% Plot individual cell traces, aligned to G1/S
+if measure_g1s_probabilities
+    all_data_types_to_plot = {'Aligned_areas','Aligned_volumes','Aligned_sizes','Aligned_geminin'};
+    if measure_protein_concentrations
+        all_data_types_to_plot = {all_data_types_to_plot{:},'Aligned_protein','Aligned_protein_per_area',...
+            'Aligned_protein_per_volume','Aligned_protein_per_size'};
+    end
+    all_cell_classes_to_plot = {'pass_g1s'};
+    all_plottypes = {'stacked_lines'};
+  
+    for data_type_to_plot = all_data_types_to_plot
+        for cell_class_to_plot = all_cell_classes_to_plot
+            for plottype = all_plottypes
+                for cond = 1:num_conditions
+                    
+                    is_there_something_to_plot = false;
+                    x_axis_label = 'Frame relative to G1/S';
+                    x_coord_cell_array = data(cond).all_individual_traces_frame_indices_wrt_g1s;
+                    graph_title = [data(cond).treatment ', cells that pass G1/S with traces aligned to G1/S'];
+                    
+                    switch data_type_to_plot
+                        case 'Aligned_areas'
+                            y_axis_label = 'Area (px2)';
+                            y_coord_cell_array = data(cond).all_individual_traces_areas;
+                            
+                        case 'Aligned_volumes'
+                            y_axis_label = 'Volume (px3)';
+                            y_coord_cell_array = data(cond).all_individual_traces_volumes;
+                            
+                        case 'Aligned_sizes'
+                            y_axis_label = 'Size (AU)';
+                            y_coord_cell_array = data(cond).all_individual_traces_sizes;
+                            
+                        case 'Aligned_geminin'
+                            y_axis_label = 'Geminin (AU)';
+                            y_coord_cell_array = data(cond).all_individual_traces_geminin;
+                            
+                        case 'Aligned_protein'
+                            y_axis_label = 'Rb amt (AU)';
+                            y_coord_cell_array = data(cond).all_individual_traces_protein_amts;
+                            
+                        case 'Aligned_protein_per_area';
+                            y_axis_label = 'Rb amt per area (AU/px2)';
+                            y_coord_cell_array = data(cond).all_individual_traces_protein_per_area;
+                            
+                        case 'Aligned_protein_per_volume';
+                            y_axis_label = 'Rb amt per volume (AU/px3)';
+                            y_coord_cell_array = data(cond).all_individual_traces_protein_per_volume;
+                            
+                        case 'Aligned_protein_per_size';
+                            y_axis_label = 'Rb amt per size (AU/AU)';
+                            y_coord_cell_array = data(cond).all_individual_traces_protein_per_size;
+                    end
+                    
+                    assert(length(x_coord_cell_array) == length(y_coord_cell_array));
+                    
+                    figure()
+                    hold on
+                    for i = 1:length(x_coord_cell_array)
+                            plot(x_coord_cell_array{i},y_coord_cell_array{i})
+                    end
+                    xlabel(x_axis_label)
+                    ylabel(y_axis_label)
+                    title(graph_title)
+                    saveas(gcf, [figure_subfolder '\' data_type_to_plot{1} '_' data(cond).treatment '_'...
+                            cell_class_to_plot{1} '_' plottype{1} '.png'])
+                end
+            end
+        end
+    end
+end
+                            
+
+% Calculate and plot logistic regressions
 if measure_g1s_probabilities
     disp(['Condition 1: number of cells that pass G1/S = ' num2str(sum(data(1).all_g1s_happens_here_thisframe))])
     disp(['Condition 2: number of cells that pass G1/S = ' num2str(sum(data(2).all_g1s_happens_here_thisframe))])
@@ -1252,4 +1599,4 @@ if measure_g1s_probabilities
 end
 
 
-% save([expt_folder '\data.mat'],'data')
+% save([table_expt_folder '\data.mat'],'data')

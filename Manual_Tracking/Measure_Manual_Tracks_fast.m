@@ -4,7 +4,7 @@ close all
 clear all
 
 expt_folder = 'C:\Users\Skotheim Lab\Desktop\Manual_Tracking';
-expt_name = 'DFB_180627_HMEC_1GFiii_palbo_2_Pos15';
+expt_name = 'DFB_180822_HMEC_1GFiii_1_Pos1';
 
 segmentation_prefix = [expt_folder '\' expt_name '\'...
     'Segmentation\Segmented'];
@@ -129,8 +129,8 @@ else
     return
 end
 
-for cellnum = cells_to_track
-    cellnum = 203
+% for cellnum = cells_to_track
+for cellnum = [1 2 3 4 5]
     area_trace = measurements_struct.all_area_traces(:,cellnum);
     red_raw_integrated_intensity_trace = measurements_struct.all_red_raw_integrated_intensity_traces(:,cellnum);
     green_raw_integrated_intensity_trace = measurements_struct.all_green_raw_integrated_intensity_traces(:,cellnum);

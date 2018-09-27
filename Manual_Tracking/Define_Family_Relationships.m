@@ -1,17 +1,17 @@
 
 clear all
 
-folder = 'F:\Manually tracked imaging experiments';
+folder = 'C:\Users\Skotheim Lab\Desktop\Manual_Tracking';
 expt_name = 'DFB_180803_HMEC_D5_1';
 expt_folder = [folder '\' expt_name];
-positions_list = [13];
+positions_list = [3];
 
 for pos = positions_list
     %     position_folder = [expt_folder '\Pos' num2str(pos)];
     position_folder = [expt_folder '_Pos' num2str(pos)];
     load([position_folder '\TrackingData.mat']);
     s = saved_data;
-    s.expt_folder = 'F:\Manually tracked imaging experiments';
+    s.expt_folder = folder;
     s.expt_name = [expt_name '_Pos' num2str(pos)];
     
     tree = struct;
