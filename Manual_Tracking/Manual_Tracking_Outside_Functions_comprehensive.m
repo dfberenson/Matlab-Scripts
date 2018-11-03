@@ -2,7 +2,7 @@
 clear all
 close all
 
-for pos = [9 10 21 22]
+for pos = [17:24]
     
     %% Initialize Variables
     
@@ -10,7 +10,7 @@ for pos = [9 10 21 22]
     
     % folder = 'C:\Users\Skotheim Lab\Desktop\Manual_Tracking';
     source_folder = 'F:\DFB_imaging_experiments_2';
-    base_expt_name = 'DFB_180803_HMEC_D5_1';
+    base_expt_name = 'DFB_180829_HMEC_D5_1';
     expt_source_folder = [source_folder '\' base_expt_name];
     % pos = 2;
     max_pos = 36;
@@ -28,9 +28,9 @@ for pos = [9 10 21 22]
     
     does_something_weird_happen = false;
     
-    % does_something_weird_happen = true;
-    % something_weird_happens_at_frame = 84;
-    % weird_thing_that_happens = 'channel_f_is_in_next_position';
+    does_something_weird_happen = true;
+    something_weird_happens_at_frame = 84;
+    weird_thing_that_happens = 'channel_f_is_in_next_position';
     
     %% Break up stacks
     

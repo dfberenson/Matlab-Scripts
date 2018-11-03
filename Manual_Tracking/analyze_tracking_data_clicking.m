@@ -15,23 +15,23 @@ for c = tracking_measurements.all_tracknums
     
     analyzed_values(c).has_something_gone_horribly_wrong = false;
     
-    thiscell_complete_area_measurements = tracking_measurements.all_area_traces(:,c);
+    analyzed_values(c).thiscell_complete_area_measurements = tracking_measurements.all_area_traces(:,c);
     
     if analysis_parameters.size_channel == 'r'
-        thiscell_complete_size_measurements = tracking_measurements.all_red_flat_integrated_intensity_traces(:,c);
+        analyzed_values(c).thiscell_complete_size_measurements = tracking_measurements.all_red_flat_integrated_intensity_traces(:,c);
     elseif analysis_parameters.size_channel == 'f'
-        thiscell_complete_size_measurements = tracking_measurements.all_farred_flat_integrated_intensity_traces(:,c);
+        analyzed_values(c).thiscell_complete_size_measurements = tracking_measurements.all_farred_flat_integrated_intensity_traces(:,c);
     end
     
     if analysis_parameters.geminin_channel == 'g'
-        thiscell_complete_geminin_measurements = tracking_measurements.all_green_flat_integrated_intensity_traces(:,c);
+        analyzed_values(c).thiscell_complete_geminin_measurements = tracking_measurements.all_green_flat_integrated_intensity_traces(:,c);
     elseif analysis_parameters.geminin_channel == 'r'
-        thiscell_complete_geminin_measurements = tracking_measurements.all_red_flat_integrated_intensity_traces(:,c);
+        analyzed_values(c).thiscell_complete_geminin_measurements = tracking_measurements.all_red_flat_integrated_intensity_traces(:,c);
     end
     
     if is_four_channels
         if analysis_parameters.protein_channel == 'g'
-            thiscell_complete_protein_measurements = tracking_measurements.all_green_flat_integrated_intensity_traces(:,c);
+            analyzed_values(c).thiscell_complete_protein_measurements = tracking_measurements.all_green_flat_integrated_intensity_traces(:,c);
         end
     end
     
@@ -60,8 +60,10 @@ for c = tracking_measurements.all_tracknums
         end
     end
     
-    analyzed_values(c) = advanced_tracking_analysis(analyzed_values(c), tree(c), analysis_parameters, is_four_channels);
-    
+   advanced_values = advanced_tracking_analysis(analyzed_values(c), c, tree, analysis_parameters, is_four_channels);
+   for fn = fieldnames(advanced_values)'
+       analyzed_values(c).(fn{1}) = advanced_values.(fn{1});
+   end
 
 %     
 %     % Check birth

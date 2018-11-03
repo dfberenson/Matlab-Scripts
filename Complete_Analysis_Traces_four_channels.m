@@ -13,22 +13,23 @@ tracking_strategy = 'aivia';
 % expt_name = 'DFB_180627_HMEC_1GFiii_palbo_2';
 % table_expt_folder = [source_folder '\' expt_name];
 % measure_protein_concentrations = false;
+% num_conditions = 2;
 
-% table_source_folder = 'E:\Manually tracked measurements';
-table_source_folder = 'E:\Aivia';
+table_source_folder = 'E:\Manually tracked measurements';
+% table_source_folder = 'E:\Aivia';
 image_source_folder = 'F:\Manually tracked imaging experiments';
-expt_name = 'DFB_180803_HMEC_D5_1';
+% expt_name = 'DFB_180803_HMEC_D5_1';
+expt_name = 'DFB_180829_HMEC_D5_1';
 table_expt_folder = [table_source_folder '\' expt_name];
 image_expt_folder = [image_source_folder '\' expt_name];
 measure_protein_concentrations = true;
+num_conditions = 3;
 
 % source_folder = 'E:\Manually tracked measurements';
 % expt_name = 'DFB_180822_HMEC_1GFiii_1';
 % table_expt_folder = [source_folder '\' expt_name];
 % measure_protein_concentrations = false;
-
-
-num_conditions = 2;
+% num_conditions = 2;
 
 % Choose types of measurements
 measure_area_vs_fluorescence = true;
@@ -48,7 +49,7 @@ switch expt_name
         analysis_parameters.movie_end_frame = 421;
         analysis_parameters.segmentation_parameters.threshold = 200;
         analysis_parameters.segmentation_parameters.strel_size = 1;
-        analysis_parameters.threshold = 20000;
+        analysis_parameters.geminin_threshold = 20000;
         analysis_parameters.second_line_min_slope = 50000/20;
         
     case 'DFB_180803_HMEC_D5_1'
@@ -60,7 +61,7 @@ switch expt_name
         analysis_parameters.movie_end_frame = 432;
         analysis_parameters.segmentation_parameters.threshold = 272;
         analysis_parameters.segmentation_parameters.strel_size = 3;
-        analysis_parameters.threshold = 0.17;
+        analysis_parameters.geminin_threshold = 0.17;
         analysis_parameters.second_line_min_slope = 0.05/20;
         
     case 'DFB_180822_HMEC_1GFiii_1'
@@ -71,8 +72,20 @@ switch expt_name
         analysis_parameters.movie_end_frame = 432;
         analysis_parameters.segmentation_parameters.threshold = 200;
         analysis_parameters.segmentation_parameters.strel_size = 1;
-        analysis_parameters.threshold = 20000;
+        analysis_parameters.geminin_threshold = 20000;
         analysis_parameters.second_line_min_slope = 50000/20;
+        
+    case 'DFB_180829_HMEC_D5_1'
+        analysis_parameters.order_of_channels = 'pgrf';
+        analysis_parameters.size_channel = 'f';
+        analysis_parameters.geminin_channel = 'r';
+        analysis_parameters.protein_channel = 'g';
+        analysis_parameters.movie_start_frame = 1;
+        analysis_parameters.movie_end_frame = 432;
+        analysis_parameters.segmentation_parameters.threshold = 272;
+        analysis_parameters.segmentation_parameters.strel_size = 3;
+        analysis_parameters.geminin_threshold = 0.17;
+        analysis_parameters.second_line_min_slope = 0.05/20;
 end
 
 analysis_parameters.segmentation_parameters.gaussian_width = 2;
@@ -96,8 +109,6 @@ analysis_parameters.max_g1s_noise_frames = 10;
 analysis_parameters.frames_before_g1s_to_examine = 5 / analysis_parameters.framerate;
 analysis_parameters.birthsize_measuring_frames = [6:12];
 analysis_parameters.min_cycle_duration_hours = 5;
-% I think the following line is deprecated:
-% analysis_parameters.geminin_threshold = 100000;
 analysis_parameters.smoothing_param = 5;
 analysis_parameters.max_fraction_diff_from_sibling_mean = 0.2;
 analysis_parameters.max_birth_size = 100000;
@@ -136,6 +147,12 @@ for cond = 1:num_conditions
                     case 'aivia'
                         data(cond).positions_list = [];
                 end
+                
+            case 'DFB_180829_HMEC_D5_1'
+                switch tracking_strategy
+                    case 'aivia'
+                        data(cond).positions_list = [2 3 7 8 9 10 11 12];
+                end
         end
         
         
@@ -155,7 +172,7 @@ for cond = 1:num_conditions
                 data(cond).treatment = '40 nM palbociclib';
                 switch tracking_strategy
                     case 'clicking'
-                        data(cond).positions_list = [13];
+                        data(cond).positions_list = [13 14 15 16];
                     case 'aivia'
                         data(cond).positions_list = [13 14 15 16 17 18 19 20 21];
                 end
@@ -168,10 +185,27 @@ for cond = 1:num_conditions
                     case 'aivia'
                         data(cond).positions_list = [];
                 end
+                
+            case 'DFB_180829_HMEC_D5_1'
+                data(cond).treatment = '50 nM palbociclib';
+                switch tracking_strategy
+                    case 'aivia'
+                        data(cond).positions_list = [25:35];
+                end
         end
         
+    elseif cond == 3
+        switch expt_name
+            case 'DFB_180829_HMEC_D5_1'
+                data(cond).treatment = '100 nM palbociclib';
+                switch tracking_strategy
+                    case 'aivia'
+                        data(cond).positions_list = [13:23];
+                end
     end
 end
+
+%% Analyze data
 
 % Gather and analyze data for each position. Strategy depends on how the
 % traces were generated.
@@ -193,6 +227,11 @@ if strcmp(tracking_strategy,'clicking')
             
             clear saved_data
             clear measurements_struct
+            
+            while length(data(cond).position(pos).tracking_measurements.all_area_traces) <....
+                    max(data(cond).position(pos).tracking_measurements.all_tracknums)
+                data(cond).position(pos).tracking_measurements.all_tracknums = data(cond).position(pos).tracking_measurements.all_tracknums(1:end-1)
+            end
             
             disp(['Analyzing tracking data for position ' num2str(pos) '.'])
             data(cond).position(pos).analysis =...
@@ -241,6 +280,11 @@ if measure_area_vs_fluorescence
     for cond = 1:num_conditions
         for pos = data(cond).positions_list
             for c = data(cond).position(pos).tracking_measurements.all_tracknums
+                
+                if max(data(cond).position(pos).analysis(c).area_measurements) > 25000
+                    disp(['Cond ' num2str(cond) ' pos ' num2str(pos) ' cell ' num2str(c)])
+                end
+                
                 data(cond).all_area_measurements = [data(cond).all_area_measurements;...
                     data(cond).position(pos).analysis(c).area_measurements];
                 data(cond).all_size_measurements = [data(cond).all_size_measurements;...
@@ -318,7 +362,7 @@ if measure_sizes_at_birth_and_other_times
         
         for pos = data(cond).positions_list
             for c = data(cond).position(pos).tracking_measurements.all_tracknums
-                if data(cond).position(pos).analysis(c).is_born
+                if ~isempty(data(cond).position(pos).analysis(c).is_born) && data(cond).position(pos).analysis(c).is_born
                     
                     num_total_born_cells = num_total_born_cells + 1;
                     
@@ -385,7 +429,9 @@ if measure_sizes_at_birth_and_other_times
                         if ~isempty(data(cond).position(pos).analysis(c).has_complete_cycle) &&...
                                 data(cond).position(pos).analysis(c).has_complete_cycle &&...
                                 data(cond).position(pos).analysis(c).passes_g1s &&...
+                                data(cond).position(pos).analysis(c).has_valid_birth_size &&...
                                 data(cond).position(pos).analysis(c).birth_size < analysis_parameters.max_birth_size
+                            
                             data(cond).all_good_birth_sizes = [data(cond).all_good_birth_sizes,...
                                 data(cond).position(pos).analysis(c).birth_size];
                             data(cond).all_good_birth_areas = [data(cond).all_good_birth_areas,...
@@ -622,11 +668,16 @@ end
 % Also measure protein accumulation during SG2
 if measure_protein_concentrations
     for cond = 1:num_conditions
+        
+        data(cond).g1s_sizes_for_cells_that_divide = [];
+        data(cond).g1s_areas_for_cells_that_divide = [];
+        data(cond).sg2_lengths_for_cells_that_divide = [];
+        data(cond).g2m_sizes_for_cells_that_divide = [];
+        data(cond).g2m_areas_for_cells_that_divide = [];
         data(cond).g1s_protein_amts_for_cells_that_divide = [];
         data(cond).sg2_protein_increases_for_cells_that_divide = [];
         data(cond).sg2_protein_accumulation_rates_for_cells_that_divide = [];
-        data(cond).g1s_sizes_for_cells_that_divide = [];
-        data(cond).sg2_lengths_for_cells_that_divide = [];
+        
         
         for pos = data(cond).positions_list
             for c = data(cond).position(pos).tracking_measurements.all_tracknums
@@ -649,16 +700,22 @@ if measure_protein_concentrations
                     disp(['Size ' num2str(data(cond).position(pos).analysis(c).g1s_size)])
                     disp(['Length ' num2str(data(cond).position(pos).analysis(c).sg2_length_hours)])
                     
-                    data(cond).g1s_protein_amts_for_cells_that_divide = [data(cond).g1s_protein_amts_for_cells_that_divide,...
+                    data(cond).g1s_protein_amts_for_cells_that_divide = [data(cond).g1s_protein_amts_for_cells_that_divide;...
                         data(cond).position(pos).analysis(c).g1s_protein_amt];
-                    data(cond).sg2_protein_increases_for_cells_that_divide = [data(cond).sg2_protein_increases_for_cells_that_divide,...
+                    data(cond).sg2_protein_increases_for_cells_that_divide = [data(cond).sg2_protein_increases_for_cells_that_divide;...
                         data(cond).position(pos).analysis(c).sg2_protein_increase];
-                    data(cond).sg2_protein_accumulation_rates_for_cells_that_divide = [data(cond).sg2_protein_accumulation_rates_for_cells_that_divide,...
+                    data(cond).sg2_protein_accumulation_rates_for_cells_that_divide = [data(cond).sg2_protein_accumulation_rates_for_cells_that_divide;...
                         data(cond).position(pos).analysis(c).sg2_protein_accumulation_slope_perframe];
-                    data(cond).g1s_sizes_for_cells_that_divide = [data(cond).g1s_sizes_for_cells_that_divide,...
+                    data(cond).g1s_sizes_for_cells_that_divide = [data(cond).g1s_sizes_for_cells_that_divide;...
                         data(cond).position(pos).analysis(c).g1s_size];
-                    data(cond).sg2_lengths_for_cells_that_divide = [data(cond).sg2_lengths_for_cells_that_divide,...
+                    data(cond).g1s_areas_for_cells_that_divide = [data(cond).g1s_areas_for_cells_that_divide;...
+                        data(cond).position(pos).analysis(c).g1s_area];
+                    data(cond).sg2_lengths_for_cells_that_divide = [data(cond).sg2_lengths_for_cells_that_divide;...
                         data(cond).position(pos).analysis(c).sg2_length_hours];
+                    data(cond).g2m_sizes_for_cells_that_divide = [data(cond).g2m_sizes_for_cells_that_divide;...
+                        data(cond).position(pos).analysis(c).g2m_size];
+                    data(cond).g2m_areas_for_cells_that_divide = [data(cond).g2m_areas_for_cells_that_divide;...
+                        data(cond).position(pos).analysis(c).g2m_area];
                 end
             end
         end
@@ -673,11 +730,13 @@ if measure_lengths_of_phases && measure_sizes_at_birth_and_other_times
         data(cond).birth_sizes_cells_born_and_pass_g1s = [];
         data(cond).birth_areas_cells_born_and_pass_g1s = [];
         data(cond).g1s_sizes_cells_born_and_pass_g1s = [];
+        data(cond).g1s_areas_cells_born_and_pass_g1s = [];
         data(cond).g1_lengths_cells_born_and_pass_g1s = [];
         
         for pos = data(cond).positions_list
             for c = data(cond).position(pos).tracking_measurements.all_tracknums
                 if ~data(cond).position(pos).analysis(c).has_something_gone_horribly_wrong &&...
+                        ~isempty(data(cond).position(pos).analysis(c).is_born) &&...
                         data(cond).position(pos).analysis(c).is_born &&...
                         ~isempty(data(cond).position(pos).analysis(c).passes_g1s) &&...
                         data(cond).position(pos).analysis(c).passes_g1s &&...
@@ -688,13 +747,15 @@ if measure_lengths_of_phases && measure_sizes_at_birth_and_other_times
                         (~isempty(data(cond).position(pos).birth_size_is_similar_to_sister &&...
                         data(cond).position(pos).birth_size_is_similar_to_sister)))
                     
-                    data(cond).birth_sizes_cells_born_and_pass_g1s = [data(cond).birth_sizes_cells_born_and_pass_g1s,...
+                    data(cond).birth_sizes_cells_born_and_pass_g1s = [data(cond).birth_sizes_cells_born_and_pass_g1s;...
                         data(cond).position(pos).analysis(c).birth_size];
-                    data(cond).birth_areas_cells_born_and_pass_g1s = [data(cond).birth_areas_cells_born_and_pass_g1s,...
+                    data(cond).birth_areas_cells_born_and_pass_g1s = [data(cond).birth_areas_cells_born_and_pass_g1s;...
                         data(cond).position(pos).analysis(c).birth_area];
-                    data(cond).g1s_sizes_cells_born_and_pass_g1s = [data(cond).g1s_sizes_cells_born_and_pass_g1s,...
+                    data(cond).g1s_sizes_cells_born_and_pass_g1s = [data(cond).g1s_sizes_cells_born_and_pass_g1s;...
                         data(cond).position(pos).analysis(c).g1s_size];
-                    data(cond).g1_lengths_cells_born_and_pass_g1s = [data(cond).g1_lengths_cells_born_and_pass_g1s,...
+                    data(cond).g1s_areas_cells_born_and_pass_g1s = [data(cond).g1s_areas_cells_born_and_pass_g1s;...
+                        data(cond).position(pos).analysis(c).g1s_area];
+                    data(cond).g1_lengths_cells_born_and_pass_g1s = [data(cond).g1_lengths_cells_born_and_pass_g1s;...
                         data(cond).position(pos).analysis(c).g1_length_hours];
                 end
             end
@@ -702,97 +763,202 @@ if measure_lengths_of_phases && measure_sizes_at_birth_and_other_times
     end
 end
 
-% For these instantaneous measurements, gather only cells that pass G1/S.
+% Gather individual traces for passes-G1S and for complete cell cycles
+% and store them in a cell array.
+for cond = 1:num_conditions
+    
+    data(cond).all_individual_pass_g1s_traces_frame_indices_wrt_trace_start = cell(0);
+    data(cond).all_individual_pass_g1s_traces_frame_indices_wrt_g1s = cell(0);
+    data(cond).all_individual_pass_g1s_traces_areas = cell(0);
+    data(cond).all_individual_pass_g1s_traces_sizes = cell(0);
+    data(cond).all_individual_pass_g1s_traces_volumes = cell(0);
+    data(cond).all_individual_pass_g1s_traces_geminin = cell(0);
+    data(cond).all_individual_pass_g1s_traces_protein_amts = cell(0);
+    data(cond).all_individual_pass_g1s_traces_protein_per_area = cell(0);
+    data(cond).all_individual_pass_g1s_traces_protein_per_volume = cell(0);
+    data(cond).all_individual_pass_g1s_traces_protein_per_size = cell(0);
+    
+    data(cond).all_individual_complete_traces_frame_indices_wrt_birth = cell(0);
+    data(cond).all_individual_complete_traces_frame_indices_wrt_g1s = cell(0);
+    data(cond).all_individual_complete_traces_areas = cell(0);
+    data(cond).all_individual_complete_traces_sizes = cell(0);
+    data(cond).all_individual_complete_traces_volumes = cell(0);
+    data(cond).all_individual_complete_traces_geminin = cell(0);
+    data(cond).all_individual_complete_traces_protein_amts = cell(0);
+    data(cond).all_individual_complete_traces_protein_per_area = cell(0);
+    data(cond).all_individual_complete_traces_protein_per_volume = cell(0);
+    data(cond).all_individual_complete_traces_protein_per_size = cell(0);
+    for pos = data(cond).positions_list
+        for c = data(cond).position(pos).tracking_measurements.all_tracknums
+            if data(cond).position(pos).analysis(c).passes_g1s
+                % For each cell that passes G1/S, store its individual
+                % trace as part of a cell array
+                data(cond).all_individual_pass_g1s_traces_frame_indices_wrt_trace_start = [data(cond).all_individual_pass_g1s_traces_frame_indices_wrt_trace_start;...
+                    (1:length(data(cond).position(pos).analysis(c).all_frame_indices_wrt_g1s))'];
+                data(cond).all_individual_pass_g1s_traces_frame_indices_wrt_g1s = [data(cond).all_individual_pass_g1s_traces_frame_indices_wrt_g1s;...
+                    data(cond).position(pos).analysis(c).all_frame_indices_wrt_g1s'];
+                data(cond).all_individual_pass_g1s_traces_areas = [data(cond).all_individual_pass_g1s_traces_areas;...
+                    data(cond).position(pos).analysis(c).area_measurements];
+                data(cond).all_individual_pass_g1s_traces_sizes = [data(cond).all_individual_pass_g1s_traces_sizes;...
+                    data(cond).position(pos).analysis(c).size_measurements];
+                data(cond).all_individual_pass_g1s_traces_volumes = [data(cond).all_individual_pass_g1s_traces_volumes;...
+                    data(cond).position(pos).analysis(c).area_measurements .^1.5];
+                data(cond).all_individual_pass_g1s_traces_geminin = [data(cond).all_individual_pass_g1s_traces_geminin;...
+                    data(cond).position(pos).analysis(c).geminin_measurements];
+                if measure_protein_concentrations
+                    data(cond).all_individual_pass_g1s_traces_protein_amts = [data(cond).all_individual_pass_g1s_traces_protein_amts;...
+                        data(cond).position(pos).analysis(c).protein_measurements];
+                    data(cond).all_individual_pass_g1s_traces_protein_per_area = [data(cond).all_individual_pass_g1s_traces_protein_per_area;...
+                        data(cond).position(pos).analysis(c).protein_measurements ./ data(cond).position(pos).analysis(c).area_measurements_smooth];
+                    data(cond).all_individual_pass_g1s_traces_protein_per_volume = [data(cond).all_individual_pass_g1s_traces_protein_per_volume;...
+                        data(cond).position(pos).analysis(c).protein_measurements ./ data(cond).position(pos).analysis(c).area_measurements_smooth .^ 1.5];
+                    data(cond).all_individual_pass_g1s_traces_protein_per_size = [data(cond).all_individual_pass_g1s_traces_protein_per_size;...
+                        data(cond).position(pos).analysis(c).protein_measurements ./ data(cond).position(pos).analysis(c).size_measurements_smooth];
+                end
+                
+                % For each cell that completes cell cycle, store its individual
+                % trace as part of a cell array
+                if data(cond).position(pos).analysis(c).has_complete_cycle
+                    data(cond).all_individual_complete_traces_frame_indices_wrt_birth = [data(cond).all_individual_complete_traces_frame_indices_wrt_birth;...
+                        (1:length(data(cond).position(pos).analysis(c).all_frame_indices_wrt_g1s))'];
+                    data(cond).all_individual_complete_traces_frame_indices_wrt_g1s = [data(cond).all_individual_complete_traces_frame_indices_wrt_g1s;...
+                        data(cond).position(pos).analysis(c).all_frame_indices_wrt_g1s'];
+                    data(cond).all_individual_complete_traces_areas = [data(cond).all_individual_complete_traces_areas;...
+                        data(cond).position(pos).analysis(c).area_measurements];
+                    data(cond).all_individual_complete_traces_sizes = [data(cond).all_individual_complete_traces_sizes;...
+                        data(cond).position(pos).analysis(c).size_measurements];
+                    data(cond).all_individual_complete_traces_volumes = [data(cond).all_individual_complete_traces_volumes;...
+                        data(cond).position(pos).analysis(c).area_measurements .^1.5];
+                    data(cond).all_individual_complete_traces_geminin = [data(cond).all_individual_complete_traces_geminin;...
+                        data(cond).position(pos).analysis(c).geminin_measurements];
+                    if measure_protein_concentrations
+                        data(cond).all_individual_complete_traces_protein_amts = [data(cond).all_individual_complete_traces_protein_amts;...
+                            data(cond).position(pos).analysis(c).protein_measurements];
+                        data(cond).all_individual_complete_traces_protein_per_area = [data(cond).all_individual_complete_traces_protein_per_area;...
+                            data(cond).position(pos).analysis(c).protein_measurements ./ data(cond).position(pos).analysis(c).area_measurements_smooth];
+                        data(cond).all_individual_complete_traces_protein_per_volume = [data(cond).all_individual_complete_traces_protein_per_volume;...
+                            data(cond).position(pos).analysis(c).protein_measurements ./ data(cond).position(pos).analysis(c).area_measurements_smooth .^ 1.5];
+                        data(cond).all_individual_complete_traces_protein_per_size = [data(cond).all_individual_complete_traces_protein_per_size;...
+                            data(cond).position(pos).analysis(c).protein_measurements ./ data(cond).position(pos).analysis(c).size_measurements_smooth];
+                    end
+                end
+            end
+        end
+    end
+end
+
+% For the following instantaneous measurements, gather only cells that pass G1/S.
 % (Need not have complete cycle.)
 if measure_g1s_probabilities
-    for cond = 1:num_conditions
-        
-        data(cond).all_individual_traces_frame_indices_wrt_g1s = cell(0);
-        data(cond).all_individual_traces_areas = cell(0);
-        data(cond).all_individual_traces_sizes = cell(0);
-        data(cond).all_individual_traces_geminin = cell(0);
-        data(cond).all_individual_traces_protein_amts = cell(0);
-        data(cond).all_individual_traces_protein_per_area = cell(0);
-        data(cond).all_individual_traces_protein_per_volume = cell(0);
-        data(cond).all_individual_traces_protein_per_size = cell(0);
-        
+    for cond = 1:num_conditions        
         data(cond).all_frame_indices_wrt_g1s_thisframe = [];
         data(cond).all_g1s_happens_here_thisframe = [];
         data(cond).all_areas_up_to_g1s_thisframe = [];
         data(cond).all_sizes_up_to_g1s_thisframe = [];
+        data(cond).all_volumes_up_to_g1s_thisframe = [];
         data(cond).all_geminins_up_to_g1s_thisframe = [];
         data(cond).all_protein_amts_up_to_g1s_thisframe = [];
         data(cond).all_protein_per_area_up_to_g1s_thisframe = [];
         data(cond).all_protein_per_size_up_to_g1s_thisframe = [];
+        data(cond).all_protein_per_volume_up_to_g1s_thisframe = [];
+        data(cond).all_protein_per_area_up_to_g1s_for_born_cells_thisframe = [];
         data(cond).all_protein_per_size_up_to_g1s_for_born_cells_thisframe = [];
+        data(cond).all_protein_per_volume_up_to_g1s_for_born_cells_thisframe = [];
         data(cond).all_ages_in_hours_up_to_g1s_for_born_cells_thisframe = [];
         data(cond).all_g1s_happens_here_for_born_cells_thisframe = [];
+        data(cond).all_areas_up_to_g1s_for_born_cells_thisframe = [];
         data(cond).all_sizes_up_to_g1s_for_born_cells_thisframe = [];
+        data(cond).all_volumes_up_to_g1s_for_born_cells_thisframe = [];
         
         data(cond).all_frame_indices_wrt_g1s_nextframe = [];
         data(cond).all_g1s_happens_here_nextframe = [];
         data(cond).all_areas_up_to_g1s_nextframe = [];
         data(cond).all_sizes_up_to_g1s_nextframe = [];
+        data(cond).all_volumes_up_to_g1s_nextframe = [];
         data(cond).all_geminins_up_to_g1s_nextframe = [];
         data(cond).all_protein_amts_up_to_g1s_nextframe = [];
         data(cond).all_protein_per_area_up_to_g1s_nextframe = [];
         data(cond).all_protein_per_size_up_to_g1s_nextframe = [];
+        data(cond).all_protein_per_volume_up_to_g1s_nextframe = [];
+        data(cond).all_protein_per_area_up_to_g1s_for_born_cells_nextframe = [];
         data(cond).all_protein_per_size_up_to_g1s_for_born_cells_nextframe = [];
+        data(cond).all_protein_per_volume_up_to_g1s_for_born_cells_nextframe = [];
         data(cond).all_ages_in_hours_up_to_g1s_for_born_cells_nextframe = [];
         data(cond).all_g1s_happens_here_for_born_cells_nextframe = [];
+        data(cond).all_areas_up_to_g1s_for_born_cells_nextframe = [];
         data(cond).all_sizes_up_to_g1s_for_born_cells_nextframe = [];
+        data(cond).all_volumes_up_to_g1s_for_born_cells_nextframe = [];
+        
+        data(cond).all_frame_indices_wrt_g1s_1hrs_ahead = [];
+        data(cond).all_g1s_happens_here_1hrs_ahead = [];
+        data(cond).all_areas_up_to_g1s_1hrs_ahead = [];
+        data(cond).all_sizes_up_to_g1s_1hrs_ahead = [];
+        data(cond).all_volumes_up_to_g1s_1hrs_ahead = [];
+        data(cond).all_geminins_up_to_g1s_1hrs_ahead = [];
+        data(cond).all_protein_amts_up_to_g1s_1hrs_ahead = [];
+        data(cond).all_protein_per_area_up_to_g1s_1hrs_ahead = [];
+        data(cond).all_protein_per_size_up_to_g1s_1hrs_ahead = [];
+        data(cond).all_protein_per_volume_up_to_g1s_1hrs_ahead = [];
+        data(cond).all_protein_per_area_up_to_g1s_for_born_cells_1hrs_ahead = [];
+        data(cond).all_protein_per_size_up_to_g1s_for_born_cells_1hrs_ahead = [];
+        data(cond).all_protein_per_volume_up_to_g1s_for_born_cells_1hrs_ahead = [];
+        data(cond).all_ages_in_hours_up_to_g1s_for_born_cells_1hrs_ahead = [];
+        data(cond).all_g1s_happens_here_for_born_cells_1hrs_ahead = [];
+        data(cond).all_areas_up_to_g1s_for_born_cells_1hrs_ahead = [];
+        data(cond).all_sizes_up_to_g1s_for_born_cells_1hrs_ahead = [];
+        data(cond).all_volumes_up_to_g1s_for_born_cells_1hrs_ahead = [];
         
         data(cond).all_frame_indices_wrt_g1s_2hrs_ahead = [];
         data(cond).all_g1s_happens_here_2hrs_ahead = [];
         data(cond).all_areas_up_to_g1s_2hrs_ahead = [];
         data(cond).all_sizes_up_to_g1s_2hrs_ahead = [];
+        data(cond).all_volumes_up_to_g1s_2hrs_ahead = [];
         data(cond).all_geminins_up_to_g1s_2hrs_ahead = [];
         data(cond).all_protein_amts_up_to_g1s_2hrs_ahead = [];
         data(cond).all_protein_per_area_up_to_g1s_2hrs_ahead = [];
         data(cond).all_protein_per_size_up_to_g1s_2hrs_ahead = [];
+        data(cond).all_protein_per_volume_up_to_g1s_2hrs_ahead = [];
+        data(cond).all_protein_per_area_up_to_g1s_for_born_cells_2hrs_ahead = [];
         data(cond).all_protein_per_size_up_to_g1s_for_born_cells_2hrs_ahead = [];
+        data(cond).all_protein_per_volume_up_to_g1s_for_born_cells_2hrs_ahead = [];
         data(cond).all_ages_in_hours_up_to_g1s_for_born_cells_2hrs_ahead = [];
         data(cond).all_g1s_happens_here_for_born_cells_2hrs_ahead = [];
+        data(cond).all_areas_up_to_g1s_for_born_cells_2hrs_ahead = [];
         data(cond).all_sizes_up_to_g1s_for_born_cells_2hrs_ahead = [];
+        data(cond).all_volumes_up_to_g1s_for_born_cells_2hrs_ahead = [];
         
         data(cond).all_frame_indices_wrt_g1s_3hrs_ahead = [];
         data(cond).all_g1s_happens_here_3hrs_ahead = [];
         data(cond).all_areas_up_to_g1s_3hrs_ahead = [];
         data(cond).all_sizes_up_to_g1s_3hrs_ahead = [];
+        data(cond).all_volumes_up_to_g1s_3hrs_ahead = [];
         data(cond).all_geminins_up_to_g1s_3hrs_ahead = [];
         data(cond).all_protein_amts_up_to_g1s_3hrs_ahead = [];
         data(cond).all_protein_per_area_up_to_g1s_3hrs_ahead = [];
         data(cond).all_protein_per_size_up_to_g1s_3hrs_ahead = [];
+        data(cond).all_protein_per_volume_up_to_g1s_3hrs_ahead = [];
+        data(cond).all_protein_per_area_up_to_g1s_for_born_cells_3hrs_ahead = [];
         data(cond).all_protein_per_size_up_to_g1s_for_born_cells_3hrs_ahead = [];
+        data(cond).all_protein_per_volume_up_to_g1s_for_born_cells_3hrs_ahead = [];
         data(cond).all_ages_in_hours_up_to_g1s_for_born_cells_3hrs_ahead = [];
         data(cond).all_g1s_happens_here_for_born_cells_3hrs_ahead = [];
+        data(cond).all_areas_up_to_g1s_for_born_cells_3hrs_ahead = [];
         data(cond).all_sizes_up_to_g1s_for_born_cells_3hrs_ahead = [];
+        data(cond).all_volumes_up_to_g1s_for_born_cells_3hrs_ahead = [];
         
         for pos = data(cond).positions_list
             for c = data(cond).position(pos).tracking_measurements.all_tracknums
                 if data(cond).position(pos).analysis(c).passes_g1s
+                                    
+                    % Gather values that may predict G1/S transition and
+                    % associated binary outcomes
                     
-                    % For each cell that passes G1/S, store its individual
-                    % trace as part of a cell array
-                    data(cond).all_individual_traces_frame_indices_wrt_g1s = [data(cond).all_individual_traces_frame_indices_wrt_g1s;...
-                        data(cond).position(pos).analysis(c).all_frame_indices_wrt_g1s];
-                    data(cond).all_individual_traces_areas = [data(cond).all_individual_traces_areas;...
-                        data(cond).position(pos).analysis(c).area_measurements];
-                    data(cond).all_individual_traces_sizes = [data(cond).all_individual_traces_sizes;...
-                        data(cond).position(pos).analysis(c).size_measurements];
-                    data(cond).all_individual_traces_geminin = [data(cond).all_individual_traces_geminin;...
-                        data(cond).position(pos).analysis(c).geminin_measurements];
-                    if measure_protein_concentrations
-                        data(cond).all_individual_traces_protein_amts = [data(cond).all_individual_traces_protein_amts;...
-                            data(cond).position(pos).analysis(c).protein_measurements];
-                        data(cond).all_individual_traces_protein_per_area [data(cond).all_individual_traces_protein_per_area;...
-                            data(cond).position(pos).analysis(c).protein_measurements ./ data(cond).position(pos).analysis(c).area_measurements_smooth];
-                        data(cond).all_individual_traces_protein_per_volume [data(cond).all_individual_traces_protein_per_volume;...
-                            data(cond).position(pos).analysis(c).protein_measurements ./ data(cond).position(pos).analysis(c).area_measurements_smooth .^ 1.5];
-                        data(cond).all_individual_traces_protein_per_size [data(cond).all_individual_traces_protein_per_size;...
-                            data(cond).position(pos).analysis(c).protein_measurements ./ data(cond).position(pos).analysis(c).size_measurements_smooth];
+                    if max(data(cond).position(pos).analysis(c).areas_up_to_g1s_nextframe) > 5000
+                        disp('help')
                     end
                     
+                    % Predictions relative to G1/S happening at the current
+                    % frame
                     data(cond).all_frame_indices_wrt_g1s_thisframe = [data(cond).all_frame_indices_wrt_g1s_thisframe;...
                         data(cond).position(pos).analysis(c).frame_indices_wrt_g1s_thisframe];
                     data(cond).all_g1s_happens_here_thisframe = [data(cond).all_g1s_happens_here_thisframe;...
@@ -804,6 +970,8 @@ if measure_g1s_probabilities
                     data(cond).all_geminins_up_to_g1s_thisframe = [data(cond).all_geminins_up_to_g1s_thisframe;...
                         data(cond).position(pos).analysis(c).geminin_up_to_g1s_thisframe];
                     
+                    % Predictions relative to G1/S happening at the next
+                    % frame
                     data(cond).all_frame_indices_wrt_g1s_nextframe = [data(cond).all_frame_indices_wrt_g1s_nextframe;...
                         data(cond).position(pos).analysis(c).frame_indices_wrt_g1s_nextframe];
                     data(cond).all_g1s_happens_here_nextframe = [data(cond).all_g1s_happens_here_nextframe;...
@@ -815,6 +983,48 @@ if measure_g1s_probabilities
                     data(cond).all_geminins_up_to_g1s_nextframe = [data(cond).all_geminins_up_to_g1s_nextframe;...
                         data(cond).position(pos).analysis(c).geminin_up_to_g1s_nextframe];
                     
+                    % Predictions relative to G1/S happening 1 hours down
+                    % the line
+                    
+                    data(cond).all_frame_indices_wrt_g1s_1hrs_ahead = [data(cond).all_frame_indices_wrt_g1s_1hrs_ahead;...
+                        data(cond).position(pos).analysis(c).frame_indices_wrt_g1s_1hrs_ahead];
+                    data(cond).all_g1s_happens_here_1hrs_ahead = [data(cond).all_g1s_happens_here_1hrs_ahead;...
+                        data(cond).position(pos).analysis(c).g1s_happens_here_1hrs_ahead];
+                    data(cond).all_areas_up_to_g1s_1hrs_ahead = [data(cond).all_areas_up_to_g1s_1hrs_ahead;...
+                        data(cond).position(pos).analysis(c).areas_up_to_g1s_1hrs_ahead];
+                    data(cond).all_sizes_up_to_g1s_1hrs_ahead = [data(cond).all_sizes_up_to_g1s_1hrs_ahead;...
+                        data(cond).position(pos).analysis(c).sizes_up_to_g1s_1hrs_ahead];
+                    data(cond).all_geminins_up_to_g1s_1hrs_ahead = [data(cond).all_geminins_up_to_g1s_1hrs_ahead;...
+                        data(cond).position(pos).analysis(c).geminin_up_to_g1s_1hrs_ahead];
+                    
+                    % Predictions relative to G1/S happening 2 hours down
+                    % the line
+                    
+                    data(cond).all_frame_indices_wrt_g1s_2hrs_ahead = [data(cond).all_frame_indices_wrt_g1s_2hrs_ahead;...
+                        data(cond).position(pos).analysis(c).frame_indices_wrt_g1s_2hrs_ahead];
+                    data(cond).all_g1s_happens_here_2hrs_ahead = [data(cond).all_g1s_happens_here_2hrs_ahead;...
+                        data(cond).position(pos).analysis(c).g1s_happens_here_2hrs_ahead];
+                    data(cond).all_areas_up_to_g1s_2hrs_ahead = [data(cond).all_areas_up_to_g1s_2hrs_ahead;...
+                        data(cond).position(pos).analysis(c).areas_up_to_g1s_2hrs_ahead];
+                    data(cond).all_sizes_up_to_g1s_2hrs_ahead = [data(cond).all_sizes_up_to_g1s_2hrs_ahead;...
+                        data(cond).position(pos).analysis(c).sizes_up_to_g1s_2hrs_ahead];
+                    data(cond).all_geminins_up_to_g1s_2hrs_ahead = [data(cond).all_geminins_up_to_g1s_2hrs_ahead;...
+                        data(cond).position(pos).analysis(c).geminin_up_to_g1s_2hrs_ahead];
+                    
+                    % Predictions relative to G1/S happening 3 hours down
+                    % the line
+                    
+                    data(cond).all_frame_indices_wrt_g1s_3hrs_ahead = [data(cond).all_frame_indices_wrt_g1s_3hrs_ahead;...
+                        data(cond).position(pos).analysis(c).frame_indices_wrt_g1s_3hrs_ahead];
+                    data(cond).all_g1s_happens_here_3hrs_ahead = [data(cond).all_g1s_happens_here_3hrs_ahead;...
+                        data(cond).position(pos).analysis(c).g1s_happens_here_3hrs_ahead];
+                    data(cond).all_areas_up_to_g1s_3hrs_ahead = [data(cond).all_areas_up_to_g1s_3hrs_ahead;...
+                        data(cond).position(pos).analysis(c).areas_up_to_g1s_3hrs_ahead];
+                    data(cond).all_sizes_up_to_g1s_3hrs_ahead = [data(cond).all_sizes_up_to_g1s_3hrs_ahead;...
+                        data(cond).position(pos).analysis(c).sizes_up_to_g1s_3hrs_ahead];
+                    data(cond).all_geminins_up_to_g1s_3hrs_ahead = [data(cond).all_geminins_up_to_g1s_3hrs_ahead;...
+                        data(cond).position(pos).analysis(c).geminin_up_to_g1s_3hrs_ahead];
+                    
                     
                     if measure_protein_concentrations
                         data(cond).all_protein_amts_up_to_g1s_thisframe = [data(cond).all_protein_amts_up_to_g1s_thisframe;...
@@ -823,6 +1033,8 @@ if measure_g1s_probabilities
                             data(cond).position(pos).analysis(c).protein_per_area_up_to_g1s_thisframe];
                         data(cond).all_protein_per_size_up_to_g1s_thisframe = [data(cond).all_protein_per_size_up_to_g1s_thisframe;...
                             data(cond).position(pos).analysis(c).protein_per_size_up_to_g1s_thisframe];
+                        data(cond).all_protein_per_volume_up_to_g1s_thisframe = [data(cond).all_protein_per_volume_up_to_g1s_thisframe;...
+                            data(cond).position(pos).analysis(c).protein_per_volume_up_to_g1s_thisframe];
                         
                         data(cond).all_protein_amts_up_to_g1s_nextframe = [data(cond).all_protein_amts_up_to_g1s_nextframe;...
                             data(cond).position(pos).analysis(c).protein_amt_up_to_g1s_nextframe];
@@ -830,28 +1042,131 @@ if measure_g1s_probabilities
                             data(cond).position(pos).analysis(c).protein_per_area_up_to_g1s_nextframe];
                         data(cond).all_protein_per_size_up_to_g1s_nextframe = [data(cond).all_protein_per_size_up_to_g1s_nextframe;...
                             data(cond).position(pos).analysis(c).protein_per_size_up_to_g1s_nextframe];
+                        data(cond).all_protein_per_volume_up_to_g1s_nextframe = [data(cond).all_protein_per_volume_up_to_g1s_nextframe;...
+                            data(cond).position(pos).analysis(c).protein_per_volume_up_to_g1s_nextframe];
+                        
+                        data(cond).all_protein_amts_up_to_g1s_1hrs_ahead = [data(cond).all_protein_amts_up_to_g1s_1hrs_ahead;...
+                            data(cond).position(pos).analysis(c).protein_amt_up_to_g1s_1hrs_ahead];
+                        data(cond).all_protein_per_area_up_to_g1s_1hrs_ahead = [data(cond).all_protein_per_area_up_to_g1s_1hrs_ahead;...
+                            data(cond).position(pos).analysis(c).protein_per_area_up_to_g1s_1hrs_ahead];
+                        data(cond).all_protein_per_size_up_to_g1s_1hrs_ahead = [data(cond).all_protein_per_size_up_to_g1s_1hrs_ahead;...
+                            data(cond).position(pos).analysis(c).protein_per_size_up_to_g1s_1hrs_ahead];
+                        data(cond).all_protein_per_volume_up_to_g1s_1hrs_ahead = [data(cond).all_protein_per_volume_up_to_g1s_1hrs_ahead;...
+                            data(cond).position(pos).analysis(c).protein_per_volume_up_to_g1s_1hrs_ahead];
+                        
+                        data(cond).all_protein_amts_up_to_g1s_2hrs_ahead = [data(cond).all_protein_amts_up_to_g1s_2hrs_ahead;...
+                            data(cond).position(pos).analysis(c).protein_amt_up_to_g1s_2hrs_ahead];
+                        data(cond).all_protein_per_area_up_to_g1s_2hrs_ahead = [data(cond).all_protein_per_area_up_to_g1s_2hrs_ahead;...
+                            data(cond).position(pos).analysis(c).protein_per_area_up_to_g1s_2hrs_ahead];
+                        data(cond).all_protein_per_size_up_to_g1s_2hrs_ahead = [data(cond).all_protein_per_size_up_to_g1s_2hrs_ahead;...
+                            data(cond).position(pos).analysis(c).protein_per_size_up_to_g1s_2hrs_ahead];
+                        data(cond).all_protein_per_volume_up_to_g1s_2hrs_ahead = [data(cond).all_protein_per_volume_up_to_g1s_2hrs_ahead;...
+                            data(cond).position(pos).analysis(c).protein_per_volume_up_to_g1s_2hrs_ahead];
+                        
+                        data(cond).all_protein_amts_up_to_g1s_3hrs_ahead = [data(cond).all_protein_amts_up_to_g1s_3hrs_ahead;...
+                            data(cond).position(pos).analysis(c).protein_amt_up_to_g1s_3hrs_ahead];
+                        data(cond).all_protein_per_area_up_to_g1s_3hrs_ahead = [data(cond).all_protein_per_area_up_to_g1s_3hrs_ahead;...
+                            data(cond).position(pos).analysis(c).protein_per_area_up_to_g1s_3hrs_ahead];
+                        data(cond).all_protein_per_size_up_to_g1s_3hrs_ahead = [data(cond).all_protein_per_size_up_to_g1s_3hrs_ahead;...
+                            data(cond).position(pos).analysis(c).protein_per_size_up_to_g1s_3hrs_ahead];
+                        data(cond).all_protein_per_volume_up_to_g1s_3hrs_ahead = [data(cond).all_protein_per_volume_up_to_g1s_3hrs_ahead;...
+                            data(cond).position(pos).analysis(c).protein_per_volume_up_to_g1s_3hrs_ahead];
                     end
                     
-                    if data(cond).position(pos).analysis(c).is_born
+                    if ~isempty(data(cond).position(pos).analysis(c).is_born) && data(cond).position(pos).analysis(c).is_born
+                        
                         data(cond).all_ages_in_hours_up_to_g1s_for_born_cells_thisframe = [data(cond).all_ages_in_hours_up_to_g1s_for_born_cells_thisframe;...
                             data(cond).position(pos).analysis(c).age_in_hours_up_to_g1s_thisframe];
                         data(cond).all_g1s_happens_here_for_born_cells_thisframe = [data(cond).all_g1s_happens_here_for_born_cells_thisframe;...
                             data(cond).position(pos).analysis(c).g1s_happens_here_thisframe];
+                        data(cond).all_areas_up_to_g1s_for_born_cells_thisframe =  [data(cond).all_areas_up_to_g1s_for_born_cells_thisframe;...
+                            data(cond).position(pos).analysis(c).areas_up_to_g1s_thisframe];
                         data(cond).all_sizes_up_to_g1s_for_born_cells_thisframe =  [data(cond).all_sizes_up_to_g1s_for_born_cells_thisframe;...
                             data(cond).position(pos).analysis(c).sizes_up_to_g1s_thisframe];
+                        data(cond).all_volumes_up_to_g1s_for_born_cells_thisframe =  [data(cond).all_volumes_up_to_g1s_for_born_cells_thisframe;...
+                            data(cond).position(pos).analysis(c).volumes_up_to_g1s_thisframe];
                         
                         data(cond).all_ages_in_hours_up_to_g1s_for_born_cells_nextframe = [data(cond).all_ages_in_hours_up_to_g1s_for_born_cells_nextframe;...
                             data(cond).position(pos).analysis(c).age_in_hours_up_to_g1s_nextframe];
                         data(cond).all_g1s_happens_here_for_born_cells_nextframe = [data(cond).all_g1s_happens_here_for_born_cells_nextframe;...
                             data(cond).position(pos).analysis(c).g1s_happens_here_nextframe];
+                        data(cond).all_areas_up_to_g1s_for_born_cells_nextframe =  [data(cond).all_areas_up_to_g1s_for_born_cells_nextframe;...
+                            data(cond).position(pos).analysis(c).areas_up_to_g1s_nextframe];
                         data(cond).all_sizes_up_to_g1s_for_born_cells_nextframe =  [data(cond).all_sizes_up_to_g1s_for_born_cells_nextframe;...
                             data(cond).position(pos).analysis(c).sizes_up_to_g1s_nextframe];
+                        data(cond).all_volumes_up_to_g1s_for_born_cells_nextframe =  [data(cond).all_volumes_up_to_g1s_for_born_cells_nextframe;...
+                            data(cond).position(pos).analysis(c).volumes_up_to_g1s_nextframe];
+                        
+                        data(cond).all_ages_in_hours_up_to_g1s_for_born_cells_1hrs_ahead = [data(cond).all_ages_in_hours_up_to_g1s_for_born_cells_1hrs_ahead;...
+                            data(cond).position(pos).analysis(c).age_in_hours_up_to_g1s_1hrs_ahead];
+                        data(cond).all_g1s_happens_here_for_born_cells_1hrs_ahead = [data(cond).all_g1s_happens_here_for_born_cells_1hrs_ahead;...
+                            data(cond).position(pos).analysis(c).g1s_happens_here_1hrs_ahead];
+                        data(cond).all_areas_up_to_g1s_for_born_cells_1hrs_ahead =  [data(cond).all_areas_up_to_g1s_for_born_cells_1hrs_ahead;...
+                            data(cond).position(pos).analysis(c).areas_up_to_g1s_1hrs_ahead];
+                        data(cond).all_sizes_up_to_g1s_for_born_cells_1hrs_ahead =  [data(cond).all_sizes_up_to_g1s_for_born_cells_1hrs_ahead;...
+                            data(cond).position(pos).analysis(c).sizes_up_to_g1s_1hrs_ahead];
+                        data(cond).all_volumes_up_to_g1s_for_born_cells_1hrs_ahead =  [data(cond).all_volumes_up_to_g1s_for_born_cells_1hrs_ahead;...
+                            data(cond).position(pos).analysis(c).volumes_up_to_g1s_1hrs_ahead];
+                        
+                        data(cond).all_ages_in_hours_up_to_g1s_for_born_cells_2hrs_ahead = [data(cond).all_ages_in_hours_up_to_g1s_for_born_cells_2hrs_ahead;...
+                            data(cond).position(pos).analysis(c).age_in_hours_up_to_g1s_2hrs_ahead];
+                        data(cond).all_g1s_happens_here_for_born_cells_2hrs_ahead = [data(cond).all_g1s_happens_here_for_born_cells_2hrs_ahead;...
+                            data(cond).position(pos).analysis(c).g1s_happens_here_2hrs_ahead];
+                        data(cond).all_areas_up_to_g1s_for_born_cells_2hrs_ahead =  [data(cond).all_areas_up_to_g1s_for_born_cells_2hrs_ahead;...
+                            data(cond).position(pos).analysis(c).areas_up_to_g1s_2hrs_ahead];
+                        data(cond).all_sizes_up_to_g1s_for_born_cells_2hrs_ahead =  [data(cond).all_sizes_up_to_g1s_for_born_cells_2hrs_ahead;...
+                            data(cond).position(pos).analysis(c).sizes_up_to_g1s_2hrs_ahead];
+                        data(cond).all_volumes_up_to_g1s_for_born_cells_2hrs_ahead =  [data(cond).all_volumes_up_to_g1s_for_born_cells_2hrs_ahead;...
+                            data(cond).position(pos).analysis(c).volumes_up_to_g1s_2hrs_ahead];
+                        
+                        data(cond).all_ages_in_hours_up_to_g1s_for_born_cells_3hrs_ahead = [data(cond).all_ages_in_hours_up_to_g1s_for_born_cells_3hrs_ahead;...
+                            data(cond).position(pos).analysis(c).age_in_hours_up_to_g1s_3hrs_ahead];
+                        data(cond).all_g1s_happens_here_for_born_cells_3hrs_ahead = [data(cond).all_g1s_happens_here_for_born_cells_3hrs_ahead;...
+                            data(cond).position(pos).analysis(c).g1s_happens_here_3hrs_ahead];
+                        data(cond).all_areas_up_to_g1s_for_born_cells_3hrs_ahead =  [data(cond).all_areas_up_to_g1s_for_born_cells_3hrs_ahead;...
+                            data(cond).position(pos).analysis(c).areas_up_to_g1s_3hrs_ahead];
+                        data(cond).all_sizes_up_to_g1s_for_born_cells_3hrs_ahead =  [data(cond).all_sizes_up_to_g1s_for_born_cells_3hrs_ahead;...
+                            data(cond).position(pos).analysis(c).sizes_up_to_g1s_3hrs_ahead];
+                        data(cond).all_volumes_up_to_g1s_for_born_cells_3hrs_ahead =  [data(cond).all_volumes_up_to_g1s_for_born_cells_3hrs_ahead;...
+                            data(cond).position(pos).analysis(c).volumes_up_to_g1s_3hrs_ahead];
                         
                         if measure_protein_concentrations
+                            
+                            data(cond).all_protein_per_area_up_to_g1s_for_born_cells_thisframe = [data(cond).all_protein_per_area_up_to_g1s_for_born_cells_thisframe;...
+                                data(cond).position(pos).analysis(c).protein_per_area_up_to_g1s_thisframe];
                             data(cond).all_protein_per_size_up_to_g1s_for_born_cells_thisframe = [data(cond).all_protein_per_size_up_to_g1s_for_born_cells_thisframe;...
                                 data(cond).position(pos).analysis(c).protein_per_size_up_to_g1s_thisframe];
+                            data(cond).all_protein_per_volume_up_to_g1s_for_born_cells_thisframe = [data(cond).all_protein_per_volume_up_to_g1s_for_born_cells_thisframe;...
+                                data(cond).position(pos).analysis(c).protein_per_volume_up_to_g1s_thisframe];
+                            
+                            data(cond).all_protein_per_area_up_to_g1s_for_born_cells_nextframe = [data(cond).all_protein_per_area_up_to_g1s_for_born_cells_nextframe;...
+                                data(cond).position(pos).analysis(c).protein_per_area_up_to_g1s_nextframe];
                             data(cond).all_protein_per_size_up_to_g1s_for_born_cells_nextframe = [data(cond).all_protein_per_size_up_to_g1s_for_born_cells_nextframe;...
                                 data(cond).position(pos).analysis(c).protein_per_size_up_to_g1s_nextframe];
+                            data(cond).all_protein_per_volume_up_to_g1s_for_born_cells_nextframe = [data(cond).all_protein_per_volume_up_to_g1s_for_born_cells_nextframe;...
+                                data(cond).position(pos).analysis(c).protein_per_volume_up_to_g1s_nextframe];
+                            
+                            data(cond).all_protein_per_area_up_to_g1s_for_born_cells_1hrs_ahead = [data(cond).all_protein_per_area_up_to_g1s_for_born_cells_1hrs_ahead;...
+                                data(cond).position(pos).analysis(c).protein_per_area_up_to_g1s_1hrs_ahead];
+                            data(cond).all_protein_per_size_up_to_g1s_for_born_cells_1hrs_ahead = [data(cond).all_protein_per_size_up_to_g1s_for_born_cells_1hrs_ahead;...
+                                data(cond).position(pos).analysis(c).protein_per_size_up_to_g1s_1hrs_ahead];
+                            data(cond).all_protein_per_volume_up_to_g1s_for_born_cells_1hrs_ahead = [data(cond).all_protein_per_volume_up_to_g1s_for_born_cells_1hrs_ahead;...
+                                data(cond).position(pos).analysis(c).protein_per_volume_up_to_g1s_1hrs_ahead];
+                            
+                            data(cond).all_protein_per_area_up_to_g1s_for_born_cells_2hrs_ahead = [data(cond).all_protein_per_area_up_to_g1s_for_born_cells_2hrs_ahead;...
+                                data(cond).position(pos).analysis(c).protein_per_area_up_to_g1s_2hrs_ahead];
+                            data(cond).all_protein_per_size_up_to_g1s_for_born_cells_2hrs_ahead = [data(cond).all_protein_per_size_up_to_g1s_for_born_cells_2hrs_ahead;...
+                                data(cond).position(pos).analysis(c).protein_per_size_up_to_g1s_2hrs_ahead];
+                            data(cond).all_protein_per_volume_up_to_g1s_for_born_cells_2hrs_ahead = [data(cond).all_protein_per_volume_up_to_g1s_for_born_cells_2hrs_ahead;...
+                                data(cond).position(pos).analysis(c).protein_per_volume_up_to_g1s_2hrs_ahead];
+                            
+                            data(cond).all_protein_per_area_up_to_g1s_for_born_cells_3hrs_ahead = [data(cond).all_protein_per_area_up_to_g1s_for_born_cells_3hrs_ahead;...
+                                data(cond).position(pos).analysis(c).protein_per_area_up_to_g1s_3hrs_ahead];
+                            data(cond).all_protein_per_size_up_to_g1s_for_born_cells_3hrs_ahead = [data(cond).all_protein_per_size_up_to_g1s_for_born_cells_3hrs_ahead;...
+                                data(cond).position(pos).analysis(c).protein_per_size_up_to_g1s_3hrs_ahead];
+                            data(cond).all_protein_per_volume_up_to_g1s_for_born_cells_3hrs_ahead = [data(cond).all_protein_per_volume_up_to_g1s_for_born_cells_3hrs_ahead;...
+                                data(cond).position(pos).analysis(c).protein_per_volume_up_to_g1s_3hrs_ahead];
+                            
                         end
                     end
                 end
@@ -879,6 +1194,49 @@ if ~exist(figure_subfolder,'dir')
     mkdir(figure_subfolder)
 end
 
+table_folder = 'C:\Users\Skotheim Lab\Desktop\Tables';
+if strcmp(tracking_strategy,'clicking')
+    table_subfolder = [table_folder '\' expt_name '\ManualTracking'];
+elseif strcmp(tracking_strategy,'aivia')
+    table_subfolder = [table_folder '\' expt_name '\Aivia'];
+end
+
+if ~exist(table_subfolder,'dir')
+    mkdir(table_subfolder)
+end
+
+% Create tables with data for scatterplots (i.e., one data point per cell)
+for cond = 1:num_conditions
+    G1_tables{cond} = table;
+    G1_tables{cond}.birth_sizes = data(cond).birth_sizes_cells_born_and_pass_g1s;
+    G1_tables{cond}.birth_areas = data(cond).birth_areas_cells_born_and_pass_g1s;
+    G1_tables{cond}.birth_volumes = data(cond).birth_areas_cells_born_and_pass_g1s .^ 1.5;
+    G1_tables{cond}.g1_lengths = data(cond).g1_lengths_cells_born_and_pass_g1s;
+    G1_tables{cond}.g1s_sizes = data(cond).g1s_sizes_cells_born_and_pass_g1s;
+    G1_tables{cond}.g1s_areas = data(cond).g1s_areas_cells_born_and_pass_g1s;
+    G1_tables{cond}.g1s_volumes = data(cond).g1s_areas_cells_born_and_pass_g1s .^1.5;
+    G1_tables{cond}.g1_size_growths = data(cond).g1s_sizes_cells_born_and_pass_g1s - data(cond).birth_sizes_cells_born_and_pass_g1s;
+    
+    
+%     if exist([table_subfolder '\G1_table_' data(cond).treatment '.xlsx'], 'file') == 2
+%         delete([table_subfolder '\G1_table_' data(cond).treatment '.xlsx']);
+%     end
+    writetable(G1_tables{cond}, [table_subfolder '\G1_table_' data(cond).treatment '.xlsx']);
+if measure_protein_concentrations
+    SG2_tables{cond} = table;
+    SG2_tables{cond}.G1S_sizes = data(cond).g1s_sizes_for_cells_that_divide;
+    SG2_tables{cond}.G1S_areas = data(cond).g1s_areas_for_cells_that_divide;
+    SG2_tables{cond}.G1S_volumes = data(cond).g1s_areas_for_cells_that_divide .^1.5;
+    SG2_tables{cond}.SG2_lengths = data(cond).sg2_lengths_for_cells_that_divide;
+    SG2_tables{cond}.SG2_Rb_amounts = data(cond).g1s_protein_amts_for_cells_that_divide;
+    SG2_tables{cond}.SG2_Rb_increase = data(cond).sg2_protein_increases_for_cells_that_divide;
+    SG2_tables{cond}.SG2_Rb_accumulation_rate = data(cond).sg2_protein_accumulation_rates_for_cells_that_divide ./ analysis_parameters.framerate;
+%     if exist([table_subfolder '\SG2_table_' data(cond).treatment '.xlsx'], 'file') == 2
+%         delete([table_subfolder '\SG2_table_' data(cond).treatment '.xlsx']);
+%     end
+    writetable(SG2_tables{cond}, [table_subfolder '\SG2_table_' data(cond).treatment '.xlsx']);
+end
+end
 
 % Plot size vs area
 if measure_area_vs_fluorescence
@@ -1049,17 +1407,20 @@ end
 % Plot scatterplots
 % For these scatterplots to work, it is crucial that the same quality
 % control tests be applied to both axes (i.e., birth sizes and G1 lengths).
-% Currently that means has_complete_cycle and
-% birth_size_is_similar_to_sister.
+% Currently that means has_complete_cycle and has_valid_birth_size but
+% NOT birth_size_is_similar_to_sister. Check
+% analysis_parameters.compare_birth_size_to_sister.
 if measure_sizes_at_birth_and_other_times && measure_lengths_of_phases
     all_data_types_to_plot = {'Birth_size_vs_G1_length','Birth_size_vs_SG2_length','Birth_size_vs_Complete_cycle_length',...
-        'Birth_area_vs_G1_length','G1S_size_vs_SG2_length','Birth_size_vs_G1_growth','G1S_size_vs_SG2_growth',...
-        'Instantaneous_sizes_vs_growths'};
+        'Birth_area_vs_G1_length','Birth_volume_vs_G1_length','G1S_size_vs_SG2_length','Birth_size_vs_G1_growth','G1S_size_vs_SG2_growth',...
+        'Birth_size_vs_Complete_cycle_growth','Instantaneous_sizes_vs_growths'};
     if measure_protein_concentrations
-        all_data_types_to_plot = {all_data_types_to_plot{:},'G1S_size_vs_SG2_protein_increase','G1S_size_vs_SG2_protein_accumulation_rate'};
+        all_data_types_to_plot = {all_data_types_to_plot{:},'G1S_size_vs_SG2_protein_increase','G1S_size_vs_SG2_protein_accumulation_rate',...
+            'G1S_area_vs_SG2_protein_increase','G1S_area_vs_SG2_protein_accumulation_rate',...
+            'G1S_volume_vs_SG2_protein_increase','G1S_volume_vs_SG2_protein_accumulation_rate'};
     end
     all_cell_classes_to_plot = {'all_good','first_gen_good','second_gen_good','G1_cells_good','SG2_cells_good','pass_g1s_not_necessarily_complete'};
-    all_plottypes = {'scatter_with_line'};
+    all_plottypes = {'scatter_with_line','scatter_with_bins'};
     
     % all_data_types_to_plot = {'Birth_size_vs_G1_growth'};
     
@@ -1185,8 +1546,34 @@ if measure_sizes_at_birth_and_other_times && measure_lengths_of_phases
                             is_there_something_to_plot = true;
                         end
                         
+                    elseif strcmp(data_type_to_plot,'Birth_volume_vs_G1_length')
+                        x_axis_label = 'Birth volume (px3)';
+                        y_axis_label = 'G1 length (h)';
+                        
+                        if strcmp(cell_class_to_plot,'all_good')
+                            data_to_scatter(cond).x = data(cond).all_good_birth_areas .^1.5;
+                            data_to_scatter(cond).y = data(cond).all_good_g1_lengths;
+                            graph_title = [data(cond).treatment ', all cells that complete cycle'];
+                            is_there_something_to_plot = true;
+                        elseif strcmp(cell_class_to_plot,'first_gen_good')
+                            data_to_scatter(cond).x = data(cond).first_gen_good_birth_areas .^1.5;
+                            data_to_scatter(cond).y = data(cond).first_gen_good_g1_lengths;
+                            graph_title = [data(cond).treatment ', first generation cells that complete cycle'];
+                            is_there_something_to_plot = true;
+                        elseif strcmp(cell_class_to_plot,'second_gen_good')
+                            data_to_scatter(cond).x = data(cond).second_gen_good_birth_areas .^1.5;
+                            data_to_scatter(cond).y = data(cond).second_gen_good_g1_lengths;
+                            graph_title = [data(cond).treatment ', second generation cells that complete cycle'];
+                            is_there_something_to_plot = true;
+                        elseif strcmp(cell_class_to_plot,'pass_g1s_not_necessarily_complete')
+                            data_to_scatter(cond).x = data(cond).birth_areas_cells_born_and_pass_g1s .^ 1.5;
+                            data_to_scatter(cond).y = data(cond).g1_lengths_cells_born_and_pass_g1s;
+                            graph_title = [data(cond).treatment ', cells that are born and pass G1/S'];
+                            is_there_something_to_plot = true;
+                        end
+                        
                     elseif strcmp(data_type_to_plot,'G1S_size_vs_SG2_length')
-                        x_axis_label = 'G1S size';
+                        x_axis_label = 'G1S size (AU)';
                         y_axis_label = 'SG2 length (h)';
                         
                         if strcmp(cell_class_to_plot,'all_good')
@@ -1197,8 +1584,8 @@ if measure_sizes_at_birth_and_other_times && measure_lengths_of_phases
                         end
                         
                     elseif strcmp(data_type_to_plot,'Birth_size_vs_G1_growth')
-                        x_axis_label = 'Birth size';
-                        y_axis_label = 'G1 growth';
+                        x_axis_label = 'Birth size (AU)';
+                        y_axis_label = 'G1 growth (AU)';
                         
                         if strcmp(cell_class_to_plot,'all_good')
                             data_to_scatter(cond).x = data(cond).all_good_birth_sizes;
@@ -1208,8 +1595,8 @@ if measure_sizes_at_birth_and_other_times && measure_lengths_of_phases
                         end
                         
                     elseif strcmp(data_type_to_plot,'G1S_size_vs_SG2_growth')
-                        x_axis_label = 'G1S size';
-                        y_axis_label = 'SG2 growth';
+                        x_axis_label = 'G1S size (AU)';
+                        y_axis_label = 'SG2 growth (AU)';
                         
                         if strcmp(cell_class_to_plot,'all_good')
                             data_to_scatter(cond).x = data(cond).all_good_g1s_sizes;
@@ -1218,8 +1605,19 @@ if measure_sizes_at_birth_and_other_times && measure_lengths_of_phases
                             is_there_something_to_plot = true;
                         end
                         
+                    elseif strcmp(data_type_to_plot,'Birth_size_vs_Complete_cycle_growth')
+                        x_axis_label = 'Birth size (AU)';
+                        y_axis_label = 'Complete cycle growth (AU)';
+                        if strcmp(cell_class_to_plot,'all_good')
+                            data_to_scatter(cond).x = data(cond).all_good_birth_sizes;
+                            data_to_scatter(cond).y = data(cond).all_good_g1_growths + data(cond).all_good_sg2_growths;
+                            graph_title = [data(cond).treatment ', all cells that complete cycle'];
+                            is_there_something_to_plot = true;
+                        end
+                        
+                        
                     elseif strcmp(data_type_to_plot,'G1S_size_vs_SG2_protein_increase')
-                        x_axis_label = 'G1S size';
+                        x_axis_label = 'G1S size (AU)';
                         y_axis_label = 'Increase in Rb amt during SG2 (AU)';
                         if strcmp(cell_class_to_plot,'all_good')
                             data_to_scatter(cond).x = data(cond).g1s_sizes_for_cells_that_divide;
@@ -1229,10 +1627,50 @@ if measure_sizes_at_birth_and_other_times && measure_lengths_of_phases
                         end
                         
                     elseif strcmp(data_type_to_plot,'G1S_size_vs_SG2_protein_accumulation_rate')
-                        x_axis_label = 'G1S size';
+                        x_axis_label = 'G1S size (AU)';
                         y_axis_label = 'Average Rb accumulation rate during SG2 (AU/h)';
                         if strcmp(cell_class_to_plot,'all_good')
                             data_to_scatter(cond).x = data(cond).g1s_sizes_for_cells_that_divide;
+                            data_to_scatter(cond).y = data(cond).sg2_protein_accumulation_rates_for_cells_that_divide / analysis_parameters.framerate;
+                            graph_title = [data(cond).treatment ', all cells that complete cycle'];
+                            is_there_something_to_plot = true;
+                        end
+                        
+                    elseif strcmp(data_type_to_plot,'G1S_area_vs_SG2_protein_increase')
+                        x_axis_label = 'G1S area (px2)';
+                        y_axis_label = 'Increase in Rb amt during SG2 (AU)';
+                        if strcmp(cell_class_to_plot,'all_good')
+                            data_to_scatter(cond).x = data(cond).g1s_areas_for_cells_that_divide;
+                            data_to_scatter(cond).y = data(cond).sg2_protein_increases_for_cells_that_divide;
+                            graph_title = [data(cond).treatment ', all cells that complete cycle'];
+                            is_there_something_to_plot = true;
+                        end
+                        
+                    elseif strcmp(data_type_to_plot,'G1S_area_vs_SG2_protein_accumulation_rate')
+                        x_axis_label = 'G1S area (px2)';
+                        y_axis_label = 'Average Rb accumulation rate during SG2 (AU/h)';
+                        if strcmp(cell_class_to_plot,'all_good')
+                            data_to_scatter(cond).x = data(cond).g1s_areas_for_cells_that_divide;
+                            data_to_scatter(cond).y = data(cond).sg2_protein_accumulation_rates_for_cells_that_divide / analysis_parameters.framerate;
+                            graph_title = [data(cond).treatment ', all cells that complete cycle'];
+                            is_there_something_to_plot = true;
+                        end
+                        
+                    elseif strcmp(data_type_to_plot,'G1S_volume_vs_SG2_protein_increase')
+                        x_axis_label = 'G1S volume (px3)';
+                        y_axis_label = 'Increase in Rb amt during SG2 (AU)';
+                        if strcmp(cell_class_to_plot,'all_good')
+                            data_to_scatter(cond).x = data(cond).g1s_areas_for_cells_that_divide .^1.5;
+                            data_to_scatter(cond).y = data(cond).sg2_protein_increases_for_cells_that_divide;
+                            graph_title = [data(cond).treatment ', all cells that complete cycle'];
+                            is_there_something_to_plot = true;
+                        end
+                        
+                    elseif strcmp(data_type_to_plot,'G1S_volume_vs_SG2_protein_accumulation_rate')
+                        x_axis_label = 'G1S volume (px3)';
+                        y_axis_label = 'Average Rb accumulation rate during SG2 (AU/h)';
+                        if strcmp(cell_class_to_plot,'all_good')
+                            data_to_scatter(cond).x = data(cond).g1s_areas_for_cells_that_divide .^1.5;
                             data_to_scatter(cond).y = data(cond).sg2_protein_accumulation_rates_for_cells_that_divide / analysis_parameters.framerate;
                             graph_title = [data(cond).treatment ', all cells that complete cycle'];
                             is_there_something_to_plot = true;
@@ -1246,6 +1684,8 @@ if measure_sizes_at_birth_and_other_times && measure_lengths_of_phases
                     if is_there_something_to_plot
                         if strcmp(plottype,'scatter_with_line')
                             plot_scatter_with_line(data_to_scatter(cond).x, data_to_scatter(cond).y);
+                        elseif strcmp(plottype,'scatter_with_bins')
+                            plot_scatter_with_bins(data_to_scatter(cond).x, data_to_scatter(cond).y);
                         end
                         
                         title(gca,graph_title)
@@ -1261,72 +1701,56 @@ if measure_sizes_at_birth_and_other_times && measure_lengths_of_phases
     end
 end
 
-% Plot individual cell traces, aligned to G1/S
-if measure_g1s_probabilities
-    all_data_types_to_plot = {'Aligned_areas','Aligned_volumes','Aligned_sizes','Aligned_geminin'};
+% Create tables with individual complete traces (i.e., one column per cell)
+for cond = 1:num_conditions
+    all_data_types_to_write = {'Ages_wrt_birth','Ages_wrt_g1s',...
+        'Areas','Volumes','Sizes','Geminin'};
     if measure_protein_concentrations
-        all_data_types_to_plot = {all_data_types_to_plot{:},'Aligned_protein','Aligned_protein_per_area',...
-            'Aligned_protein_per_volume','Aligned_protein_per_size'};
+        all_data_types_to_write = {all_data_types_to_write{:},'Rb','Rb_per_area',...
+            'Rb_per_volume','Rb_per_size'};
     end
-    all_cell_classes_to_plot = {'pass_g1s'};
-    all_plottypes = {'stacked_lines'};
-  
-    for data_type_to_plot = all_data_types_to_plot
-        for cell_class_to_plot = all_cell_classes_to_plot
-            for plottype = all_plottypes
-                for cond = 1:num_conditions
-                    
-                    is_there_something_to_plot = false;
-                    x_axis_label = 'Frame relative to G1/S';
-                    x_coord_cell_array = data(cond).all_individual_traces_frame_indices_wrt_g1s;
-                    graph_title = [data(cond).treatment ', cells that pass G1/S with traces aligned to G1/S'];
-                    
-                    switch data_type_to_plot
-                        case 'Aligned_areas'
-                            y_axis_label = 'Area (px2)';
-                            y_coord_cell_array = data(cond).all_individual_traces_areas;
-                            
-                        case 'Aligned_volumes'
-                            y_axis_label = 'Volume (px3)';
-                            y_coord_cell_array = data(cond).all_individual_traces_volumes;
-                            
-                        case 'Aligned_sizes'
-                            y_axis_label = 'Size (AU)';
-                            y_coord_cell_array = data(cond).all_individual_traces_sizes;
-                            
-                        case 'Aligned_geminin'
-                            y_axis_label = 'Geminin (AU)';
-                            y_coord_cell_array = data(cond).all_individual_traces_geminin;
-                            
-                        case 'Aligned_protein'
-                            y_axis_label = 'Rb amt (AU)';
-                            y_coord_cell_array = data(cond).all_individual_traces_protein_amts;
-                            
-                        case 'Aligned_protein_per_area';
-                            y_axis_label = 'Rb amt per area (AU/px2)';
-                            y_coord_cell_array = data(cond).all_individual_traces_protein_per_area;
-                            
-                        case 'Aligned_protein_per_volume';
-                            y_axis_label = 'Rb amt per volume (AU/px3)';
-                            y_coord_cell_array = data(cond).all_individual_traces_protein_per_volume;
-                            
-                        case 'Aligned_protein_per_size';
-                            y_axis_label = 'Rb amt per size (AU/AU)';
-                            y_coord_cell_array = data(cond).all_individual_traces_protein_per_size;
-                    end
-                    
-                    assert(length(x_coord_cell_array) == length(y_coord_cell_array));
-                    
-                    figure()
-                    hold on
-                    for i = 1:length(x_coord_cell_array)
-                            plot(x_coord_cell_array{i},y_coord_cell_array{i})
-                    end
-                    xlabel(x_axis_label)
-                    ylabel(y_axis_label)
-                    title(graph_title)
-                    saveas(gcf, [figure_subfolder '\' data_type_to_plot{1} '_' data(cond).treatment '_'...
-                            cell_class_to_plot{1} '_' plottype{1} '.png'])
+    all_cell_classes_to_write = {'complete'};
+    all_tabletypes = {'NaN_padded'};
+    for data_type_to_write = all_data_types_to_write
+        for cell_class_to_write = all_cell_classes_to_write
+            for tabletype = all_tabletypes
+                max_trace_length = 0;
+                switch cell_class_to_write{1}
+                    case 'complete'
+                        num_traces = length(data(cond).all_individual_complete_traces_frame_indices_wrt_birth);
+                        for i = 1:num_traces
+                            max_trace_length = max(max_trace_length, length(data(cond).all_individual_complete_traces_frame_indices_wrt_birth{i}));
+                        end
+                        switch tabletype{1}
+                            case 'NaN_padded'
+                                all_traces_padded = NaN(max_trace_length,num_traces);
+                                for i = 1:num_traces
+                                    switch data_type_to_write{1}
+                                        case 'Ages_wrt_birth'
+                                            thistrace = data(cond).all_individual_complete_traces_frame_indices_wrt_birth{i} * analysis_parameters.framerate;
+                                        case 'Ages_wrt_g1s'
+                                            thistrace = data(cond).all_individual_complete_traces_frame_indices_wrt_g1s{i} * analysis_parameters.framerate;
+                                        case 'Areas'
+                                            thistrace = data(cond).all_individual_complete_traces_areas{i};
+                                        case 'Volumes'
+                                            thistrace = data(cond).all_individual_complete_traces_volumes{i};
+                                        case 'Sizes'
+                                            thistrace = data(cond).all_individual_complete_traces_sizes{i};
+                                        case 'Geminin'
+                                            thistrace = data(cond).all_individual_complete_traces_geminin{i};
+                                        case 'Rb'
+                                            thistrace = data(cond).all_individual_complete_traces_protein_amts{i};
+                                        case 'Rb_per_area'
+                                            thistrace = data(cond).all_individual_complete_traces_protein_per_area{i};
+                                        case 'Rb_per_volume'
+                                            thistrace = data(cond).all_individual_complete_traces_protein_per_volume{i};
+                                        case 'Rb_per_size'
+                                            thistrace = data(cond).all_individual_complete_traces_protein_per_size{i};
+                                    end
+                                    all_traces_padded(1:length(thistrace),i) = thistrace;
+                                end
+                                xlswrite([table_subfolder '\Trace_table_' data(cond).treatment '.xlsx'], all_traces_padded, data_type_to_write{1});
+                        end
                 end
             end
         end
@@ -1334,19 +1758,179 @@ if measure_g1s_probabilities
 end
                             
 
+% Plot individual cell traces, aligned to birth or to G1/S
+if measure_g1s_probabilities
+    all_data_types_to_plot = {'Aligned_areas','Aligned_volumes','Aligned_sizes','Aligned_geminin'};
+    if measure_protein_concentrations
+        all_data_types_to_plot = {all_data_types_to_plot{:},'Aligned_protein','Aligned_protein_per_area',...
+            'Aligned_protein_per_volume','Aligned_protein_per_size'};
+    end
+    all_cell_classes_to_plot = {'pass_g1s','complete'};
+    all_plottypes = {'wrt_birth','wrt_g1s'};
+    
+    for data_type_to_plot = all_data_types_to_plot
+        for cell_class_to_plot = all_cell_classes_to_plot
+            for plottype = all_plottypes
+                for cond = 1:num_conditions
+                    
+                    is_there_something_to_plot = false;
+                    
+                    switch cell_class_to_plot{1}
+                        case 'pass_g1s'
+                            switch plottype{1}
+                                case 'wrt_birth'
+                                    x_axis_label = 'Time relative to birth (h)';
+                                    x_coord_cell_array = data(cond).all_individual_pass_g1s_traces_frame_indices_wrt_trace_start;
+                                    graph_title = [data(cond).treatment ', cells that pass G1/S with traces aligned to trace start'];
+                                    
+                                case 'wrt_g1s'
+                                    x_axis_label = 'Time relative to G1/S (h)';
+                                    x_coord_cell_array = data(cond).all_individual_pass_g1s_traces_frame_indices_wrt_g1s;
+                                    graph_title = [data(cond).treatment ', cells that pass G1/S with traces aligned to G1/S'];
+                            end
+                            
+                            switch data_type_to_plot{1}
+                                case 'Aligned_areas'
+                                    y_axis_label = 'Area (px2)';
+                                    y_coord_cell_array = data(cond).all_individual_pass_g1s_traces_areas;
+                                    
+                                case 'Aligned_volumes'
+                                    y_axis_label = 'Volume (px3)';
+                                    y_coord_cell_array = data(cond).all_individual_pass_g1s_traces_volumes;
+                                    
+                                case 'Aligned_sizes'
+                                    y_axis_label = 'Size (AU)';
+                                    y_coord_cell_array = data(cond).all_individual_pass_g1s_traces_sizes;
+                                    
+                                case 'Aligned_geminin'
+                                    y_axis_label = 'Geminin (AU)';
+                                    y_coord_cell_array = data(cond).all_individual_pass_g1s_traces_geminin;
+                                    
+                                case 'Aligned_protein'
+                                    y_axis_label = 'Rb amt (AU)';
+                                    y_coord_cell_array = data(cond).all_individual_pass_g1s_traces_protein_amts;
+                                    
+                                case 'Aligned_protein_per_area';
+                                    y_axis_label = 'Rb amt per area (AU/px2)';
+                                    y_coord_cell_array = data(cond).all_individual_pass_g1s_traces_protein_per_area;
+                                    
+                                case 'Aligned_protein_per_volume';
+                                    y_axis_label = 'Rb amt per volume (AU/px3)';
+                                    y_coord_cell_array = data(cond).all_individual_pass_g1s_traces_protein_per_volume;
+                                    
+                                case 'Aligned_protein_per_size';
+                                    y_axis_label = 'Rb amt per size (AU/AU)';
+                                    y_coord_cell_array = data(cond).all_individual_pass_g1s_traces_protein_per_size;
+                            end
+                            
+                        case 'complete'
+                            switch plottype{1}
+                                case 'wrt_birth'
+                                    x_axis_label = 'Time relative to birth (h)';
+                                    x_coord_cell_array = data(cond).all_individual_complete_traces_frame_indices_wrt_birth;
+                                    graph_title = [data(cond).treatment ', cells that complete cell cycle with traces aligned to birth'];
+                                    
+                                case 'wrt_g1s'
+                                    x_axis_label = 'Time relative to G1/S (h)';
+                                    x_coord_cell_array = data(cond).all_individual_complete_traces_frame_indices_wrt_g1s;
+                                    graph_title = [data(cond).treatment ', cells that complete cell cycle with traces aligned to G1/S'];
+                            end
+                            
+                            switch data_type_to_plot{1}
+                                case 'Aligned_areas'
+                                    y_axis_label = 'Area (px2)';
+                                    y_coord_cell_array = data(cond).all_individual_complete_traces_areas;
+                                    
+                                case 'Aligned_volumes'
+                                    y_axis_label = 'Volume (px3)';
+                                    y_coord_cell_array = data(cond).all_individual_complete_traces_volumes;
+                                    
+                                case 'Aligned_sizes'
+                                    y_axis_label = 'Size (AU)';
+                                    y_coord_cell_array = data(cond).all_individual_complete_traces_sizes;
+                                    
+                                case 'Aligned_geminin'
+                                    y_axis_label = 'Geminin (AU)';
+                                    y_coord_cell_array = data(cond).all_individual_complete_traces_geminin;
+                                    
+                                case 'Aligned_protein'
+                                    y_axis_label = 'Rb amt (AU)';
+                                    y_coord_cell_array = data(cond).all_individual_complete_traces_protein_amts;
+                                    
+                                case 'Aligned_protein_per_area';
+                                    y_axis_label = 'Rb amt per area (AU/px2)';
+                                    y_coord_cell_array = data(cond).all_individual_complete_traces_protein_per_area;
+                                    
+                                case 'Aligned_protein_per_volume';
+                                    y_axis_label = 'Rb amt per volume (AU/px3)';
+                                    y_coord_cell_array = data(cond).all_individual_complete_traces_protein_per_volume;
+                                    
+                                case 'Aligned_protein_per_size';
+                                    y_axis_label = 'Rb amt per size (AU/AU)';
+                                    y_coord_cell_array = data(cond).all_individual_complete_traces_protein_per_size;
+                            end
+                            
+                            assert(length(x_coord_cell_array) == length(y_coord_cell_array));
+                            all_x_coords = [];
+                            all_y_coords = [];
+                            
+                            figure()
+                            hold on
+                            for individual_trace_num = 1:length(x_coord_cell_array)
+                                if size(x_coord_cell_array{individual_trace_num},1) ~= size(y_coord_cell_array{individual_trace_num},1)
+                                    x_coord_cell_array{individual_trace_num} = x_coord_cell_array{individual_trace_num}';
+                                end
+                                assert(size(x_coord_cell_array{individual_trace_num},1) == size(y_coord_cell_array{individual_trace_num},1));
+                                plot(x_coord_cell_array{individual_trace_num},y_coord_cell_array{individual_trace_num}, 'linewidth',0.01)
+                                all_x_coords = [all_x_coords; x_coord_cell_array{individual_trace_num}];
+                                all_y_coords = [all_y_coords; y_coord_cell_array{individual_trace_num}];
+                            end
+                            unique_x_coords = unique(all_x_coords);
+                            mean_y_coords = [];
+                            y_coords_for_each_x = cell(1,length(unique_x_coords));
+                            for unique_x_coord_num = 1:length(unique_x_coords)
+                                for individual_trace_num = 1:length(x_coord_cell_array)
+                                    thistrace_x_coords = x_coord_cell_array{individual_trace_num};
+                                    thistrace_y_coords = y_coord_cell_array{individual_trace_num};
+                                    y_coords_for_each_x{unique_x_coord_num} = [y_coords_for_each_x{unique_x_coord_num},...
+                                        thistrace_y_coords(thistrace_x_coords == unique_x_coords(unique_x_coord_num))];
+                                end
+                                y_coords_for_this_x = y_coords_for_each_x{unique_x_coord_num};
+                                mean_y_coords(unique_x_coord_num,1) = mean(y_coords_for_this_x(~isnan(y_coords_for_this_x) & ~isinf(y_coords_for_this_x)));
+                            end
+                            plot(unique_x_coords,mean_y_coords, 'linewidth',5,'Color','k')
+                            
+                            xlabel(x_axis_label)
+                            ylabel(y_axis_label)
+                            title(graph_title)
+                            axis([-inf inf min(0,prctile(all_y_coords,1)) prctile(all_y_coords,99.9)])
+                            saveas(gcf, [figure_subfolder '\' data_type_to_plot{1} '_' data(cond).treatment '_'...
+                                cell_class_to_plot{1} '_' plottype{1} '.png'])
+                    end
+                end
+            end
+        end
+    end
+end
+
+
 % Calculate and plot logistic regressions
 if measure_g1s_probabilities
     disp(['Condition 1: number of cells that pass G1/S = ' num2str(sum(data(1).all_g1s_happens_here_thisframe))])
     disp(['Condition 2: number of cells that pass G1/S = ' num2str(sum(data(2).all_g1s_happens_here_thisframe))])
+    disp(['Condition 1: number of cells that are born and pass G1/S = ' num2str(sum(data(1).all_g1s_happens_here_for_born_cells_thisframe))])
+    disp(['Condition 2: number of cells that are born and pass G1/S = ' num2str(sum(data(2).all_g1s_happens_here_for_born_cells_thisframe))])
+    
+    % One variable logistic regression
     all_data_types_to_plot = {...
         %         'Relative_frame_vs_G1S_probability',...
         'Age_vs_G1S_probability','Area_vs_G1S_probability',...
-        'Size_vs_G1S_probability','Geminin_vs_G1S_probability'};
+        'Size_vs_G1S_probability','Volume_vs_G1S_probability','Geminin_vs_G1S_probability'};
     if measure_protein_concentrations
         all_data_types_to_plot = {all_data_types_to_plot{:},'Rb_amt_vs_G1S_probability',...
-            'Rb_per_area_vs_G1S_probability','Rb_per_size_vs_G1S_probability'};
+            'Rb_per_area_vs_G1S_probability','Rb_per_size_vs_G1S_probability','Rb_per_volume_vs_G1S_probability'};
     end
-    all_cell_classes_to_plot = {'pass_thisframe','pass_nextframe'};
+    all_cell_classes_to_plot = {'pass_thisframe','pass_nextframe','pass_1hrs_ahead','pass_2hrs_ahead','pass_3hrs_ahead'};
     all_plottypes = {'binning_with_logit'};
     
     for data_type_to_plot = all_data_types_to_plot
@@ -1370,6 +1954,21 @@ if measure_g1s_probabilities
                             data_to_scatter(cond).y = data(cond).all_g1s_happens_here_nextframe;
                             graph_title = [data(cond).treatment ', all cells that pass G1/S at next frame'];
                             is_there_something_to_plot = true;
+                        elseif strcmp(cell_class_to_plot,'pass_1hrs_ahead')
+                            data_to_scatter(cond).x = data(cond).all_frame_indices_wrt_g1s_1hrs_ahead;
+                            data_to_scatter(cond).y = data(cond).all_g1s_happens_here_1hrs_ahead;
+                            graph_title = [data(cond).treatment ', all cells that pass G1/S in 1 hour'];
+                            is_there_something_to_plot = true;
+                        elseif strcmp(cell_class_to_plot,'pass_2hrs_ahead')
+                            data_to_scatter(cond).x = data(cond).all_frame_indices_wrt_g1s_2hrs_ahead;
+                            data_to_scatter(cond).y = data(cond).all_g1s_happens_here_2hrs_ahead;
+                            graph_title = [data(cond).treatment ', all cells that pass G1/S in 2 hours'];
+                            is_there_something_to_plot = true;
+                        elseif strcmp(cell_class_to_plot,'pass_3hrs_ahead')
+                            data_to_scatter(cond).x = data(cond).all_frame_indices_wrt_g1s_3hrs_ahead;
+                            data_to_scatter(cond).y = data(cond).all_g1s_happens_here_3hrs_ahead;
+                            graph_title = [data(cond).treatment ', all cells that pass G1/S in 3 hours'];
+                            is_there_something_to_plot = true;
                         end
                         
                     elseif strcmp(data_type_to_plot,'Age_vs_G1S_probability')
@@ -1385,6 +1984,21 @@ if measure_g1s_probabilities
                             data_to_scatter(cond).x = data(cond).all_ages_in_hours_up_to_g1s_for_born_cells_nextframe;
                             data_to_scatter(cond).y = data(cond).all_g1s_happens_here_for_born_cells_nextframe;
                             graph_title = [data(cond).treatment ', all cells that pass G1/S at next frame'];
+                            is_there_something_to_plot = true;
+                        elseif strcmp(cell_class_to_plot,'pass_1hrs_ahead')
+                            data_to_scatter(cond).x = data(cond).all_ages_in_hours_up_to_g1s_for_born_cells_1hrs_ahead;
+                            data_to_scatter(cond).y = data(cond).all_g1s_happens_here_for_born_cells_1hrs_ahead;
+                            graph_title = [data(cond).treatment ', all cells that pass G1/S in 1 hour'];
+                            is_there_something_to_plot = true;
+                        elseif strcmp(cell_class_to_plot,'pass_2hrs_ahead')
+                            data_to_scatter(cond).x = data(cond).all_ages_in_hours_up_to_g1s_for_born_cells_2hrs_ahead;
+                            data_to_scatter(cond).y = data(cond).all_g1s_happens_here_for_born_cells_2hrs_ahead;
+                            graph_title = [data(cond).treatment ', all cells that pass G1/S in 2 hours'];
+                            is_there_something_to_plot = true;
+                        elseif strcmp(cell_class_to_plot,'pass_3hrs_ahead')
+                            data_to_scatter(cond).x = data(cond).all_ages_in_hours_up_to_g1s_for_born_cells_3hrs_ahead;
+                            data_to_scatter(cond).y = data(cond).all_g1s_happens_here_for_born_cells_3hrs_ahead;
+                            graph_title = [data(cond).treatment ', all cells that pass G1/S in 3 hours'];
                             is_there_something_to_plot = true;
                         end
                         
@@ -1402,6 +2016,21 @@ if measure_g1s_probabilities
                             data_to_scatter(cond).y = data(cond).all_g1s_happens_here_nextframe;
                             graph_title = [data(cond).treatment ', all cells that pass G1/S at next frame'];
                             is_there_something_to_plot = true;
+                        elseif strcmp(cell_class_to_plot,'pass_1hrs_ahead')
+                            data_to_scatter(cond).x = data(cond).all_areas_up_to_g1s_1hrs_ahead;
+                            data_to_scatter(cond).y = data(cond).all_g1s_happens_here_1hrs_ahead;
+                            graph_title = [data(cond).treatment ', all cells that pass G1/S in 1 hour'];
+                            is_there_something_to_plot = true;
+                        elseif strcmp(cell_class_to_plot,'pass_2hrs_ahead')
+                            data_to_scatter(cond).x = data(cond).all_areas_up_to_g1s_2hrs_ahead;
+                            data_to_scatter(cond).y = data(cond).all_g1s_happens_here_2hrs_ahead;
+                            graph_title = [data(cond).treatment ', all cells that pass G1/S in 2 hours'];
+                            is_there_something_to_plot = true;
+                        elseif strcmp(cell_class_to_plot,'pass_3hrs_ahead')
+                            data_to_scatter(cond).x = data(cond).all_areas_up_to_g1s_3hrs_ahead;
+                            data_to_scatter(cond).y = data(cond).all_g1s_happens_here_3hrs_ahead;
+                            graph_title = [data(cond).treatment ', all cells that pass G1/S in 3 hours'];
+                            is_there_something_to_plot = true;
                         end
                         
                     elseif strcmp(data_type_to_plot,'Size_vs_G1S_probability')
@@ -1417,6 +2046,52 @@ if measure_g1s_probabilities
                             data_to_scatter(cond).x = data(cond).all_sizes_up_to_g1s_nextframe;
                             data_to_scatter(cond).y = data(cond).all_g1s_happens_here_nextframe;
                             graph_title = [data(cond).treatment ', all cells that pass G1/S at next frame'];
+                            is_there_something_to_plot = true;
+                        elseif strcmp(cell_class_to_plot,'pass_1hrs_ahead')
+                            data_to_scatter(cond).x = data(cond).all_sizes_up_to_g1s_1hrs_ahead;
+                            data_to_scatter(cond).y = data(cond).all_g1s_happens_here_1hrs_ahead;
+                            graph_title = [data(cond).treatment ', all cells that pass G1/S in 1 hour'];
+                            is_there_something_to_plot = true;
+                        elseif strcmp(cell_class_to_plot,'pass_2hrs_ahead')
+                            data_to_scatter(cond).x = data(cond).all_sizes_up_to_g1s_2hrs_ahead;
+                            data_to_scatter(cond).y = data(cond).all_g1s_happens_here_2hrs_ahead;
+                            graph_title = [data(cond).treatment ', all cells that pass G1/S in 2 hours'];
+                            is_there_something_to_plot = true;
+                        elseif strcmp(cell_class_to_plot,'pass_3hrs_ahead')
+                            data_to_scatter(cond).x = data(cond).all_sizes_up_to_g1s_3hrs_ahead;
+                            data_to_scatter(cond).y = data(cond).all_g1s_happens_here_3hrs_ahead;
+                            graph_title = [data(cond).treatment ', all cells that pass G1/S in 3 hours'];
+                            is_there_something_to_plot = true;
+                        end
+                        
+                    elseif strcmp(data_type_to_plot,'Volume_vs_G1S_probability')
+                        x_axis_label = 'Volume (px3)';
+                        y_axis_label = 'G1/S probability';
+                        
+                        if strcmp(cell_class_to_plot,'pass_thisframe')
+                            data_to_scatter(cond).x = data(cond).all_volumes_up_to_g1s_thisframe;
+                            data_to_scatter(cond).y = data(cond).all_g1s_happens_here_thisframe;
+                            graph_title = [data(cond).treatment ', all cells that pass G1/S at this frame'];
+                            is_there_something_to_plot = true;
+                        elseif strcmp(cell_class_to_plot,'pass_nextframe')
+                            data_to_scatter(cond).x = data(cond).all_volumes_up_to_g1s_nextframe;
+                            data_to_scatter(cond).y = data(cond).all_g1s_happens_here_nextframe;
+                            graph_title = [data(cond).treatment ', all cells that pass G1/S at next frame'];
+                            is_there_something_to_plot = true;
+                        elseif strcmp(cell_class_to_plot,'pass_1hrs_ahead')
+                            data_to_scatter(cond).x = data(cond).all_volumes_up_to_g1s_1hrs_ahead;
+                            data_to_scatter(cond).y = data(cond).all_g1s_happens_here_1hrs_ahead;
+                            graph_title = [data(cond).treatment ', all cells that pass G1/S in 1 hour'];
+                            is_there_something_to_plot = true;
+                        elseif strcmp(cell_class_to_plot,'pass_2hrs_ahead')
+                            data_to_scatter(cond).x = data(cond).all_volumes_up_to_g1s_2hrs_ahead;
+                            data_to_scatter(cond).y = data(cond).all_g1s_happens_here_2hrs_ahead;
+                            graph_title = [data(cond).treatment ', all cells that pass G1/S in 2 hours'];
+                            is_there_something_to_plot = true;
+                        elseif strcmp(cell_class_to_plot,'pass_3hrs_ahead')
+                            data_to_scatter(cond).x = data(cond).all_volumes_up_to_g1s_3hrs_ahead;
+                            data_to_scatter(cond).y = data(cond).all_g1s_happens_here_3hrs_ahead;
+                            graph_title = [data(cond).treatment ', all cells that pass G1/S in 3 hours'];
                             is_there_something_to_plot = true;
                         end
                         
@@ -1434,6 +2109,21 @@ if measure_g1s_probabilities
                             data_to_scatter(cond).y = data(cond).all_g1s_happens_here_nextframe;
                             graph_title = [data(cond).treatment ', all cells that pass G1/S at next frame'];
                             is_there_something_to_plot = true;
+                        elseif strcmp(cell_class_to_plot,'pass_1hrs_ahead')
+                            data_to_scatter(cond).x = data(cond).all_geminins_up_to_g1s_1hrs_ahead;
+                            data_to_scatter(cond).y = data(cond).all_g1s_happens_here_1hrs_ahead;
+                            graph_title = [data(cond).treatment ', all cells that pass G1/S in 1 hour'];
+                            is_there_something_to_plot = true;
+                        elseif strcmp(cell_class_to_plot,'pass_2hrs_ahead')
+                            data_to_scatter(cond).x = data(cond).all_geminins_up_to_g1s_2hrs_ahead;
+                            data_to_scatter(cond).y = data(cond).all_g1s_happens_here_2hrs_ahead;
+                            graph_title = [data(cond).treatment ', all cells that pass G1/S in 2 hours'];
+                            is_there_something_to_plot = true;
+                        elseif strcmp(cell_class_to_plot,'pass_3hrs_ahead')
+                            data_to_scatter(cond).x = data(cond).all_geminins_up_to_g1s_3hrs_ahead;
+                            data_to_scatter(cond).y = data(cond).all_g1s_happens_here_3hrs_ahead;
+                            graph_title = [data(cond).treatment ', all cells that pass G1/S in 3 hours'];
+                            is_there_something_to_plot = true;
                         end
                         
                     elseif strcmp(data_type_to_plot,'Rb_amt_vs_G1S_probability')
@@ -1449,6 +2139,21 @@ if measure_g1s_probabilities
                             data_to_scatter(cond).x = data(cond).all_protein_amts_up_to_g1s_nextframe;
                             data_to_scatter(cond).y = data(cond).all_g1s_happens_here_nextframe;
                             graph_title = [data(cond).treatment ', all cells that pass G1/S at next frame'];
+                            is_there_something_to_plot = true;
+                        elseif strcmp(cell_class_to_plot,'pass_1hrs_ahead')
+                            data_to_scatter(cond).x = data(cond).all_protein_amts_up_to_g1s_1hrs_ahead;
+                            data_to_scatter(cond).y = data(cond).all_g1s_happens_here_1hrs_ahead;
+                            graph_title = [data(cond).treatment ', all cells that pass G1/S in 1 hour'];
+                            is_there_something_to_plot = true;
+                        elseif strcmp(cell_class_to_plot,'pass_2hrs_ahead')
+                            data_to_scatter(cond).x = data(cond).all_protein_amts_up_to_g1s_2hrs_ahead;
+                            data_to_scatter(cond).y = data(cond).all_g1s_happens_here_2hrs_ahead;
+                            graph_title = [data(cond).treatment ', all cells that pass G1/S in 2 hours'];
+                            is_there_something_to_plot = true;
+                        elseif strcmp(cell_class_to_plot,'pass_3hrs_ahead')
+                            data_to_scatter(cond).x = data(cond).all_protein_amts_up_to_g1s_3hrs_ahead;
+                            data_to_scatter(cond).y = data(cond).all_g1s_happens_here_3hrs_ahead;
+                            graph_title = [data(cond).treatment ', all cells that pass G1/S in 3 hours'];
                             is_there_something_to_plot = true;
                         end
                         
@@ -1466,6 +2171,21 @@ if measure_g1s_probabilities
                             data_to_scatter(cond).y = data(cond).all_g1s_happens_here_nextframe;
                             graph_title = [data(cond).treatment ', all cells that pass G1/S at next frame'];
                             is_there_something_to_plot = true;
+                        elseif strcmp(cell_class_to_plot,'pass_1hrs_ahead')
+                            data_to_scatter(cond).x = data(cond).all_protein_per_area_up_to_g1s_1hrs_ahead;
+                            data_to_scatter(cond).y = data(cond).all_g1s_happens_here_1hrs_ahead;
+                            graph_title = [data(cond).treatment ', all cells that pass G1/S in 1 hour'];
+                            is_there_something_to_plot = true;
+                        elseif strcmp(cell_class_to_plot,'pass_2hrs_ahead')
+                            data_to_scatter(cond).x = data(cond).all_protein_per_area_up_to_g1s_2hrs_ahead;
+                            data_to_scatter(cond).y = data(cond).all_g1s_happens_here_2hrs_ahead;
+                            graph_title = [data(cond).treatment ', all cells that pass G1/S in 2 hours'];
+                            is_there_something_to_plot = true;
+                        elseif strcmp(cell_class_to_plot,'pass_3hrs_ahead')
+                            data_to_scatter(cond).x = data(cond).all_protein_per_area_up_to_g1s_3hrs_ahead;
+                            data_to_scatter(cond).y = data(cond).all_g1s_happens_here_3hrs_ahead;
+                            graph_title = [data(cond).treatment ', all cells that pass G1/S in 3 hours'];
+                            is_there_something_to_plot = true;
                         end
                         
                     elseif strcmp(data_type_to_plot,'Rb_per_size_vs_G1S_probability')
@@ -1481,6 +2201,52 @@ if measure_g1s_probabilities
                             data_to_scatter(cond).x = data(cond).all_protein_per_size_up_to_g1s_nextframe;
                             data_to_scatter(cond).y = data(cond).all_g1s_happens_here_nextframe;
                             graph_title = [data(cond).treatment ', all cells that pass G1/S at next frame'];
+                            is_there_something_to_plot = true;
+                        elseif strcmp(cell_class_to_plot,'pass_1hrs_ahead')
+                            data_to_scatter(cond).x = data(cond).all_protein_per_size_up_to_g1s_1hrs_ahead;
+                            data_to_scatter(cond).y = data(cond).all_g1s_happens_here_1hrs_ahead;
+                            graph_title = [data(cond).treatment ', all cells that pass G1/S in 1 hour'];
+                            is_there_something_to_plot = true;
+                        elseif strcmp(cell_class_to_plot,'pass_2hrs_ahead')
+                            data_to_scatter(cond).x = data(cond).all_protein_per_size_up_to_g1s_2hrs_ahead;
+                            data_to_scatter(cond).y = data(cond).all_g1s_happens_here_2hrs_ahead;
+                            graph_title = [data(cond).treatment ', all cells that pass G1/S in 2 hours'];
+                            is_there_something_to_plot = true;
+                        elseif strcmp(cell_class_to_plot,'pass_3hrs_ahead')
+                            data_to_scatter(cond).x = data(cond).all_protein_per_size_up_to_g1s_3hrs_ahead;
+                            data_to_scatter(cond).y = data(cond).all_g1s_happens_here_3hrs_ahead;
+                            graph_title = [data(cond).treatment ', all cells that pass G1/S in 3 hours'];
+                            is_there_something_to_plot = true;
+                        end
+                        
+                    elseif strcmp(data_type_to_plot,'Rb_per_volume_vs_G1S_probability')
+                        x_axis_label = 'Rb per volume (AU/px3)';
+                        y_axis_label = 'G1/S probability';
+                        
+                        if strcmp(cell_class_to_plot,'pass_thisframe')
+                            data_to_scatter(cond).x = data(cond).all_protein_per_volume_up_to_g1s_thisframe;
+                            data_to_scatter(cond).y = data(cond).all_g1s_happens_here_thisframe;
+                            graph_title = [data(cond).treatment ', all cells that pass G1/S at this frame'];
+                            is_there_something_to_plot = true;
+                        elseif strcmp(cell_class_to_plot,'pass_nextframe')
+                            data_to_scatter(cond).x = data(cond).all_protein_per_volume_up_to_g1s_nextframe;
+                            data_to_scatter(cond).y = data(cond).all_g1s_happens_here_nextframe;
+                            graph_title = [data(cond).treatment ', all cells that pass G1/S at next frame'];
+                            is_there_something_to_plot = true;
+                        elseif strcmp(cell_class_to_plot,'pass_1hrs_ahead')
+                            data_to_scatter(cond).x = data(cond).all_protein_per_volume_up_to_g1s_1hrs_ahead;
+                            data_to_scatter(cond).y = data(cond).all_g1s_happens_here_1hrs_ahead;
+                            graph_title = [data(cond).treatment ', all cells that pass G1/S in 1 hour'];
+                            is_there_something_to_plot = true;
+                        elseif strcmp(cell_class_to_plot,'pass_2hrs_ahead')
+                            data_to_scatter(cond).x = data(cond).all_protein_per_volume_up_to_g1s_2hrs_ahead;
+                            data_to_scatter(cond).y = data(cond).all_g1s_happens_here_2hrs_ahead;
+                            graph_title = [data(cond).treatment ', all cells that pass G1/S in 2 hours'];
+                            is_there_something_to_plot = true;
+                        elseif strcmp(cell_class_to_plot,'pass_3hrs_ahead')
+                            data_to_scatter(cond).x = data(cond).all_protein_per_volume_up_to_g1s_3hrs_ahead;
+                            data_to_scatter(cond).y = data(cond).all_g1s_happens_here_3hrs_ahead;
+                            graph_title = [data(cond).treatment ', all cells that pass G1/S in 3 hours'];
                             is_there_something_to_plot = true;
                         end
                     end
@@ -1515,11 +2281,13 @@ if measure_g1s_probabilities
         end
     end
     
-    all_data_types_to_plot = {'Size_and_Age_vs_G1S_probability'};
+    % Two variable logistic regression
+    all_data_types_to_plot = {'Area_and_Age_vs_G1S_probability','Size_and_Age_vs_G1S_probability','Volume_and_Age_vs_G1S_probability'};
     if measure_protein_concentrations
-        all_data_types_to_plot = {all_data_types_to_plot{:},'Age_and_[Rb]_vs_G1S_probability'};
+        all_data_types_to_plot = {all_data_types_to_plot{:},'Age_and_[Rb_per_area]_vs_G1S_probability',...
+            'Age_and_[Rb_per_size]_vs_G1S_probability','Age_and_[Rb_per_volume]_vs_G1S_probability'};
     end
-    all_cell_classes_to_plot = {'pass_thisframe','pass_nextframe'};
+    all_cell_classes_to_plot = {'pass_thisframe','pass_nextframe','pass_1hrs_ahead','pass_2hrs_ahead','pass_3hrs_ahead'};
     all_plottypes = {'two_var_logit'};
     
     for data_type_to_plot = all_data_types_to_plot
@@ -1529,7 +2297,44 @@ if measure_g1s_probabilities
                     
                     is_there_something_to_plot = false;
                     
-                    if strcmp(data_type_to_plot,'Size_and_Age_vs_G1S_probability')
+                    if strcmp(data_type_to_plot,'Area_and_Age_vs_G1S_probability')
+                        x_axis_label = 'Age (h)';
+                        y_axis_label = 'Area (px2)';
+                        z_axis_label = 'G1/S probability';
+                        
+                        if strcmp(cell_class_to_plot,'pass_thisframe')
+                            data_to_scatter(cond).x = data(cond).all_ages_in_hours_up_to_g1s_for_born_cells_thisframe;
+                            data_to_scatter(cond).y = data(cond).all_areas_up_to_g1s_for_born_cells_thisframe;
+                            data_to_scatter(cond).z = data(cond).all_g1s_happens_here_for_born_cells_thisframe;
+                            graph_title = [data(cond).treatment ', all cells that pass G1/S at this frame'];
+                            is_there_something_to_plot = true;
+                        elseif strcmp(cell_class_to_plot,'pass_nextframe')
+                            data_to_scatter(cond).x = data(cond).all_ages_in_hours_up_to_g1s_for_born_cells_nextframe;
+                            data_to_scatter(cond).y = data(cond).all_areas_up_to_g1s_for_born_cells_nextframe;
+                            data_to_scatter(cond).z = data(cond).all_g1s_happens_here_for_born_cells_nextframe;
+                            graph_title = [data(cond).treatment ', all cells that pass G1/S at next frame'];
+                            is_there_something_to_plot = true;
+                        elseif strcmp(cell_class_to_plot,'pass_1hrs_ahead')
+                            data_to_scatter(cond).x = data(cond).all_ages_in_hours_up_to_g1s_for_born_cells_1hrs_ahead;
+                            data_to_scatter(cond).y = data(cond).all_areas_up_to_g1s_for_born_cells_1hrs_ahead;
+                            data_to_scatter(cond).z = data(cond).all_g1s_happens_here_for_born_cells_1hrs_ahead;
+                            graph_title = [data(cond).treatment ', all cells that pass G1/S in 1 hour'];
+                            is_there_something_to_plot = true;
+                        elseif strcmp(cell_class_to_plot,'pass_2hrs_ahead')
+                            data_to_scatter(cond).x = data(cond).all_ages_in_hours_up_to_g1s_for_born_cells_2hrs_ahead;
+                            data_to_scatter(cond).y = data(cond).all_areas_up_to_g1s_for_born_cells_2hrs_ahead;
+                            data_to_scatter(cond).z = data(cond).all_g1s_happens_here_for_born_cells_2hrs_ahead;
+                            graph_title = [data(cond).treatment ', all cells that pass G1/S in 2 hours'];
+                            is_there_something_to_plot = true;
+                        elseif strcmp(cell_class_to_plot,'pass_3hrs_ahead')
+                            data_to_scatter(cond).x = data(cond).all_ages_in_hours_up_to_g1s_for_born_cells_3hrs_ahead;
+                            data_to_scatter(cond).y = data(cond).all_areas_up_to_g1s_for_born_cells_3hrs_ahead;
+                            data_to_scatter(cond).z = data(cond).all_g1s_happens_here_for_born_cells_3hrs_ahead;
+                            graph_title = [data(cond).treatment ', all cells that pass G1/S in 3 hours'];
+                            is_there_something_to_plot = true;
+                        end
+                        
+                    elseif strcmp(data_type_to_plot,'Size_and_Age_vs_G1S_probability')
                         x_axis_label = 'Age (h)';
                         y_axis_label = 'Size (AU)';
                         z_axis_label = 'G1/S probability';
@@ -1546,11 +2351,103 @@ if measure_g1s_probabilities
                             data_to_scatter(cond).z = data(cond).all_g1s_happens_here_for_born_cells_nextframe;
                             graph_title = [data(cond).treatment ', all cells that pass G1/S at next frame'];
                             is_there_something_to_plot = true;
+                        elseif strcmp(cell_class_to_plot,'pass_1hrs_ahead')
+                            data_to_scatter(cond).x = data(cond).all_ages_in_hours_up_to_g1s_for_born_cells_1hrs_ahead;
+                            data_to_scatter(cond).y = data(cond).all_sizes_up_to_g1s_for_born_cells_1hrs_ahead;
+                            data_to_scatter(cond).z = data(cond).all_g1s_happens_here_for_born_cells_1hrs_ahead;
+                            graph_title = [data(cond).treatment ', all cells that pass G1/S in 1 hour'];
+                            is_there_something_to_plot = true;
+                        elseif strcmp(cell_class_to_plot,'pass_2hrs_ahead')
+                            data_to_scatter(cond).x = data(cond).all_ages_in_hours_up_to_g1s_for_born_cells_2hrs_ahead;
+                            data_to_scatter(cond).y = data(cond).all_sizes_up_to_g1s_for_born_cells_2hrs_ahead;
+                            data_to_scatter(cond).z = data(cond).all_g1s_happens_here_for_born_cells_2hrs_ahead;
+                            graph_title = [data(cond).treatment ', all cells that pass G1/S in 2 hours'];
+                            is_there_something_to_plot = true;
+                        elseif strcmp(cell_class_to_plot,'pass_3hrs_ahead')
+                            data_to_scatter(cond).x = data(cond).all_ages_in_hours_up_to_g1s_for_born_cells_3hrs_ahead;
+                            data_to_scatter(cond).y = data(cond).all_sizes_up_to_g1s_for_born_cells_3hrs_ahead;
+                            data_to_scatter(cond).z = data(cond).all_g1s_happens_here_for_born_cells_3hrs_ahead;
+                            graph_title = [data(cond).treatment ', all cells that pass G1/S in 3 hours'];
+                            is_there_something_to_plot = true;
                         end
                         
-                    elseif strcmp(data_type_to_plot,'Age_and_[Rb]_vs_G1S_probability')
+                    elseif strcmp(data_type_to_plot,'Volume_and_Age_vs_G1S_probability')
                         x_axis_label = 'Age (h)';
-                        y_axis_label = 'Rb concentration (AU/AU)';
+                        y_axis_label = 'Volume (px3)';
+                        z_axis_label = 'G1/S probability';
+                        
+                        if strcmp(cell_class_to_plot,'pass_thisframe')
+                            data_to_scatter(cond).x = data(cond).all_ages_in_hours_up_to_g1s_for_born_cells_thisframe;
+                            data_to_scatter(cond).y = data(cond).all_volumes_up_to_g1s_for_born_cells_thisframe;
+                            data_to_scatter(cond).z = data(cond).all_g1s_happens_here_for_born_cells_thisframe;
+                            graph_title = [data(cond).treatment ', all cells that pass G1/S at this frame'];
+                            is_there_something_to_plot = true;
+                        elseif strcmp(cell_class_to_plot,'pass_nextframe')
+                            data_to_scatter(cond).x = data(cond).all_ages_in_hours_up_to_g1s_for_born_cells_nextframe;
+                            data_to_scatter(cond).y = data(cond).all_volumes_up_to_g1s_for_born_cells_nextframe;
+                            data_to_scatter(cond).z = data(cond).all_g1s_happens_here_for_born_cells_nextframe;
+                            graph_title = [data(cond).treatment ', all cells that pass G1/S at next frame'];
+                            is_there_something_to_plot = true;
+                        elseif strcmp(cell_class_to_plot,'pass_1hrs_ahead')
+                            data_to_scatter(cond).x = data(cond).all_ages_in_hours_up_to_g1s_for_born_cells_1hrs_ahead;
+                            data_to_scatter(cond).y = data(cond).all_volumes_up_to_g1s_for_born_cells_1hrs_ahead;
+                            data_to_scatter(cond).z = data(cond).all_g1s_happens_here_for_born_cells_1hrs_ahead;
+                            graph_title = [data(cond).treatment ', all cells that pass G1/S in 1 hour'];
+                            is_there_something_to_plot = true;
+                        elseif strcmp(cell_class_to_plot,'pass_2hrs_ahead')
+                            data_to_scatter(cond).x = data(cond).all_ages_in_hours_up_to_g1s_for_born_cells_2hrs_ahead;
+                            data_to_scatter(cond).y = data(cond).all_volumes_up_to_g1s_for_born_cells_2hrs_ahead;
+                            data_to_scatter(cond).z = data(cond).all_g1s_happens_here_for_born_cells_2hrs_ahead;
+                            graph_title = [data(cond).treatment ', all cells that pass G1/S in 2 hours'];
+                            is_there_something_to_plot = true;
+                        elseif strcmp(cell_class_to_plot,'pass_3hrs_ahead')
+                            data_to_scatter(cond).x = data(cond).all_ages_in_hours_up_to_g1s_for_born_cells_3hrs_ahead;
+                            data_to_scatter(cond).y = data(cond).all_volumes_up_to_g1s_for_born_cells_3hrs_ahead;
+                            data_to_scatter(cond).z = data(cond).all_g1s_happens_here_for_born_cells_3hrs_ahead;
+                            graph_title = [data(cond).treatment ', all cells that pass G1/S in 3 hours'];
+                            is_there_something_to_plot = true;
+                        end
+                        
+                    elseif strcmp(data_type_to_plot,'Age_and_[Rb_per_area]_vs_G1S_probability')
+                        x_axis_label = 'Age (h)';
+                        y_axis_label = 'Rb concentration per area (AU/px2)';
+                        z_axis_label = 'G1/S probability';
+                        
+                        if strcmp(cell_class_to_plot,'pass_thisframe')
+                            data_to_scatter(cond).x = data(cond).all_ages_in_hours_up_to_g1s_for_born_cells_thisframe;
+                            data_to_scatter(cond).y = data(cond).all_protein_per_area_up_to_g1s_for_born_cells_thisframe;
+                            data_to_scatter(cond).z = data(cond).all_g1s_happens_here_for_born_cells_thisframe;
+                            graph_title = [data(cond).treatment ', all cells that pass G1/S at this frame'];
+                            is_there_something_to_plot = true;
+                        elseif strcmp(cell_class_to_plot,'pass_nextframe')
+                            data_to_scatter(cond).x = data(cond).all_ages_in_hours_up_to_g1s_for_born_cells_nextframe;
+                            data_to_scatter(cond).y = data(cond).all_protein_per_area_up_to_g1s_for_born_cells_nextframe;
+                            data_to_scatter(cond).z = data(cond).all_g1s_happens_here_for_born_cells_nextframe;
+                            graph_title = [data(cond).treatment ', all cells that pass G1/S at next frame'];
+                            is_there_something_to_plot = true;
+                        elseif strcmp(cell_class_to_plot,'pass_1hrs_ahead')
+                            data_to_scatter(cond).x = data(cond).all_ages_in_hours_up_to_g1s_for_born_cells_1hrs_ahead;
+                            data_to_scatter(cond).y = data(cond).all_protein_per_area_up_to_g1s_for_born_cells_1hrs_ahead;
+                            data_to_scatter(cond).z = data(cond).all_g1s_happens_here_for_born_cells_1hrs_ahead;
+                            graph_title = [data(cond).treatment ', all cells that pass G1/S in 1 hour'];
+                            is_there_something_to_plot = true;
+                        elseif strcmp(cell_class_to_plot,'pass_2hrs_ahead')
+                            data_to_scatter(cond).x = data(cond).all_ages_in_hours_up_to_g1s_for_born_cells_2hrs_ahead;
+                            data_to_scatter(cond).y = data(cond).all_protein_per_area_up_to_g1s_for_born_cells_2hrs_ahead;
+                            data_to_scatter(cond).z = data(cond).all_g1s_happens_here_for_born_cells_2hrs_ahead;
+                            graph_title = [data(cond).treatment ', all cells that pass G1/S in 2 hours'];
+                            is_there_something_to_plot = true;
+                        elseif strcmp(cell_class_to_plot,'pass_3hrs_ahead')
+                            data_to_scatter(cond).x = data(cond).all_ages_in_hours_up_to_g1s_for_born_cells_3hrs_ahead;
+                            data_to_scatter(cond).y = data(cond).all_protein_per_area_up_to_g1s_for_born_cells_3hrs_ahead;
+                            data_to_scatter(cond).z = data(cond).all_g1s_happens_here_for_born_cells_3hrs_ahead;
+                            graph_title = [data(cond).treatment ', all cells that pass G1/S in 3 hours'];
+                            is_there_something_to_plot = true;
+                        end
+                        
+                    elseif strcmp(data_type_to_plot,'Age_and_[Rb_per_size]_vs_G1S_probability')
+                        x_axis_label = 'Age (h)';
+                        y_axis_label = 'Rb concentration per size (AU/AU)';
                         z_axis_label = 'G1/S probability';
                         
                         if strcmp(cell_class_to_plot,'pass_thisframe')
@@ -1565,9 +2462,62 @@ if measure_g1s_probabilities
                             data_to_scatter(cond).z = data(cond).all_g1s_happens_here_for_born_cells_nextframe;
                             graph_title = [data(cond).treatment ', all cells that pass G1/S at next frame'];
                             is_there_something_to_plot = true;
+                        elseif strcmp(cell_class_to_plot,'pass_1hrs_ahead')
+                            data_to_scatter(cond).x = data(cond).all_ages_in_hours_up_to_g1s_for_born_cells_1hrs_ahead;
+                            data_to_scatter(cond).y = data(cond).all_protein_per_size_up_to_g1s_for_born_cells_1hrs_ahead;
+                            data_to_scatter(cond).z = data(cond).all_g1s_happens_here_for_born_cells_1hrs_ahead;
+                            graph_title = [data(cond).treatment ', all cells that pass G1/S in 1 hour'];
+                            is_there_something_to_plot = true;
+                        elseif strcmp(cell_class_to_plot,'pass_2hrs_ahead')
+                            data_to_scatter(cond).x = data(cond).all_ages_in_hours_up_to_g1s_for_born_cells_2hrs_ahead;
+                            data_to_scatter(cond).y = data(cond).all_protein_per_size_up_to_g1s_for_born_cells_2hrs_ahead;
+                            data_to_scatter(cond).z = data(cond).all_g1s_happens_here_for_born_cells_2hrs_ahead;
+                            graph_title = [data(cond).treatment ', all cells that pass G1/S in 2 hours'];
+                            is_there_something_to_plot = true;
+                        elseif strcmp(cell_class_to_plot,'pass_3hrs_ahead')
+                            data_to_scatter(cond).x = data(cond).all_ages_in_hours_up_to_g1s_for_born_cells_3hrs_ahead;
+                            data_to_scatter(cond).y = data(cond).all_protein_per_size_up_to_g1s_for_born_cells_3hrs_ahead;
+                            data_to_scatter(cond).z = data(cond).all_g1s_happens_here_for_born_cells_3hrs_ahead;
+                            graph_title = [data(cond).treatment ', all cells that pass G1/S in 3 hours'];
+                            is_there_something_to_plot = true;
                         end
                         
+                    elseif strcmp(data_type_to_plot,'Age_and_[Rb_per_volume]_vs_G1S_probability')
+                        x_axis_label = 'Age (h)';
+                        y_axis_label = 'Rb concentration per volume (AU/px3)';
+                        z_axis_label = 'G1/S probability';
                         
+                        if strcmp(cell_class_to_plot,'pass_thisframe')
+                            data_to_scatter(cond).x = data(cond).all_ages_in_hours_up_to_g1s_for_born_cells_thisframe;
+                            data_to_scatter(cond).y = data(cond).all_protein_per_volume_up_to_g1s_for_born_cells_thisframe;
+                            data_to_scatter(cond).z = data(cond).all_g1s_happens_here_for_born_cells_thisframe;
+                            graph_title = [data(cond).treatment ', all cells that pass G1/S at this frame'];
+                            is_there_something_to_plot = true;
+                        elseif strcmp(cell_class_to_plot,'pass_nextframe')
+                            data_to_scatter(cond).x = data(cond).all_ages_in_hours_up_to_g1s_for_born_cells_nextframe;
+                            data_to_scatter(cond).y = data(cond).all_protein_per_volume_up_to_g1s_for_born_cells_nextframe;
+                            data_to_scatter(cond).z = data(cond).all_g1s_happens_here_for_born_cells_nextframe;
+                            graph_title = [data(cond).treatment ', all cells that pass G1/S at next frame'];
+                            is_there_something_to_plot = true;
+                        elseif strcmp(cell_class_to_plot,'pass_1hrs_ahead')
+                            data_to_scatter(cond).x = data(cond).all_ages_in_hours_up_to_g1s_for_born_cells_1hrs_ahead;
+                            data_to_scatter(cond).y = data(cond).all_protein_per_volume_up_to_g1s_for_born_cells_1hrs_ahead;
+                            data_to_scatter(cond).z = data(cond).all_g1s_happens_here_for_born_cells_1hrs_ahead;
+                            graph_title = [data(cond).treatment ', all cells that pass G1/S in 1 hour'];
+                            is_there_something_to_plot = true;
+                        elseif strcmp(cell_class_to_plot,'pass_2hrs_ahead')
+                            data_to_scatter(cond).x = data(cond).all_ages_in_hours_up_to_g1s_for_born_cells_2hrs_ahead;
+                            data_to_scatter(cond).y = data(cond).all_protein_per_volume_up_to_g1s_for_born_cells_2hrs_ahead;
+                            data_to_scatter(cond).z = data(cond).all_g1s_happens_here_for_born_cells_2hrs_ahead;
+                            graph_title = [data(cond).treatment ', all cells that pass G1/S in 2 hours'];
+                            is_there_something_to_plot = true;
+                        elseif strcmp(cell_class_to_plot,'pass_3hrs_ahead')
+                            data_to_scatter(cond).x = data(cond).all_ages_in_hours_up_to_g1s_for_born_cells_3hrs_ahead;
+                            data_to_scatter(cond).y = data(cond).all_protein_per_volume_up_to_g1s_for_born_cells_3hrs_ahead;
+                            data_to_scatter(cond).z = data(cond).all_g1s_happens_here_for_born_cells_3hrs_ahead;
+                            graph_title = [data(cond).treatment ', all cells that pass G1/S in 3 hours'];
+                            is_there_something_to_plot = true;
+                        end
                     end
                     
                     if isempty(data_to_scatter(cond).x) || isempty(data_to_scatter(cond).y) || isempty(data_to_scatter(cond).z)

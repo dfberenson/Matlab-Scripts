@@ -2,8 +2,11 @@ clear all
 close all
 
 folder = 'E:\DFB_imaging_experiments';
-base_expt_name = 'DFB_180903_HMEC_1G_CFSE_2';
-base_expt_name = 'DFB_180905_HMEC_1G_CFSE_1';
+% base_expt_name = 'DFB_180903_HMEC_1G_CFSE_2';
+% base_expt_name = 'DFB_180905_HMEC_1G_CFSE_1';
+base_expt_name = 'DFB_181028_HMEC_1E_CFSE_1';
+% base_expt_name = 'DFB_181028_HMEC_1E_CFSE_2';
+
 expt_folder = [folder '\' base_expt_name];
 
 % for position_class = 1:3
@@ -16,8 +19,14 @@ expt_folder = [folder '\' base_expt_name];
 %         position_list = 17:24;
 % end
 
-% Positions 1:8 were for 1 uL CFSE which was the standard dose before
-position_list = [1:8]
+if strcmp(base_expt_name,'DFB_180905_HMEC_1G_CFSE_1')
+    % Positions 1:8 were for 1 uL CFSE which was the standard dose before
+    position_list = [1:8]
+elseif strcmp(base_expt_name,'DFB_181028_HMEC_1E_CFSE_1') || strcmp(base_expt_name,'DFB_181028_HMEC_1E_CFSE_2')
+    % Rename Pos0 to Pos14 so indexing works
+    position_list = [1:14]
+end
+
 
 for pos = position_list
     
@@ -32,6 +41,7 @@ for pos = position_list
     im_mCherry = imstack(:,:,3);
     
     gaussian_width = 2;
+    % mCherry_threshold = 150;
     mCherry_threshold = 150;
     CFSE_threshold = 200;
     strel_shape = 'disk';
@@ -138,6 +148,16 @@ for pos = position_list
     % figure()
     % imshow(imoverlay_fast(im_CFSE*100, bwperim(segmented_CFSE), 'm'),[])
     
+    im_to_show(:,:,1) = im_mCherry*100;
+    im_to_show(:,:,2) = im_CFSE*30;
+    im_to_show(:,:,3) = zeros(Y,X);
+    %     figure,imshow(im_to_show)
+    im_overlaid = imoverlay_fast(im_to_show, bwperim(segmented_mCherry), 'w');
+    im_overlaid = imoverlay_fast(im_overlaid, bwperim(segmented_CFSE), 'w');
+    figure,imshow(im_overlaid)
+    
+    
+    
     %% Match segmented mCherry objects with segmented CFSE objects
     
     
@@ -185,7 +205,7 @@ for pos = position_list
         y_max = min(uint16(boundingBox_vals(2) + boundingBox_vals(4)) + local_expansion, Y);
         boundingBox = segmented_CFSE(y_min:y_max, x_min:x_max);
         boundingBox_background_mask = boundingBox == 0;
-%         imshow(boundingBox_background_mask,[])
+        %         imshow(boundingBox_background_mask,[])
         fullsize_im_local_background_mask = zeros(Y,X);
         fullsize_im_local_background_mask(y_min:y_max, x_min:x_max) = boundingBox_background_mask;
         raw_mean_background = regionprops(fullsize_im_local_background_mask, im_CFSE, 'MeanIntensity');
@@ -231,7 +251,7 @@ for pos = position_list
                 y_max = min(uint16(boundingBox_vals(2) + boundingBox_vals(4)) + local_expansion, Y);
                 boundingBox = segmented_mCherry(y_min:y_max, x_min:x_max);
                 boundingBox_background_mask = boundingBox == 0;
-%                 imshow(boundingBox_background_mask,[])
+                %                 imshow(boundingBox_background_mask,[])
                 fullsize_im_local_background_mask = zeros(Y,X);
                 fullsize_im_local_background_mask(y_min:y_max, x_min:x_max) = boundingBox_background_mask;
                 raw_mean_background = regionprops(fullsize_im_local_background_mask, im_mCherry, 'MeanIntensity');
@@ -256,6 +276,13 @@ for pos = position_list
         flatfielded_cfse_props(i).sum_corresponding_mcherry_IntegratedIntensities = sum(flatfielded_cfse_props(i).corresponding_mcherry_IntegratedIntensity);
         flatfielded_cfse_props(i).sum_corresponding_mcherry_IntegratedIntensitiesMinusBackground = sum(flatfielded_cfse_props(i).corresponding_mcherry_IntegratedIntensityMinusBackground);
         flatfielded_cfse_props(i).mean_corresponding_mcherry_MeanIntensityMinusBackground = mean(flatfielded_cfse_props(i).corresponding_mcherry_meansMinusBackground);
+        
+        %         if flatfielded_cfse_props(i).sum_corresponding_mcherry_areas > 500 && flatfielded_cfse_props(i).sum_corresponding_mcherry_areas < 1500
+        %             if flatfielded_cfse_props(i).IntegratedIntensityMinusBackground < 250000
+        %                 figure,imshow(CFSE_labels == i)
+        %             end
+        %         end
+        
     end
     
     complete_data(pos).data_by_cfse_obj_raw = raw_cfse_props;
@@ -299,14 +326,24 @@ for pos = position_list
             complete_data(pos).data_by_cfse_obj_flat(i).sum_corresponding_mcherry_IntegratedIntensities];
         all_mcherry_flat_integratedintensities_minusbackground = [all_mcherry_flat_integratedintensities_minusbackground;...
             complete_data(pos).data_by_cfse_obj_flat(i).sum_corresponding_mcherry_IntegratedIntensitiesMinusBackground];
-
+        
         all_mcherry_flat_mean_minusbackground = [all_mcherry_flat_mean_minusbackground;...
             complete_data(pos).data_by_cfse_obj_flat(i).mean_corresponding_mcherry_MeanIntensityMinusBackground];
         
     end
 end
 
+save(['C:\Users\Skotheim Lab\Box Sync\Daniel Berenson''s Files\Data\Still_Imaging_Data\' base_expt_name '.mat'])
+
 %% Plot data
+
+table_folder = 'C:\Users\Skotheim Lab\Desktop\Tables';
+T = table;
+T.CFSE_areas = all_cfse_areas;
+T.nuclear_areas = all_mcherry_areas;
+T.nuclear_volumes = all_mcherry_areas .^ 1.5;
+T.CFSE_int_intens = all_cfse_flat_integratedintensities_minusbackground;
+writetable(T,[table_folder '\' base_expt_name '_all_measurements.xlsx']);
 
 figure_folder = 'C:\Users\Skotheim Lab\Box Sync\Daniel Berenson''s Files\Data\Plots';
 figure_subfolder = [figure_folder '\' base_expt_name];
@@ -314,12 +351,12 @@ if ~exist(figure_subfolder,'dir')
     mkdir(figure_subfolder)
 end
 
-x_vars = {'CFSE_Areas','mCherry_Areas','mCherry_RawIntegratedIntensity','mCherry_RawIntegratedIntensityMinusBackground',...
+x_vars = {'CFSE_Areas','mCherry_Areas','mCherry_Volumes','mCherry_RawIntegratedIntensity','mCherry_RawIntegratedIntensityMinusBackground',...
     'mCherry_FlatfieldedIntegratedIntensity','mCherry_FlatfieldedIntegratedIntensityMinusBackground','mCherry_FlatMeanIntensityMinusBackground'};
 y_vars = {'mCherry_Areas','CFSE_RawIntegratedIntensity','CFSE_RawIntegratedIntensityMinusBackground',...
     'CFSE_FlatfieldedIntegratedIntensity','CFSE_FlatfieldedIntegratedIntensityMinusBackground'};
 
-x_vars = {'mCherry_Areas','mCherry_FlatfieldedIntegratedIntensityMinusBackground',};
+x_vars = {'mCherry_Areas','mCherry_FlatfieldedIntegratedIntensityMinusBackground','mCherry_Volumes'};
 y_vars = {'CFSE_FlatfieldedIntegratedIntensityMinusBackground'};
 
 % x_vars = {'mCherry_FlatfieldedIntegratedIntensityMinusBackground'};
@@ -333,7 +370,10 @@ for x_var = x_vars
                 x_axis_label = 'CFSE object area';
             case 'mCherry_Areas'
                 complete_data_to_scatter.x = all_mcherry_areas;
-                x_axis_label = 'mCherry object area';
+                x_axis_label = 'Nuclear mCherry object area (px2)';
+            case 'mCherry_Volumes'
+                complete_data_to_scatter.x = all_mcherry_areas .^ 1.5;
+                x_axis_label = 'Nuclear mCherry object volume (px3)'
             case 'mCherry_RawIntegratedIntensity'
                 complete_data_to_scatter.x = all_mcherry_raw_integratedintensities;
                 x_axis_label = 'Raw mCherry integrated intensity';
@@ -348,7 +388,7 @@ for x_var = x_vars
                 x_axis_label = 'Flatfielded mCherry integrated intensity, minus background';
             case 'mCherry_FlatMeanIntensityMinusBackground'
                 complete_data_to_scatter.x = all_mcherry_flat_mean_minusbackground;
-                x_axis_label = 'Flatfielded mCherry mean intensity, minus background';
+                x_axis_label = 'Flatfielded mCherry mean intensity, minus background (AU)';
         end
         
         switch y_var{1}
@@ -366,19 +406,19 @@ for x_var = x_vars
                 y_axis_label = 'Flatfielded CFSE integrated intensity';
             case 'CFSE_FlatfieldedIntegratedIntensityMinusBackground'
                 complete_data_to_scatter.y = all_cfse_flat_integratedintensities_minusbackground;
-                y_axis_label = 'Flatfielded CFSE integrated intensity, minus background';
+                y_axis_label = 'Flatfielded CFSE integrated intensity, minus background (AU)';
         end
         
         plot_scatter_with_line(complete_data_to_scatter.x, complete_data_to_scatter.y,'no_intercept');
         xlabel(x_axis_label)
         ylabel(y_axis_label)
-        title(['Positions ' num2str(position_list) ', All measured objects'])
+        title([{['Positions ' num2str(position_list) ', All measured objects']};...
+            {'Enforced 0-intercept'}])
         
         % Try to isolate only single cells
         min_CFSE_obj_area = 500;
         max_CFSE_obj_area = 1500;
         objs_with_CFSE_area_within_range = all_cfse_areas < max_CFSE_obj_area & all_cfse_areas > min_CFSE_obj_area;
-%         objs_with_CFSE_intensity_within_range = all_cfse_flat_integratedintensities > 200000;
         
         clean_data_to_scatter.x = complete_data_to_scatter.x(objs_with_CFSE_area_within_range);
         clean_data_to_scatter.y = complete_data_to_scatter.y(objs_with_CFSE_area_within_range);
@@ -386,17 +426,47 @@ for x_var = x_vars
         plot_scatter_with_line(clean_data_to_scatter.x, clean_data_to_scatter.y,'no_intercept');
         xlabel(x_axis_label)
         ylabel(y_axis_label)
-        title(['Positions ' num2str(position_list) ', Objects with CFSE area between ' num2str(min_CFSE_obj_area) ' and ' num2str(max_CFSE_obj_area)])
-               
+        title([{['Positions ' num2str(position_list) ', Objects with CFSE area between ' num2str(min_CFSE_obj_area) ' and ' num2str(max_CFSE_obj_area)]};...
+            {'Enforced 0-intercept'}])
+        
         saveas(gcf,[figure_subfolder '\' y_var{1} '_vs_' x_var{1} '.png'])
         
-%         cleaner_data_to_scatter.x = complete_data_to_scatter.x(objs_with_CFSE_area_within_range & objs_with_CFSE_intensity_within_range);
-%         cleaner_data_to_scatter.y = complete_data_to_scatter.y(objs_with_CFSE_area_within_range & objs_with_CFSE_intensity_within_range);
-%         
-%         plot_scatter_with_line(cleaner_data_to_scatter.x, cleaner_data_to_scatter.y,'no_intercept');
-%         xlabel(x_axis_label)
-%         ylabel(y_axis_label)
-%         title(['Positions ' num2str(position_list) ', Objects with CFSE area between ' num2str(min_CFSE_obj_area) ' and ' num2str(max_CFSE_obj_area) ' and also with CFSE intensity within range'])
+        
+        % Try to isolate eliminate dead cells
+        min_mcherry_area_to_examine_CFSE_intensity = 400;
+        min_CFSE_intensity_live_cells = 250000;
+        % If the mCherry area is below the minimum, it is expected to have
+        % low CFSE intensity so we don't need to check and can use this cell.
+        % If the mCherry area is above this minimum, then we check whether
+        % the CFSE intensity is above this threshold.
+        objs_with_CFSE_intensity_within_range = all_mcherry_areas < min_mcherry_area_to_examine_CFSE_intensity | all_cfse_flat_integratedintensities_minusbackground > min_CFSE_intensity_live_cells;
+        cleanest_data_to_scatter.x = complete_data_to_scatter.x(objs_with_CFSE_area_within_range & objs_with_CFSE_intensity_within_range);
+        cleanest_data_to_scatter.y = complete_data_to_scatter.y(objs_with_CFSE_area_within_range & objs_with_CFSE_intensity_within_range);
+        
+        plot_scatter_with_line(cleanest_data_to_scatter.x, cleanest_data_to_scatter.y,'no_intercept');
+        xlabel(x_axis_label)
+        ylabel(y_axis_label)
+        title([{['Positions ' num2str(position_list) ', Objects with CFSE area between ' num2str(min_CFSE_obj_area) ' and ' num2str(max_CFSE_obj_area)]};...
+            {['and CFSE intensity > ' num2str(min_CFSE_intensity_live_cells) ' for cells with nuclear area > ' num2str(min_mcherry_area_to_examine_CFSE_intensity) ', Enforced 0-intercept']}])
+        
+        saveas(gcf,[figure_subfolder '\' y_var{1} '_vs_' x_var{1} '.png'])
+        
+        fileID = fopen([table_folder '\' base_expt_name '_Cleaning_Parameters.txt'],'w');
+        fprintf(fileID,['Look at only single cells: CFSE area between ' num2str(min_CFSE_obj_area) ' and ' num2str(max_CFSE_obj_area) '\r\n']);
+        fprintf(fileID,['Attempt to eliminate dead cells by examining CFSE intensity. \r\n']);
+        fprintf(fileID,['If these cells have nuclear area less than ' num2str(min_mcherry_area_to_examine_CFSE_intensity)...
+            ', it is expected to have low CFSE intensity so we can''t check further. \r\n']);
+        fprintf(fileID,['If the nuclear area is larger than that number, then we can look for dead cells'...
+            ' which are defined as cells with CFSE intensity less than ' num2str(min_CFSE_intensity_live_cells) '\r\n']);
+        fclose(fileID);
+        
+        %         cleaner_data_to_scatter.x = complete_data_to_scatter.x(objs_with_CFSE_area_within_range & objs_with_CFSE_intensity_within_range);
+        %         cleaner_data_to_scatter.y = complete_data_to_scatter.y(objs_with_CFSE_area_within_range & objs_with_CFSE_intensity_within_range);
+        %
+        %         plot_scatter_with_line(cleaner_data_to_scatter.x, cleaner_data_to_scatter.y,'no_intercept');
+        %         xlabel(x_axis_label)
+        %         ylabel(y_axis_label)
+        %         title(['Positions ' num2str(position_list) ', Objects with CFSE area between ' num2str(min_CFSE_obj_area) ' and ' num2str(max_CFSE_obj_area) ' and also with CFSE intensity within range'])
         
         
     end

@@ -2,7 +2,7 @@
 clear all
 close all
 
-xlsx_fpath = 'C:\Users\Skotheim Lab\Box Sync\Daniel Berenson''s Files\Data\Phasics\DFB_180501_manual_measurements.xlsx';
+xlsx_fpath = 'C:\Users\Skotheim Lab\Box Sync\Daniel Berenson''s Files\Data\Phasics\DFB_180501_Pos19_manual_measurements.xlsx';
 
 framerate = 1/12;
 

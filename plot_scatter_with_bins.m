@@ -1,6 +1,6 @@
 
 
-function fig = plot_binned_data(x,y,gooddata,numbins)
+function fig = plot_scatter_with_bins(x,y,numbins,gooddata)
 
 if ~exist('gooddata')
     gooddata = logical(ones(1,length(x)));
@@ -35,7 +35,7 @@ end
 
 fig = figure()
 hold on
-scatter(x,y,'FaceColor','k')
+scatter(x,y,'MarkerFaceColor','k','MarkerEdgeColor','k')
 errorbar(bincenters,means,stderrs,'-k')
 xlabel(inputname(1));
 ylabel(inputname(2));

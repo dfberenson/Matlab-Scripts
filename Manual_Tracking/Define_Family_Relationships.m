@@ -1,10 +1,10 @@
 
 clear all
 
-folder = 'C:\Users\Skotheim Lab\Desktop\Manual_Tracking';
+folder = 'F:\Manually tracked imaging experiments';
 expt_name = 'DFB_180803_HMEC_D5_1';
 expt_folder = [folder '\' expt_name];
-positions_list = [3];
+positions_list = [1 3 13 14 15 16];
 
 for pos = positions_list
     %     position_folder = [expt_folder '\Pos' num2str(pos)];

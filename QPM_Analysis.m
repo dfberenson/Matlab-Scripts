@@ -1,7 +1,8 @@
 
-folder = 'E:\QPM_Timelapse\Report from 13 June 18';
-file = [folder '\MEAS_Pos19.txt'];
-T = readtable(file);
+data_folder = 'E:\QPM_Timelapse\Report from 13 June 18';
+data_file = 'MEAS_Pos19.txt';
+data_fpath = [data_folder '\' data_file];
+T = readtable(data_fpath);
 
 phase_areas = table2array(T(:,{'Surface_micron2_'}));
 phase_optical_volume = table2array(T(:,{'Optical_volume_micron3_'}));
@@ -26,6 +27,10 @@ fluo1_optical_volume(isnan(fluo1_optical_volume)) = 0;
 fluo2_areas(isnan(fluo2_areas)) = 0;
 fluo2_optical_volume(isnan(fluo2_optical_volume)) = 0;
 
+figure_folder = ['C:\Users\Skotheim Lab\Box Sync\Daniel Berenson''s Files\Data\Plots\QPM' '\180613\Pos19'];
+if ~exist(figure_folder,'dir')
+    mkdir(figure_folder);
+end
 
 % fig0 = scatter3(phase_optical_volume, fluo1_areas, fluo1_optical_volume);
 % xlabel('Phase optical volume')
@@ -34,51 +39,101 @@ fluo2_optical_volume(isnan(fluo2_optical_volume)) = 0;
 
 fig0 = scatter(phase_optical_volume,fluo1_optical_volume,10,fluo1_areas,'filled')
 xlabel('Phase optical volume')
-ylabel('Fluo1 optical volume')
+ylabel('mCherry optical volume')
 colormap('Cool')
 colorbar()
+saveas(gcf,[figure_folder '\Fig0.png'])
 
 fig1 = plot_scatter_with_line(fluo1_areas,fluo2_areas)
 fig1.Name = 'Figure 1: Fluo2 area vs Fluo1 area';
-xlabel('Fluo1 area')
-ylabel('Fluo2 area')
+xlabel('mCherry area')
+ylabel('Geminin area')
+saveas(gcf,[figure_folder '\Fig1.png'])
+
 
 fig2 = plot_scatter_with_line(phase_areas, phase_optical_volume)
 fig2.Name = 'Figure 2: Phase optical volume vs Phase area';
 xlabel('Phase area')
 ylabel('Phase optical volume')
+saveas(gcf,[figure_folder '\Fig2.png'])
+
 
 fig3 = plot_scatter_with_line(fluo1_areas,fluo1_optical_volume)
 fig3.Name = 'Figure 3: Fluo1 optical volume vs Fluo1 area';
-xlabel('Fluo1 area')
-ylabel('Fluo1 optical volume')
+xlabel('mCherry area')
+ylabel('mCherry optical volume')
+saveas(gcf,[figure_folder '\Fig3.png'])
+
 
 fig4 = plot_scatter_with_line(fluo2_areas,fluo2_optical_volume)
 fig4.Name = 'Figure 4: Fluo2 optical volume vs Fluo2 area';
-xlabel('Fluo2 area')
-ylabel('Fluo2 optical volume')
+xlabel('Geminin area')
+ylabel('Geminin optical volume')
+saveas(gcf,[figure_folder '\Fig4.png'])
+
 
 fig5 = plot_scatter_with_line(phase_optical_volume,fluo1_optical_volume)
 fig5.Name = 'Figure 5: Fluo1 optical volume vs Phase optical volume';
 xlabel('Phase optical volume')
-ylabel('Fluo1 optical volume')
+ylabel('mCherry optical volume')
+saveas(gcf,[figure_folder '\Fig5.png'])
+
 
 fig5a = plot_scatter_with_line(phase_optical_volume(fluo1_areas < 300), fluo1_optical_volume(fluo1_areas < 300));
 fig5a.Name = 'Figure 5a: Fluo1 optical volume vs Phase optical volume, only cells with nuclear area < 300';
 xlabel('Phase optical volume')
-ylabel('Fluo1 optical volume')
+ylabel('mCherry optical volume')
+saveas(gcf,[figure_folder '\Fig5a.png'])
+
+
+fig5b = plot_scatter_with_line(phase_optical_volume(fluo1_areas < 300), fluo1_optical_volume(fluo1_areas < 300),'no_intercept');
+title('Figure 5b: Fluo1 optical volume vs Phase optical volume, only cells with nuclear area < 300, enforced 0-intercept')
+xlabel('Phase optical volume')
+ylabel('mCherry optical volume')
+saveas(gcf,[figure_folder '\Fig5b.png'])
+
+
+fig5c = plot_scatter_with_line(phase_optical_volume(fluo1_areas < 300), fluo1_optical_volume(fluo1_areas < 300) - 120,'no_intercept');
+title('Figure 5c: Fluo1 optical volume vs Phase optical volume, only cells with nuclear area < 300, subtracted 120 from fluo1 optical volume, enforced 0-intercept')
+xlabel('Phase optical volume')
+ylabel('mCherry optical volume')
+saveas(gcf,[figure_folder '\Fig5c.png'])
+
 
 fig6 = plot_scatter_with_line(phase_optical_volume,fluo2_optical_volume)
 fig6.Name = 'Figure 6: Fluo2 optical volume vs Phase optical volume';
 xlabel('Phase optical volume')
-ylabel('Fluo2 optical volume')
+ylabel('Geminin optical volume')
+saveas(gcf,[figure_folder '\Fig6.png'])
+
+
+fig7 = plot_scatter_with_line(phase_optical_volume,fluo1_areas)
+title('Figure 7: Nuclear area vs phase optical volume')
+xlabel('Phase optical volume')
+ylabel('Nuclear area')
+saveas(gcf,[figure_folder '\Fig7.png'])
+
+
+fig7a = plot_scatter_with_line(phase_optical_volume(fluo1_areas < 300), fluo1_areas(fluo1_areas < 300))
+title('Figure 7a: Nuclear area vs phase optical volume, only cells with nuclear area < 300')
+xlabel('Phase optical volume')
+ylabel('Nuclear area')
+saveas(gcf,[figure_folder '\Fig7a.png'])
+
+
+fig7b = plot_scatter_with_line(phase_optical_volume(fluo1_areas < 300), fluo1_areas(fluo1_areas < 300), 'no_intercept')
+title('Figure 7b: Nuclear area vs phase optical volume, only cells with nuclear area < 300, enforced 0-intercept')
+xlabel('Phase optical volume')
+ylabel('Nuclear area')
+saveas(gcf,[figure_folder '\Fig7b.png'])
+
 
 %% For expt 170906:
 
 %Plots at end censor data outside of nice central region
 
 % NOT RAW for Fluo1, RAW for Fluo2
-folder = 'E:\QPM_Timelapse\DFB_170906_QuantPhase24h_1_MMStack_Pos2\DFB_170906_QuantPhase24h_1_MMStack_Pos2\FEATURES';
+data_folder = 'E:\QPM_Timelapse\DFB_170906_QuantPhase24h_1_MMStack_Pos2\DFB_170906_QuantPhase24h_1_MMStack_Pos2\FEATURES';
 phase_prefix = 'MEAS_DFB_170906_QuantPhase24h_1_MMStack_Pos2.ome';
 fluo1_prefix = 'MEAS_fluo_INT_DFB_170906_QuantPhase24h_1_MMStack_Pos2.ome';
 fluo2_prefix = 'MEAS_RAWfluo_INT_DFB_170906_QuantPhase24h_1_MMStack_Pos2.ome';
@@ -119,9 +174,9 @@ cell_num = [];
 for t = [1:40]
     
     framestring = num2str(t,'%04d');
-    file_phase = [folder '\' phase_prefix framestring '.txt'];
-    file_fluo1 = [folder '\' fluo1_prefix framestring 'fluo1.tif.txt'];
-    file_fluo2 = [folder '\' fluo2_prefix framestring 'fluo2.tif.txt'];
+    file_phase = [data_folder '\' phase_prefix framestring '.txt'];
+    file_fluo1 = [data_folder '\' fluo1_prefix framestring 'fluo1.tif.txt'];
+    file_fluo2 = [data_folder '\' fluo2_prefix framestring 'fluo2.tif.txt'];
     
     phasetable = readtable(file_phase);
     fluo1table = readtable(file_fluo1);
@@ -133,7 +188,7 @@ for t = [1:40]
     thistime_fluo2_measurements = table2array(fluo2table(:,{'Optical_volume_micron3_'}));
     thistime_X = table2array(phasetable(:,{'Surface_Centroid_X'}));
     thistime_Y = table2array(phasetable(:,{'Surface_Centroid_Y'}));
-        thistime_timepoint = repelem(t,length(thistime_area_measurements))';
+    thistime_timepoint = repelem(t,length(thistime_area_measurements))';
     thistime_cell_num = [1:length(thistime_area_measurements)]';
     
 %     %Randomly shuffle order of measurements to confirm that changing the

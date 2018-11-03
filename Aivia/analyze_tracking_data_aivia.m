@@ -11,7 +11,8 @@ blank_field = double(imread('C:\Users\Skotheim Lab\Desktop\blank-field.tif'));
 blank_field_mean = mean(blank_field(:));
 [Y,X] = size(blank_field);
 
-xlsx_fpath = [table_expt_folder '\' expt_name '_Pos' num2str(pos) '_Tracks.xlsx'];
+% xlsx_fpath = [table_expt_folder '\' expt_name '_Pos' num2str(pos) '_Tracks.xlsx'];
+xlsx_fpath = [table_expt_folder '\Pos' num2str(pos) '_tracks.xlsx'];
 [status,sheets] = xlsfinfo(xlsx_fpath);
 
 disp('Reading tables')
@@ -90,21 +91,21 @@ for c = 1:num_tracks
     disp(['Measuring position ' num2str(pos) ' cell ' num2str(c)])
     thiscell_complete_x_coords = x_coord_table{:,['Track' num2str(c)]};
     thiscell_complete_y_coords = y_coord_table{:,['Track' num2str(c)]};
-    thiscell_complete_area_measurements = areas_table{:,['Track' num2str(c)]};
+    analyzed_values(c).thiscell_complete_area_measurements = areas_table{:,['Track' num2str(c)]};
     
     if is_four_channels
-        thiscell_complete_raw_farred_mean_measurements = farred_mean_intensity_table{:,['Track' num2str(c)]};
+        analyzed_values(c).thiscell_complete_raw_farred_mean_measurements = farred_mean_intensity_table{:,['Track' num2str(c)]};
     end
-    thiscell_complete_raw_red_mean_measurements = red_mean_intensity_table{:,['Track' num2str(c)]};
-    thiscell_complete_raw_green_mean_measurements = green_mean_intensity_table{:,['Track' num2str(c)]};
-    %     thiscell_complete_raw_size_measurements = red_total_intensity_table{:,['Track' num2str(c)]};
-    %     thiscell_complete_raw_geminin_measurements = green_total_intensity_table{:,['Track' num2str(c)]};
+    analyzed_values(c).thiscell_complete_raw_red_mean_measurements = red_mean_intensity_table{:,['Track' num2str(c)]};
+    analyzed_values(c).thiscell_complete_raw_green_mean_measurements = green_mean_intensity_table{:,['Track' num2str(c)]};
+    %     analyzed_values(c).thiscell_complete_raw_size_measurements = red_total_intensity_table{:,['Track' num2str(c)]};
+    %     analyzed_values(c).thiscell_complete_raw_geminin_measurements = green_total_intensity_table{:,['Track' num2str(c)]};
     
-    %     scatter(thiscell_complete_area_measurements .* thiscell_complete_ef1a_mean_measurements,...
-    %         thiscell_complete_size_measurements)
+    %     scatter(analyzed_values(c).thiscell_complete_area_measurements .* analyzed_values(c).thiscell_complete_ef1a_mean_measurements,...
+    %         analyzed_values(c).thiscell_complete_size_measurements)
     %     axis([0 inf 0 inf])
-    %     scatter(thiscell_complete_area_measurements .* thiscell_complete_geminin_mean_measurements,...
-    %         thiscell_complete_geminin_measurements)
+    %     scatter(analyzed_values(c).thiscell_complete_area_measurements .* analyzed_values(c).thiscell_complete_geminin_mean_measurements,...
+    %         analyzed_values(c).thiscell_complete_geminin_measurements)
     %     axis([0 inf 0 inf])
     
     % Add 1 to frame measurements to change from Aivia's zero-indexing to
@@ -114,8 +115,8 @@ for c = 1:num_tracks
     
     analyzed_values(c).has_something_gone_horribly_wrong = false;
     
-    if isnan(thiscell_complete_area_measurements(analyzed_values(c).firstframe)) ||...
-            isnan(thiscell_complete_area_measurements(analyzed_values(c).lastframe))
+    if isnan(analyzed_values(c).thiscell_complete_area_measurements(analyzed_values(c).firstframe)) ||...
+            isnan(analyzed_values(c).thiscell_complete_area_measurements(analyzed_values(c).lastframe))
         analyzed_values(c).has_properly_annotated_firstlast = false;
         analyzed_values(c).has_something_gone_horribly_wrong = true;
         continue
@@ -139,12 +140,12 @@ for c = 1:num_tracks
         % (1) Get xy coordinates and mean intensity of cell
         x = max(1,min(round(thiscell_complete_x_coords(t)),X));
         y = max(1,min(round(thiscell_complete_y_coords(t)),Y));
-        area = thiscell_complete_area_measurements(t);
+        area = analyzed_values(c).thiscell_complete_area_measurements(t);
         if is_four_channels
-            raw_farred_mean = thiscell_complete_raw_farred_mean_measurements(t);
+            raw_farred_mean = analyzed_values(c).thiscell_complete_raw_farred_mean_measurements(t);
         end
-        raw_red_mean = thiscell_complete_raw_red_mean_measurements(t);
-        raw_green_mean = thiscell_complete_raw_green_mean_measurements(t);
+        raw_red_mean = analyzed_values(c).thiscell_complete_raw_red_mean_measurements(t);
+        raw_green_mean = analyzed_values(c).thiscell_complete_raw_green_mean_measurements(t);
         
         % (2) Get local flatfield divisor
         local_flatfield_factor = blank_field_mean ./ blank_field(y,x);
@@ -219,27 +220,30 @@ for c = 1:num_tracks
     
     switch analysis_parameters.size_channel
         case 'r'
-            thiscell_complete_size_measurements = net_red_integrated_intensity;
+            analyzed_values(c).thiscell_complete_size_measurements = net_red_integrated_intensity;
         case 'f'
-            thiscell_complete_size_measurements = net_farred_integrated_intensity;
+            analyzed_values(c).thiscell_complete_size_measurements = net_farred_integrated_intensity;
     end
     switch analysis_parameters.geminin_channel
         case 'g'
-            thiscell_complete_geminin_measurements = net_green_integrated_intensity;
+            analyzed_values(c).thiscell_complete_geminin_measurements = net_green_integrated_intensity;
         case 'r'
-            thiscell_complete_geminin_measurements = net_red_integrated_intensity;
+            analyzed_values(c).thiscell_complete_geminin_measurements = net_red_integrated_intensity;
     end
     if is_four_channels
         switch analysis_parameters.protein_channel
             case 'g'
-                thiscell_complete_protein_measurements = net_green_integrated_intensity;
+                analyzed_values(c).thiscell_complete_protein_measurements = net_green_integrated_intensity;
         end
     end
     
     % Check mitosis
     analyzed_values(c).has_mitosis = lineage_table{c,'Divides'};
     
-    analyzed_values(c) = advanced_tracking_analysis(analyzed_values(c), tree(c), analysis_parameters, is_four_channels);
+    advanced_values = advanced_tracking_analysis(analyzed_values(c), c, tree, analysis_parameters, is_four_channels);
+    for fn = fieldnames(advanced_values)'
+        analyzed_values(c).(fn{1}) = advanced_values.(fn{1});
+    end
     
 %     % Check birth
 %     analyzed_values(c).is_born = ~isempty(tree(c).mother_id);

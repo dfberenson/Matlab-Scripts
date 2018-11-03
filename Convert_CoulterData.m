@@ -1,12 +1,12 @@
 
-function cleanvoldata = convert_CoulterData(binsizes, bincounts)
+function cleanvoldata = convert_CoulterData(binsizes, bincounts, cutoff)
 
 %Take list of bin sizes (diameter in um) and equally long list of bin counts
-%Return list of measurements after trimming left half around
+%Return list of measurements after trimming left half at cutoff (often 12um
+%or 0.9 pL)
 
 totaldata = [];
-typical_cutoff = 12;
-typical_cutoff_binnum = length(binsizes(binsizes < typical_cutoff));
+typical_cutoff_binnum = length(binsizes(binsizes < cutoff));
 
 for i = 1:length(binsizes)-2 % Go through each bin,except last two bins because they are weird
     thisbinsize = binsizes(i);

@@ -45,11 +45,11 @@ if strcmp(analysis_params.strategy,'threshold')
     for i = analysis_params.num_first_frames_to_avoid + 1 : length(geminin_trace)
         frames_above = 0;
         
-        if geminin_trace(i) > analysis_params.threshold
+        if geminin_trace(i) > analysis_params.geminin_threshold
             % If current value is above threshold, check ahead and count
             % how many future frames are also above threshold.
             for j = i + 1 : min(i + analysis_params.frames_to_check_nearby, length(geminin_trace))
-                if geminin_trace(j) > analysis_params.threshold
+                if geminin_trace(j) > analysis_params.geminin_threshold
                     frames_above = frames_above + 1;
                 end
             end

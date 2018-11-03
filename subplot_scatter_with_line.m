@@ -1,8 +1,7 @@
 
-function fig = plot_scatter_with_line(x,y,varargin)
-fig = figure();
+function plt = subplot_scatter_with_line(x,y,varargin)
 hold on
-scatter(x,y)
+plt = scatter(x,y);
 if length(varargin) > 0 && strcmp(varargin{1},'no_intercept')
     lm = fitlm(x,y,'Intercept',false);
     fit = [lm.Coefficients.Estimate(1),0];
@@ -24,6 +23,6 @@ if (lm_slope > 0)
 else
     dim = [0.15 0.25 0.1 0.1];
 end
-annotation('textbox',dim,'String',str,'FitBoxToText','on');
+% annotation('textbox',dim,'String',str,'FitBoxToText','on');
 hold off
 end
