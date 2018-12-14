@@ -53,7 +53,7 @@ for i = 1:unique_dates
         first_quartile(i,j) = quantile(expt(i,j).FullData, 0.25);
         third_quartile(i,j) = quantile(expt(i,j).FullData, 0.75);
         stdevs(i,j) = std(expt(i,j).FullData);
-        stderrs(i,j) = stdevs(i,j) / length(expt(i,j).FullData);
+        stderrs(i,j) = stdevs(i,j) / sqrt(length(expt(i,j).FullData));
     end
 
 end

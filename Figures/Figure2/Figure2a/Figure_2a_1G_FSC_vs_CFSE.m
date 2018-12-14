@@ -89,13 +89,22 @@ linearfit_pValue = linearfit.Coefficients.pValue(2);
 linearfit_slope = linearfit.Coefficients.Estimate(2);
 disp(sprintf('\n'));
 
+% figure
+% hold on
+% xlabel(x_axis_label)
+% ylabel(y_axis_label)
+% shadedErrorBar(binsizes,allBinsAvgY,allBinsStdDevY,'m-',1)
+% shadedErrorBar(binsizes,allBinsAvgY,allBinsStdErrorY,'r-')
+% plot(0:max(X),polyval(fit1,0:max(X)),'k')
+% axis([x_percentile_025 x_percentile_975 y_percentile_010 y_percentile_990])
+% hold off
 
 figure
 hold on
 xlabel(x_axis_label)
 ylabel(y_axis_label)
-shadedErrorBar(binsizes,allBinsAvgY,allBinsStdDevY,'m-',1)
-shadedErrorBar(binsizes,allBinsAvgY,allBinsStdErrorY,'r-')
+shadedErrorBar(binsizes(binsizes > x_percentile_025 & binsizes < x_percentile_975),allBinsAvgY(binsizes > x_percentile_025 & binsizes < x_percentile_975),allBinsStdDevY(binsizes > x_percentile_025 & binsizes < x_percentile_975),'m-',1)
+shadedErrorBar(binsizes(binsizes > x_percentile_025 & binsizes < x_percentile_975),allBinsAvgY(binsizes > x_percentile_025 & binsizes < x_percentile_975),allBinsStdErrorY(binsizes > x_percentile_025 & binsizes < x_percentile_975),'r-')
 plot(0:max(X),polyval(fit1,0:max(X)),'k')
-axis([x_percentile_025 x_percentile_975 y_percentile_010 y_percentile_990])
+axis([0 max(X) 0 max(Y)])
 hold off

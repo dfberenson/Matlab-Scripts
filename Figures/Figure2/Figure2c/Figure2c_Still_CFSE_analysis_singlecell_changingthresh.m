@@ -4,7 +4,9 @@ clear all
 close all
 
 % imstack = readStack('E:\DFB_imaging_experiments\DFB_180905_HMEC_1G_CFSE_1\TwoCells.tif');
-imstack = readStack('E:\DFB_imaging_experiments\DFB_180905_HMEC_1G_CFSE_1\TwoCells_2.tif');
+% imstack = readStack('E:\DFB_imaging_experiments\DFB_180905_HMEC_1G_CFSE_1\TwoCells_2.tif');
+imstack = readStack('E:\DFB_imaging_experiments\DFB_180905_HMEC_1G_CFSE_1\OneCell.tif');
+% imstack = readStack('E:\DFB_imaging_experiments\DFB_181028_HMEC_1E_CFSE_1\OneCell.tif');
 
 [Y,X,C] = size(imstack);
 
@@ -19,6 +21,7 @@ strel_size = 1;
 se = strel(strel_shape,strel_size);
 
 num_segmentation_tries = 25;
+commonly_used_segmentation_num = 5;
 possible_mCherry_thresholds = linspace(120,300,num_segmentation_tries);
 
 f = figure('Name','Segmentation at varying thresholds')
@@ -40,11 +43,12 @@ for try_num = 1:num_segmentation_tries
     outlined_mCherry = imoverlay_fast(mCherry_rgb,bwperim(mCherry_labels),'w');
     figure(f)
     subplot(sqrt(num_segmentation_tries),sqrt(num_segmentation_tries),try_num)
-    outlined_mCherry_toshow = outlined_mCherry(100:200,100:300,:);
+%     outlined_mCherry_toshow = outlined_mCherry(100:200,100:300,:);
+    outlined_mCherry_toshow = outlined_mCherry(:,:,:);
     imshow(outlined_mCherry_toshow,[])
     title(num2str(mCherry_threshold))
     
-    if any(mCherry_threshold == [120 150 180 210 240 300])
+    if any(mCherry_threshold == [120 150 180 210 240 270 300])
     figure,imshow(outlined_mCherry_toshow,[])
     title(mCherry_threshold)
     end
@@ -72,10 +76,10 @@ for try_num = 1:num_segmentation_tries
 end
 
 for j = 1:num_objects_mCherry
-    scaled_area_measurements(:,j) = area_measurements(:,j) / area_measurements(5,j);
-    scaled_intensity_measurements(:,j) = intensity_measurements(:,j) / intensity_measurements(5,j);
+    scaled_area_measurements(:,j) = area_measurements(:,j) / area_measurements(commonly_used_segmentation_num,j);
+    scaled_intensity_measurements(:,j) = intensity_measurements(:,j) / intensity_measurements(commonly_used_segmentation_num,j);
     
-    figure
+    figure('position',[10 10 900 300])
     hold on
     plot(possible_mCherry_thresholds,scaled_area_measurements(:,j) .^ 1.5,'k-')
     plot(possible_mCherry_thresholds,scaled_intensity_measurements(:,j),'r--')

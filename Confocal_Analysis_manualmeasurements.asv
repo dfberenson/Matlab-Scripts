@@ -1,0 +1,46 @@
+
+clear all
+close all
+
+%% Initialze variables
+im_folder = ['E:\Confocal'];
+% expt_name = '08-30-2018 HMECs D5 confocal';
+expt_name = '10-30-2018 HMECs D5 confocal';
+plot_all_correlations_independently = false;
+
+positions_to_analyze = [2 3 5 6 7];
+
+for pos = positions_to_analyze
+    switch pos
+        case 2
+            cells_to_analyze = 'abc';
+        case 3
+            cells_to_analyze = 'abcd';
+        case 5
+            cells_to_analyze = 'abcdefg';
+        case 6
+            cells_to_analyze = 'abcde';
+        case 7
+            cells_to_analyze = 'abcde';
+            
+    end
+    for cell_letter = cells_to_analyze
+        epi_table = readtable([im_folder '\' expt_name '\ManualMeasurements.xlsx'],'Sheet',[num2str(pos) cell_letter '-epi']);
+        cfc_table = readtable([im_folder '\' expt_name '\ManualMeasurements.xlsx'],'Sheet',[num2str(pos) cell_letter '-confocal']);
+    
+        position(pos).epi_measurements(epi_cell).area = epi_table.Area(1);
+        position(pos).epi_measurements(epi_cell).ef1a_mean = epi_table.Mean(1) - epi_table.Mean(4);
+        position(pos).epi_measurements(epi_cell).ef1a_int_intens = NaN;
+        position(pos).epi_measurements(epi_cell).geminin_mean = epi_table.Mean(2) - epi_table.Mean(5);
+        position(pos).epi_measurements(epi_cell).geminin_int_intens = NaN;
+        position(pos).epi_measurements(epi_cell).rb_mean = epi_table.Mean(1;
+        position(pos).epi_measurements(epi_cell).rb_int_intens = NaN;
+    
+    
+    
+    
+    
+    
+    
+    end
+end

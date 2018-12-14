@@ -82,7 +82,7 @@ handles.blue_balance = 0;
 handles.expt_folder = 'C:\Users\Skotheim Lab\Desktop\Manual_Tracking';
 % handles.expt_name = 'DFB_180822_HMEC_1GFiii_1_Pos1';
 % handles.expt_folder = 'F:\Manually tracked imaging experiments';
-handles.expt_name = 'DFB_180803_HMEC_D5_1_Pos16';
+handles.expt_name = 'DFB_180803_HMEC_D5_1_Pos5';
 handles.startframe = 1;
 handles.endframe = 432;
 

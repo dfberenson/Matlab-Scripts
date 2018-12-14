@@ -2,16 +2,26 @@
 clear all
 close all
 
+% load('E:\Manually tracked measurements\DFB_180627_HMEC_1GFiii_palbo_2\clicking_Data.mat')
 load('E:\Manually tracked measurements\DFB_180803_HMEC_D5_1\clicking_Data.mat')
 
 framerate = 1/6;
 average_instantaneous_growth_rate_over_num_frames = 3;
 
-all_cell_classes_to_plot =  {'all_good','G1_cells_good','SG2_cells_good'};
-all_cell_classes_to_plot =  {'all_good'};
+numbins = 10;
 
-for cond = 1:2
+% all_cell_classes_to_plot =  {'all_good','G1_cells_good','SG2_cells_good'};
+all_cell_classes_to_plot =  {'G1_cells_good','SG2_cells_good'};
+% all_cell_classes_to_plot =  {'all_good'};
+
+% for cond = 1:2
+for cond = 1:1
+    plotnum = 0;
+    figure
+    hold on
     for cell_class_to_plot = all_cell_classes_to_plot;
+        
+        plotnum = plotnum + 1;
         
         if strcmp(cell_class_to_plot,'all_good')
             X = data(cond).all_instantaneous_size_measurements_avoiding_ends_nolast;
@@ -45,44 +55,62 @@ for cond = 1:2
         clean_X = X(~bad_indices);
         clean_Y = Y(~bad_indices);
         
+        % Get the mean clean_X value once per condition
+        if plotnum == 1
+            mean_clean_X = mean(clean_X);
+        end
         % Scale x and y axes so 1 AU is the mean X size
-        clean_Y = clean_Y / mean(clean_X);
-        clean_X = clean_X / mean(clean_X);
+        clean_X = clean_X / mean_clean_X;
+        clean_Y = clean_Y / mean_clean_X;
         
-%         fitlm(clean_X,clean_Y)
+        %         fitlm(clean_X,clean_Y)
         
-        figure
-        hold on
-        scatter(clean_X, clean_Y, 0.01, '.k')
-        bin_sizes = linspace(prctile(clean_X,5),prctile(clean_X,95),20);
-        [means,stdevs,stderrs] = bindata(clean_X, clean_Y, bin_sizes);
-        errorbar(bin_sizes,means,stderrs,'r','LineWidth',2)
-        axis([prctile(clean_X,2.5) prctile(clean_X,97.5), prctile(clean_Y,2.5) prctile(clean_Y,97.5)])
-        x_axis_label = 'prEF1a-mCrimson-NLS (AU)';
-        y_axis_label = ['Instantaneous growth rate (AU/' num2str(60 * framerate * average_instantaneous_growth_rate_over_num_frames) 'min)'];
-        title(gca,graph_title)
-        xlabel(gca,x_axis_label)
-        ylabel(gca,y_axis_label)
+        %         figure
+        %         hold on
+        % %         scatter(clean_X, clean_Y, 0.01, '.k')
+        %         bin_sizes = linspace(prctile(clean_X,5),prctile(clean_X,95),numbins);
+        %         [means,stdevs,stderrs] = bindata(clean_X, clean_Y, bin_sizes);
+        % %         errorbar(bin_sizes,means,stderrs,'r','LineWidth',2)
+        %         shadedErrorBar(bin_sizes,means,stderrs)
+        %         %         axis([prctile(clean_X,2.5) prctile(clean_X,97.5), prctile(clean_Y,2.5) prctile(clean_Y,97.5)])
+        %         axis([prctile(clean_X,2.5) prctile(clean_X,97.5), -inf inf])
+        %         x_axis_label = 'prEF1a-mCrimson-NLS (AU)';
+        %         y_axis_label = ['Instantaneous growth rate (AU/' num2str(60 * framerate * average_instantaneous_growth_rate_over_num_frames) 'min)'];
+        %         title(gca,graph_title)
+        %         xlabel(gca,x_axis_label)
+        %         ylabel(gca,y_axis_label)
         
         % Convert growth units from (30m)^-1 to (20h)^-1
         scaled_clean_Y = clean_Y*20/(framerate * average_instantaneous_growth_rate_over_num_frames);
         
-        fitlm(clean_X,scaled_clean_Y)
+        %         fitlm(clean_X,scaled_clean_Y)
+        disp(cell_class_to_plot)
+        fitlm(clean_X(clean_X > prctile(clean_X,2.5) & clean_X < prctile(clean_X,97.5)),...
+            scaled_clean_Y(clean_X > prctile(clean_X,2.5) & clean_X < prctile(clean_X,97.5)))
         
-        figure
-        hold on
-        scatter(clean_X, scaled_clean_Y, 0.01, '.k')
-        bin_sizes = linspace(prctile(clean_X,5),prctile(clean_X,95),20);
+        %         figure
+        %         hold on
+        %         scatter(clean_X, scaled_clean_Y, 0.01, '.k')
+        bin_sizes = linspace(prctile(clean_X,5),prctile(clean_X,95),numbins);
         [means,stdevs,stderrs] = bindata(clean_X, scaled_clean_Y, bin_sizes);
-        errorbar(bin_sizes,means,stderrs,'r','LineWidth',2)
-        axis([prctile(clean_X,2.5) prctile(clean_X,97.5), prctile(scaled_clean_Y,2.5) prctile(scaled_clean_Y,97.5)])
-        x_axis_label = 'prEF1a-mCrimson-NLS (AU)';
+        %         errorbar(bin_sizes,means,stderrs,'r','LineWidth',2)
+        if plotnum == 1
+            shadedErrorBar(bin_sizes,means,stderrs,'r')
+        elseif plotnum == 2
+            shadedErrorBar(bin_sizes,means,stderrs,'g')
+        end
+        %         axis([prctile(clean_X,2.5) prctile(clean_X,97.5), prctile(scaled_clean_Y,2.5) prctile(scaled_clean_Y,97.5)])
+        axis([-inf inf,-inf inf])
+        %         axis([prctile(clean_X,2.5) prctile(clean_X,97.5),-inf inf])
+
+    end
+            x_axis_label = 'prEF1a-mCrimson-NLS (AU)';
         y_axis_label = ['Scaled instantaneous growth rate (AU/20h)'];
-        title(gca,graph_title)
+        title(gca,data(cond).treatment)
         xlabel(gca,x_axis_label)
         ylabel(gca,y_axis_label)
-        
-    end
+    h = findobj(gca,'Type','line');
+    legend([h(5),h(1)],'G1 cells','SG2 cells','Location','NW')
 end
 
 

@@ -8,7 +8,7 @@ thiscell_analysis.is_born = ~isempty(tree(c).mother_id);
 % Check generation
 thiscell_analysis.generation = 0;
 thiscell = c;
-mother = tree.mother_id;
+mother = tree(c).mother_id;
 while ~isempty(mother)
     thiscell_analysis.generation = thiscell_analysis.generation + 1;
     % Check for infinite loops resulting from impossible parentage
@@ -219,6 +219,8 @@ if ~is_four_channels
         thiscell_analysis.g1s_size = thiscell_analysis.size_measurements_smooth(thiscell_analysis.g1s_frame);
         thiscell_analysis.g1s_area = thiscell_analysis.area_measurements_smooth(thiscell_analysis.g1s_frame);
         thiscell_analysis.g2m_size = thiscell_analysis.size_measurements_smooth(end - frames_to_avoid_at_end);
+        thiscell_analysis.g2m_area = thiscell_analysis.area_measurements_smooth(end - frames_to_avoid_at_end);
+
         
         thiscell_analysis.g1_growth = thiscell_analysis.g1s_size - thiscell_analysis.birth_size;
         thiscell_analysis.sg2_growth = thiscell_analysis.g2m_size - thiscell_analysis.g1s_size;
@@ -278,7 +280,7 @@ elseif is_four_channels
         % with G1/S at index 0
         thiscell_analysis.all_frame_indices_wrt_g1s = (1 : thiscell_analysis.trace_duration_frames) - thiscell_analysis.g1s_frame;
         
-        % Examine values up to but not including G1/S frame        
+        % Examine values up to but not including G1/S frame
         thiscell_analysis.frame_indices_wrt_g1s_nextframe = (thiscell_analysis.frame_to_start_measuring - thiscell_analysis.g1s_frame : -1)';
         thiscell_analysis.g1s_happens_here_nextframe = logical(zeros(length(thiscell_analysis.frame_indices_wrt_g1s_nextframe),1));
         thiscell_analysis.g1s_happens_here_nextframe(end) = 1;
@@ -365,7 +367,7 @@ elseif is_four_channels
         thiscell_analysis.protein_per_area_up_to_g1s_3hrs_ahead = thiscell_analysis.protein_amt_up_to_g1s_3hrs_ahead ./ thiscell_analysis.areas_up_to_g1s_3hrs_ahead;
         thiscell_analysis.protein_per_size_up_to_g1s_3hrs_ahead = thiscell_analysis.protein_amt_up_to_g1s_3hrs_ahead ./ thiscell_analysis.sizes_up_to_g1s_3hrs_ahead;
         thiscell_analysis.protein_per_volume_up_to_g1s_3hrs_ahead = thiscell_analysis.protein_amt_up_to_g1s_3hrs_ahead ./ thiscell_analysis.volumes_up_to_g1s_3hrs_ahead;
-
+        
         
         if thiscell_analysis.is_born
             thiscell_analysis.age_in_frames_up_to_g1s_3hrs_ahead = (thiscell_analysis.frame_to_start_measuring : thiscell_analysis.g1s_frame - f3)';

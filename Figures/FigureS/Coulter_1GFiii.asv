@@ -1,0 +1,49 @@
+
+clear all
+close all
+
+folder = "C:\Users\Skotheim Lab\Box Sync\Daniel Berenson's Files\Data\Coulter";
+fname = 'DFB_181021_HMEC_1GFiii';
+fpath = strcat(folder, "\", fname, "\", fname, ".xlsx");
+T = readtable(fpath);
+
+var_names = T.Properties.VariableNames;
+diam_cutoff = 12;
+
+for var = var_names
+    
+    switch var{1}
+        case 'Bin_Diam'
+            bin_diams = T.Bin_Diam;
+        case 'Incubator_0h'
+            sizes_incubator_0h = convert_CoulterData(bin_diams, T.Incubator_0h, diam_cutoff);
+            mean_incubator_0h = mean(sizes_incubator_0h);
+            median_incubator_0h = median(sizes_incubator_0h);
+            first_quartile_incubator_0h = quantile(sizes_incubator_0
+            
+            
+                    means(i,j) = mean(expt(i,j).FullData);
+        medians(i,j) = median(expt(i,j).FullData);
+        first_quartile(i,j) = quantile(expt(i,j).FullData, 0.25);
+        third_quartile(i,j) = quantile(expt(i,j).FullData, 0.75);
+        stdevs(i,j) = std(expt(i,j).FullData);
+        stderrs(i,j) = stdevs(i,j) / length(expt(i,j).FullData)
+        case 'Incubator_48h'
+            sizes_incubator_48h = convert_CoulterData(bin_diams, T.Incubator_48h, diam_cutoff);
+        case 'Microscope_ConstantIllumination'
+            sizes_constantillumination = convert_CoulterData(bin_diams, T.Microscope_ConstantIllumination, diam_cutoff);
+        case 'Microscope_IntermittentIllumination'
+            sizes_intermittentillumination = convert_CoulterData(bin_diams, T.Microscope_IntermittentIllumination, diam_cutoff);
+        case 'Microscope_NoIllumination'
+            sizes_noillumination = convert_CoulterData(bin_diams, T.Microscope_NoIllumination, diam_cutoff);
+    end
+end
+
+figure
+hold on
+cdfplot(sizes_incubator_0h)
+cdfplot(sizes_incubator_48h)
+cdfplot(sizes_constantillumination)
+cdfplot(sizes_intermittentillumination)
+cdfplot(sizes_noillumination)
+legend({'Incubator_0h','Incubator_48h','Microscope_Constant','Microscope_Intermittent','Microscope_Dark'},'Interpreter','none')

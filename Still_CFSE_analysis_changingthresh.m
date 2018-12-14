@@ -5,8 +5,8 @@ plot_data = false;
 
 folder = 'E:\DFB_imaging_experiments';
 % base_expt_name = 'DFB_180903_HMEC_1G_CFSE_2';
-% base_expt_name = 'DFB_180905_HMEC_1G_CFSE_1';
-base_expt_name = 'DFB_181028_HMEC_1E_CFSE_1';
+base_expt_name = 'DFB_180905_HMEC_1G_CFSE_1';
+% base_expt_name = 'DFB_181028_HMEC_1E_CFSE_1';
 % base_expt_name = 'DFB_181028_HMEC_1E_CFSE_2';
 
 expt_folder = [folder '\' base_expt_name];

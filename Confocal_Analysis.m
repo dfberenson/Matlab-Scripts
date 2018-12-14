@@ -6,6 +6,7 @@ close all
 im_folder = ['E:\Confocal'];
 % expt_name = '08-30-2018 HMECs D5 confocal';
 expt_name = '10-30-2018 HMECs D5 confocal';
+plot_correlations = true;
 plot_all_correlations_independently = false;
 
 positions_to_analyze = [2 3 5 6 7];
@@ -61,6 +62,7 @@ for pos = positions_to_analyze
         main_epi_threshold = 15;
     elseif strcmp(expt_name, '10-30-2018 HMECs D5 confocal')
         main_epi_threshold = 12;
+%         main_epi_threshold = 20;
     end
     
     main_epi_im = epi_stack(:,:,main_channel_to_segment);
@@ -147,6 +149,8 @@ for pos = positions_to_analyze
 %     implay(squeeze(cfc_stack_overlaid(:,:,:,2,:)))
 %     implay(squeeze(cfc_stack_overlaid(:,:,:,3,:)))
 %     implay(squeeze(cfc_stack_overlaid(:,:,:,4,:)))
+
+close all
     
     %% Measure images
     
@@ -413,6 +417,7 @@ end
 
 epi_areas = [];
 epi_ef1a = [];
+epi_ef1a_mean = [];
 epi_geminin = [];
 epi_rb = [];
 cfc_mip_areas = [];
@@ -435,12 +440,20 @@ cfc_zstacksegmented_rb_maxslice = [];
 cfc_zstacksegmented_rb_sumslices = [];
 cfc_zstacksegmented_ef1a_maxslice_meanintens = [];
 cfc_zstacksegmented_rb_maxslice_meanintens = [];
+all_z_coords = [];
+all_ef1a_zsliced_means = [];
+all_z_coords_traces = {};
+all_ef1a_zsliced_means_traces = {};
 
 for pos = positions_to_analyze
     for epi_cell = 1:position(pos).epi_num_cells
         cfc_cell = position(pos).epi_to_cfc_mip_assignment(epi_cell);
+        if cfc_cell == 0
+            continue
+        end
         epi_areas = [epi_areas; position(pos).epi_measurements(epi_cell).area];
         epi_ef1a = [epi_ef1a; position(pos).epi_measurements(epi_cell).ef1a_int_intens];
+        epi_ef1a_mean = [epi_ef1a_mean; position(pos).epi_measurements(epi_cell).ef1a_mean];
         epi_geminin = [epi_geminin; position(pos).epi_measurements(epi_cell).geminin_int_intens];
         epi_rb = [epi_rb; position(pos).epi_measurements(epi_cell).rb_int_intens];
         
@@ -485,10 +498,38 @@ for pos = positions_to_analyze
             max(position(pos).cfc_zstacksegmented_measurements(cfc_cell).ef1a_zsliced_means)];
         cfc_zstacksegmented_rb_maxslice_meanintens = [cfc_zstacksegmented_rb_maxslice_meanintens;...
             max(position(pos).cfc_zstacksegmented_measurements(cfc_cell).rb_zsliced_means)];
+        
+        all_z_coords = [all_z_coords; [1:length(position(pos).cfc_zstacksegmented_measurements(cfc_cell).ef1a_zsliced_means)]'];
+        all_ef1a_zsliced_means = [all_ef1a_zsliced_means; [position(pos).cfc_zstacksegmented_measurements(cfc_cell).ef1a_zsliced_means]'];
+    
+        all_z_coords_traces = {all_z_coords_traces{:}, [1:length(position(pos).cfc_zstacksegmented_measurements(cfc_cell).ef1a_zsliced_means)]'};
+        all_ef1a_zsliced_means_traces = {all_ef1a_zsliced_means_traces{:}, [position(pos).cfc_zstacksegmented_measurements(cfc_cell).ef1a_zsliced_means]'};
+
+    
     end
 end
 
+%% Plot mean versus z coordinate
+
+figure
+hold on
+cmap = colormap('winter');
+for trace = 1:length(all_z_coords_traces)
+    plotcolor = cmap(trace*floor(64/length(all_z_coords_traces)),:);
+    z_coords = all_z_coords_traces{trace};
+    ef1a_zsliced_means = all_ef1a_zsliced_means_traces{trace};
+    nonzero_z_coords = z_coords(find(ef1a_zsliced_means));
+    nonzero_ef1a_zsliced_means = ef1a_zsliced_means(find(ef1a_zsliced_means));
+    max_z = nonzero_z_coords(nonzero_ef1a_zsliced_means == max(nonzero_ef1a_zsliced_means));
+    middle_z = median(nonzero_z_coords);
+%     plot(nonzero_z_coords - max_z, nonzero_ef1a_zsliced_means)
+    plot(nonzero_z_coords - middle_z, nonzero_ef1a_zsliced_means,'Color',plotcolor)
+end
+xlabel('Z position')
+ylabel('EF1a-mCherry mean pixel intensity')
+
 %% Plot correlations
+if plot_correlations
 figure_folder = ['C:\Users\Skotheim Lab\Box Sync\Daniel Berenson''s Files\Data\Plots\' expt_name];
 if ~exist(figure_folder,'dir')
     mkdir(figure_folder)
@@ -623,9 +664,9 @@ heatmap(heatmap_var_names_4,heatmap_var_names_4,r2_mat_4,'Colormap',cool)
 title({'R^2 values for pairwise correlations'})
 saveas(gcf,[figure_folder '\All_even_more_Rb_concentration_correlations_heatmap.png'])
 
-heatmap_data_5 = [epi_ef1a, epi_areas .^ 1.5, cfc_zstacksegmented_ef1a_sumslices, cfc_zstacksegmented_ef1a_maxslice_meanintens,...
+heatmap_data_5 = [epi_ef1a, epi_areas .^ 1.5, epi_ef1a_mean, cfc_zstacksegmented_ef1a_sumslices, cfc_zstacksegmented_ef1a_maxslice_meanintens,...
     cfc_zstacksegmented_area_sumslices, epi_ef1a ./ epi_areas .^ 1.5, cfc_zstacksegmented_ef1a_sumslices ./ cfc_zstacksegmented_area_sumslices];
-heatmap_var_names_5 = {'Epi_EF1a_total','Epi_volume','Cfc_EF1a_sumtotal','Cfc_EF1a_mean',...
+heatmap_var_names_5 = {'Epi_EF1a_total','Epi_volume','Epi_EF1a_mean','Cfc_EF1a_sumtotal','Cfc_EF1a_mean',...
     'Cfc_volume','Epi_EF1a_per_epi_volume','Cfc_EF1a_per_cfc_volume'};
 assert(size(heatmap_data_5,2) == length(heatmap_var_names_5))
 figure
@@ -763,4 +804,5 @@ if plot_all_correlations_independently
             ylabel(gca,y_axis_label)
         end
     end
+end
 end

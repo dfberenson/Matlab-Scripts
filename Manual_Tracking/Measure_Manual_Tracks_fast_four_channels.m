@@ -3,9 +3,10 @@
 close all
 clear all
 
-for pos = [1 3 13 14 15 16]
-
-expt_folder = 'F:\Manually tracked imaging experiments';
+for pos = [5]
+    
+expt_folder = 'C:\Users\Skotheim Lab\Desktop\Manual_Tracking';
+% expt_folder = 'F:\Manually tracked imaging experiments';
 expt_name = ['DFB_180803_HMEC_D5_1_Pos' num2str(pos)];
 
 segmentation_prefix = [expt_folder '\' expt_name '\'...

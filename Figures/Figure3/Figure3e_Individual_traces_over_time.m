@@ -78,7 +78,8 @@ for c = all_cellnums
     normalized_phase_net = phase_net / mean(phase_net);
     normalized_mcherry_net = mcherry_net / mean(mcherry_net);
     
-    if c == 5 || c == 6
+    %     if c == 5 || c == 6
+    if c == 6
         
         figure
         hold on
@@ -93,7 +94,51 @@ for c = all_cellnums
         axis([0 inf 0 inf])
         hold off
         
+        figure
+        hold on
+        %     plot(timepoints, cell_area / mean(cell_area))
+        plot(timepoints, movmedian(normalized_nuclear_volume,11) ,'-b')
+        plot(timepoints, movmedian(normalized_phase_net,11), '-k')
+        %     plot(timepoints, gfp_net / mean(gfp_net))
+        plot(timepoints, movmedian(normalized_mcherry_net,11),'-r')
+        legend('Nuclear volume','Dry mass','prEF1a-mCherry-NLS')
+        xlabel('Cell age (h)')
+        ylabel('Measurement')
+        axis([0 inf 0 inf])
+        hold off
+        
+        squared_changes_in_nuclear_volume = diff(normalized_nuclear_volume(1:end-10)).^2;
+        squared_changes_in_phase_net = diff(normalized_phase_net(1:end-10)).^2;
+        squared_changes_in_mcherry_net = diff(normalized_mcherry_net(1:end-10)).^2;
+        
+        mean_squared_changes_in_nuclear_volume = mean(squared_changes_in_nuclear_volume);
+        mean_squared_changes_in_phase_net = mean(squared_changes_in_phase_net);
+        mean_squared_changes_in_mcherry_net = mean(squared_changes_in_mcherry_net);
+        
+        stdev_squared_changes_in_nuclear_volume = std(squared_changes_in_nuclear_volume);
+        stdev_squared_changes_in_phase_net = std(squared_changes_in_phase_net);
+        stdev_squared_changes_in_mcherry_net = std(squared_changes_in_mcherry_net);
+        
+        stderr_squared_changes_in_nuclear_volume = std(squared_changes_in_nuclear_volume) / sqrt(length(squared_changes_in_nuclear_volume));
+        stderr_squared_changes_in_phase_net = std(squared_changes_in_phase_net) / sqrt(length(squared_changes_in_phase_net));
+        stderr_squared_changes_in_mcherry_net = std(squared_changes_in_mcherry_net) / sqrt(length(squared_changes_in_mcherry_net));
+        
+        figure
+        hold on
+        [bar,err] = barwitherr([stderr_squared_changes_in_nuclear_volume,stderr_squared_changes_in_phase_net,stderr_squared_changes_in_mcherry_net],...
+            [mean_squared_changes_in_nuclear_volume,mean_squared_changes_in_phase_net,mean_squared_changes_in_mcherry_net],'k');
+        bar.FaceColor = 'k';
+        err.LineWidth = 2;
+        err.CapSize = 40;
+        axis([0.5 3.5 0 inf])
+        set(gca, 'XTick', [1 2 3])
+        set(gca, 'XTickLabel', {'Nuclear volume' 'Dry mass' 'prEF1a-mCherry-NLS'})
+        ylabel('Average square of discrete derivative')
+        hold off
+        
     end
+    
+
     
     % figure
     % hold on
@@ -108,23 +153,47 @@ end
 
 % Plot correlation of nuclear volume or mCherry with dry mass.
 % Each dot is a single time measurement for a single cell.
-% Dots are colorized by what cell they come from.
+% Dots can be colorized by what cell they come from.
 figure
 hold on
-scatter(collated_nuclear_volume / mean(collated_nuclear_volume), collated_phase_net / mean(collated_phase_net), 100, whichcell, '.')
-colormap('winter')
-xlabel('Nuclear volume')
-ylabel('Dry mass')
+scatter(collated_phase_net / mean(collated_phase_net),collated_nuclear_volume / mean(collated_nuclear_volume), '.k')
+% scatter(collated_phase_net / mean(collated_phase_net), collated_nuclear_volume / mean(collated_nuclear_volume), 100, whichcell, '.')
+% colormap('winter')
+xlabel('Dry mass')
+ylabel('Nuclear volume')
 axis([0 inf 0 inf])
 hold off
 fitlm(collated_nuclear_volume,collated_phase_net)
 
 figure
 hold on
-scatter(collated_mcherry_net / mean(collated_mcherry_net), collated_phase_net / mean(collated_phase_net), 100, whichcell, '.')
-colormap('autumn')
-xlabel('prEF1a-mCherry-NLS')
-ylabel('Dry mass')
+scatter(collated_phase_net / mean(collated_phase_net), collated_mcherry_net / mean(collated_mcherry_net), '.k')
+% scatter(collated_phase_net / mean(collated_phase_net), collated_mcherry_net / mean(collated_mcherry_net), 100, whichcell, '.')
+% colormap('autumn')
+xlabel('Dry mass')
+ylabel('prEF1a-mCherry-NLS')
 axis([0 inf 0 inf])
 hold off
 fitlm(collated_mcherry_net,collated_phase_net)
+
+
+% Plot binned means and standard deviations
+bincenters = linspace(min(collated_phase_net / mean(collated_phase_net)),max(collated_phase_net / mean(collated_phase_net)),20);
+
+[means,stdevs,stderrs] = bindata(collated_phase_net / mean(collated_phase_net), collated_nuclear_volume / mean(collated_nuclear_volume), bincenters);
+figure
+hold on
+shadedErrorBar(bincenters,means,stdevs,'b',1)
+shadedErrorBar(bincenters,means,stderrs,'k')
+axis([0 inf 0 inf])
+xlabel('Dry mass')
+ylabel('Nuclear volume')
+
+[means,stdevs,stderrs] = bindata(collated_phase_net / mean(collated_phase_net), collated_mcherry_net / mean(collated_mcherry_net), bincenters);
+figure
+hold on
+shadedErrorBar(bincenters,means,stdevs,'m',1)
+shadedErrorBar(bincenters,means,stderrs,'r')
+axis([0 inf 0 inf])
+xlabel('Dry mass')
+ylabel('prEF1a-mCherry-NLS')
