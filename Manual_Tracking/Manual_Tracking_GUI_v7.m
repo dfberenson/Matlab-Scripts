@@ -67,22 +67,23 @@ handles.current_track_divides = false;
 handles.resegmentation_undoable = false;
 
 handles.segmentation_thresh = 0;
-% % For expt 180627:
-% handles.red_balance = 200;
-% handles.green_balance = 50;
-% handles.blue_balance = 0;
-
-% For expt 180803:
-handles.red_balance = 100;
-handles.green_balance = 200;
+% For expt 180627:
+handles.red_balance = 200;
+handles.green_balance = 50;
 handles.blue_balance = 0;
+
+% % For expt 180803:
+% handles.red_balance = 100;
+% handles.green_balance = 200;
+% handles.blue_balance = 0;
 
 %The following default values will be overwritten when GUI is called
 %with arguments
 handles.expt_folder = 'C:\Users\Skotheim Lab\Desktop\Manual_Tracking';
 % handles.expt_name = 'DFB_180822_HMEC_1GFiii_1_Pos1';
 % handles.expt_folder = 'F:\Manually tracked imaging experiments';
-handles.expt_name = 'DFB_180803_HMEC_D5_1_Pos5';
+% handles.expt_name = 'DFB_180803_HMEC_D5_1_Pos5';
+handles.expt_name = 'DFB_181031_HMEC_1E+gem_palbo_1_Pos1';
 handles.startframe = 1;
 handles.endframe = 432;
 
@@ -120,8 +121,8 @@ handles.raw_green_prefix = [handles.expt_folder '\' handles.expt_name '\'...
     handles.expt_name '_RawGreen\' handles.expt_name '_RawGreen'];
 
 % DEPENDS_ON_NUM_COLORS
-% handles.main_raw_prefix = handles.raw_red_prefix;
-handles.main_raw_prefix = handles.raw_farred_prefix;
+handles.main_raw_prefix = handles.raw_red_prefix;
+% handles.main_raw_prefix = handles.raw_farred_prefix;
 
 handles.segmentation_prefix = [handles.expt_folder '\' handles.expt_name '\'...
     'Segmentation\Segmented'];
@@ -218,7 +219,7 @@ for t = 1:handles.T
         disp(['Outlining image ' num2str(t) ' in white.'])
         
         % DEPENDS_ON_NUM_COLORS
-        raw_im_farred = imread([handles.raw_farred_prefix '_' sprintf('%03d',t) '.tif']);
+%         raw_im_farred = imread([handles.raw_farred_prefix '_' sprintf('%03d',t) '.tif']);
         raw_im_red = imread([handles.raw_red_prefix '_' sprintf('%03d',t) '.tif']);
         raw_im_green = imread([handles.raw_green_prefix '_' sprintf('%03d',t) '.tif']);
         
@@ -232,10 +233,10 @@ for t = 1:handles.T
         % color_im comprises three channels in RGB order.
         % Here farred will look red, red will look green, and green will
         % look blue.
-        color_im(:,:,1) = raw_im_farred * handles.red_balance;
-        color_im(:,:,2) = raw_im_red * handles.green_balance;
-%         color_im(:,:,1) = raw_im_red*handles.red_balance;
-%         color_im(:,:,2) = raw_im_green*handles.green_balance;
+%         color_im(:,:,1) = raw_im_farred * handles.red_balance;
+%         color_im(:,:,2) = raw_im_red * handles.green_balance;
+        color_im(:,:,1) = raw_im_red*handles.red_balance;
+        color_im(:,:,2) = raw_im_green*handles.green_balance;
 %         color_im(:,:,3) = raw_im_green*handles.blue_balance;
         color_im(:,:,3) = handles.blank_im;
         

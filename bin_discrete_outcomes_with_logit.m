@@ -10,14 +10,18 @@ end
 
 assert(size(X,2) == 1 && size(Y,2) == 1);
 
+nans = isnan(X) | isnan(Y);
+X = X(~nans);
+Y = Y(~nans);
 assert(length(X) == length(Y));
 
 %Create a vector with 'numbins' equally spaced bins
 numbins = 25;
 
-% Insist that each bin have at least half the number of data points it
+% Insist that each bin have at least one twentieth the number of data points it
 % should if all data were evenly distributed
-min_num_cells_in_bin = length(X) / numbins / 2;
+min_num_cells_in_bin = length(X) / numbins / 20;
+min_num_cells_in_bin = 1;
 
 binsizes = linspace(min(X) , max(X) , numbins + 1);
 %Delete the first bin since it will contain zero observations
@@ -90,7 +94,7 @@ ylabel('Binary outcome')
 scatter(X,Y)
 % Go back to yyaxis right before returning so outside labels go there
 yyaxis right
-
+plot(X,polyval(polyfit(X,Y,1),X))
 
 
 end

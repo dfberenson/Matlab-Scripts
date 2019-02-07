@@ -28,34 +28,43 @@ for i = 1:length(possible_mCherry_thresholds)
     normalized_mcherry_intensity = mcherry_intensity(objs_with_CFSE_area_within_range) / mean(mcherry_intensity(objs_with_CFSE_area_within_range));
     normalized_cfse_intensity = cfse_intensity(objs_with_CFSE_area_within_range) / mean(cfse_intensity(objs_with_CFSE_area_within_range));
     
-    fit1 = fitlm(nuclear_volumes(objs_with_CFSE_area_within_range),cfse_intensity(objs_with_CFSE_area_within_range),'Intercept',false);
-    fit4 = fitlm(mcherry_intensity(objs_with_CFSE_area_within_range),cfse_intensity(objs_with_CFSE_area_within_range),'Intercept',false);    
-    fit_linearcombo = fitlm([normalized_nuclear_volumes,normalized_mcherry_intensity],normalized_cfse_intensity,'Intercept',false);
+    fit1 = fitlm(nuclear_volumes(objs_with_CFSE_area_within_range),cfse_intensity(objs_with_CFSE_area_within_range));
+    fit4 = fitlm(mcherry_intensity(objs_with_CFSE_area_within_range),cfse_intensity(objs_with_CFSE_area_within_range));
+    fit_linearcombo = fitlm([normalized_nuclear_volumes,normalized_mcherry_intensity],normalized_cfse_intensity);
     
     r2_vals.nuclear_volume_vs_cfse_intensity(i) = fit1.Rsquared.Ordinary;
     r2_vals.mcherry_intensity_vs_cfse_intensity(i) = fit4.Rsquared.Ordinary;
     r2_vals.linearcombo(i) = fit_linearcombo.Rsquared.Ordinary;
-    slope_wrt_nuc_vol(i) = fit_linearcombo.Coefficients.Estimate(1);
-    slope_wrt_mcherry(i) = fit_linearcombo.Coefficients.Estimate(2);
+    slope_wrt_nuc_vol(i) = fit_linearcombo.Coefficients.Estimate(2);
+    slope_wrt_mcherry(i) = fit_linearcombo.Coefficients.Estimate(3);
 end
 
 
 figure
+box on
 hold on
-plot(possible_mCherry_thresholds,r2_vals.nuclear_volume_vs_cfse_intensity)
-plot(possible_mCherry_thresholds,r2_vals.mcherry_intensity_vs_cfse_intensity)
-plot(possible_mCherry_thresholds, r2_vals.linearcombo)
-axis([-inf inf 0.5 1])
+plot(possible_mCherry_thresholds,r2_vals.nuclear_volume_vs_cfse_intensity,'--k')
+plot(possible_mCherry_thresholds,r2_vals.mcherry_intensity_vs_cfse_intensity,'-r')
+plot(possible_mCherry_thresholds, r2_vals.linearcombo,'-b')
+axis([-inf inf 0 0.7],'square')
 xlabel('Segmentation threshold')
 ylabel('R^2 value')
-legend('Nuclear volume vs CFSE','prEF1a-mCherry-NLS vs CFSE','Combination vs CFSE')
+xticks([120 150 180 210 240 270 300])
+ax = gca();
+ax.FontSize = 16;
+% legend('Nuclear volume vs CFSE','prEF1a-mCherry-NLS vs CFSE','Combination vs CFSE')
 hold off
 
 figure
+box on
 hold on
-plot(possible_mCherry_thresholds, slope_wrt_nuc_vol)
-plot(possible_mCherry_thresholds, slope_wrt_mcherry)
+plot(possible_mCherry_thresholds, slope_wrt_nuc_vol,'--k')
+plot(possible_mCherry_thresholds, slope_wrt_mcherry,'-r')
 ylabel('Regression coefficient')
-legend('Nuclear volume','prEF1a-mCherry-NLS','Location','E')
+% legend('Nuclear volume','prEF1a-mCherry-NLS','Location','E')
 xlabel('Segmentation threshold')
+axis([-inf inf 0 0.7],'square')
+xticks([120 150 180 210 240 270 300])
+ax = gca();
+ax.FontSize = 16;
 hold off

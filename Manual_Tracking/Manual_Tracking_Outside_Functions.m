@@ -6,14 +6,14 @@ close all
 
 % Need to change backslashes to forward slashes in filenames on Mac
 
-source_folder = 'F:\DFB_imaging_experiments_2';
-destination_folder = 'C:\Users\Skotheim Lab\Desktop\Manual_Tracking';
-base_expt_name = 'DFB_180822_HMEC_1GFiii_1';
+source_folder = 'H:\DFB_imaging_experiments_3';
+destination_folder = 'H:\Manually tracked imaging experiments';
+base_expt_name = 'DFB_181031_HMEC_1E+gem_palbo_1';
 expt_source_folder = [source_folder '\' base_expt_name];
-pos = 1;
+pos = 3;
 full_expt_name = [base_expt_name '_Pos' num2str(pos)];
 expt_destination_folder = [destination_folder '\' full_expt_name];
-order_of_colors = 'rg';
+order_of_colors = 'gr';
 max_n = 3;
 
 %% Put images in correct folders
@@ -71,8 +71,9 @@ end
 startframe = 1;
 endframe = 432;
 gaussian_width = 2;
-threshold = 200;
-% Threshold = 200 is good for tracking 500ms mCherry @ 5%.
+threshold = 300;
+% Threshold = 200 is good for tracking 500ms mCherry @ 5% in line 1G. 300
+% is better for 1E.
 % Threshold = 300 was used for automatically counting fraction Gem+.
 strel_shape = 'disk';
 strel_size = 1;

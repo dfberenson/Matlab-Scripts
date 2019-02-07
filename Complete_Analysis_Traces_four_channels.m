@@ -3,39 +3,39 @@ close all
 
 %% Set parameters
 
-tracking_strategy = 'clicking';
-% tracking_strategy = 'aivia';
+% tracking_strategy = 'clicking';
+% calculate_half_of_mother_premitotic_size = true;
+% 
+tracking_strategy = 'aivia';
+calculate_half_of_mother_premitotic_size = false;
+
 
 % MUST CHANGE BACKGROUND SUBTRACTION FORMULA DEPENDING ON WHAT KIND OF
 % MOVIE
 
-source_folder = 'E:\Manually tracked measurements';
-expt_name = 'DFB_180627_HMEC_1GFiii_palbo_2';
-table_expt_folder = [source_folder '\' expt_name];
-measure_protein_concentrations = false;
-num_conditions = 2;
+% source_folder = 'E:\Manually tracked measurements';
+% expt_name = 'DFB_180627_HMEC_1GFiii_palbo_2';
+% table_expt_folder = [source_folder '\' expt_name];
 
 % table_source_folder = 'E:\Manually tracked measurements';
-% % table_source_folder = 'E:\Aivia';
-% image_source_folder = 'F:\Manually tracked imaging experiments';
+table_source_folder = 'E:\Aivia';
+image_source_folder = 'F:\Manually tracked imaging experiments';
 % expt_name = 'DFB_180803_HMEC_D5_1';
-% % expt_name = 'DFB_180829_HMEC_D5_1';
-% table_expt_folder = [table_source_folder '\' expt_name];
-% image_expt_folder = [image_source_folder '\' expt_name];
+% expt_name = 'DFB_180829_HMEC_D5_1';
+expt_name = 'DFB_181108_HMEC_D5_palbo_1';
+table_expt_folder = [table_source_folder '\' expt_name];
+image_expt_folder = [image_source_folder '\' expt_name];
 
 
 % source_folder = 'E:\Manually tracked measurements';
 % expt_name = 'DFB_180822_HMEC_1GFiii_1';
 % table_expt_folder = [source_folder '\' expt_name];
-% measure_protein_concentrations = false;
-% num_conditions = 2;
 
 % Choose types of measurements
 measure_area_vs_fluorescence = true;
 measure_sizes_at_birth_and_other_times = true;
 measure_lengths_of_phases = true;
 measure_g1s_probabilities = true;
-calculate_half_of_mother_premitotic_size = true;
 
 % Set analysis parameters
 analysis_parameters = struct;
@@ -70,7 +70,7 @@ switch expt_name
         
     case 'DFB_180822_HMEC_1GFiii_1'
         measure_protein_concentrations = false;
-        num_conditions = 3;
+        num_conditions = 2;
         analysis_parameters.order_of_channels = 'prg';
         analysis_parameters.size_channel = 'r';
         analysis_parameters.geminin_channel = 'g';
@@ -84,6 +84,20 @@ switch expt_name
     case 'DFB_180829_HMEC_D5_1'
         measure_protein_concentrations = true;
         num_conditions = 3;
+        analysis_parameters.order_of_channels = 'pgrf';
+        analysis_parameters.size_channel = 'f';
+        analysis_parameters.geminin_channel = 'r';
+        analysis_parameters.protein_channel = 'g';
+        analysis_parameters.movie_start_frame = 1;
+        analysis_parameters.movie_end_frame = 432;
+        analysis_parameters.segmentation_parameters.threshold = 272;
+        analysis_parameters.segmentation_parameters.strel_size = 3;
+        analysis_parameters.geminin_threshold = 0.17;
+        analysis_parameters.second_line_min_slope = 0.05/20;
+        
+    case 'DFB_181108_HMEC_D5_palbo_1'
+        measure_protein_concentrations = true;
+        num_conditions = 2;
         analysis_parameters.order_of_channels = 'pgrf';
         analysis_parameters.size_channel = 'f';
         analysis_parameters.geminin_channel = 'r';
@@ -114,7 +128,7 @@ analysis_parameters.g1s_quality_control = true;
 analysis_parameters.g1_frames_reqd_before_g1s = 4 / analysis_parameters.framerate;
 analysis_parameters.sg2_frames_reqd_after_g1s = 2 / analysis_parameters.framerate;
 analysis_parameters.max_g1s_noise_frames = 10;
-analysis_parameters.frames_before_g1s_to_examine = 5 / analysis_parameters.framerate;
+analysis_parameters.frames_before_g1s_to_examine = Inf / analysis_parameters.framerate;
 analysis_parameters.birthsize_measuring_frames = [6:12];
 analysis_parameters.min_cycle_duration_hours = 5;
 analysis_parameters.smoothing_param = 5;
@@ -161,6 +175,14 @@ for cond = 1:num_conditions
                     case 'aivia'
                         data(cond).positions_list = [2 3 7 8 9 10 11 12];
                 end
+                
+            case 'DFB_181108_HMEC_D5_palbo_1'
+                switch tracking_strategy
+                    case 'clicking'
+                        data(cond).positions_list = [];
+                    case 'aivia'
+                        data(cond).positions_list = [1 3 4 6 8 10];
+                end
         end
         
         
@@ -199,6 +221,15 @@ for cond = 1:num_conditions
                 switch tracking_strategy
                     case 'aivia'
                         data(cond).positions_list = [13:23];
+                end
+                
+            case 'DFB_181108_HMEC_D5_palbo_1'
+                data(cond).treatment = '100 nM palbociclib';
+                switch tracking_strategy
+                    case 'clicking'
+                        data(cond).positions_list = [];
+                    case 'aivia'
+                        data(cond).positions_list = [25 26 29 30 31 34 36];
                 end
         end
         
@@ -253,15 +284,15 @@ if strcmp(tracking_strategy,'clicking')
                 if data(cond).position(pos).analysis(c).is_born
                     mother = data(cond).position(pos).tree(c).mother_id;
                     if data(cond).position(pos).analysis(mother).has_mitosis
-                        if length(data(cond).position(pos).analysis(mother).size_measurements_smooth) > 10
+                        if length(data(cond).position(pos).analysis(mother).size_measurements_smooth) > 15
                             data(cond).position(pos).analysis(c).has_calculated_half_of_mother_premitotic_size = true;
                             data(cond).position(pos).analysis(c).half_of_mother_premitotic_size =...
-                                data(cond).position(pos).analysis(mother).size_measurements_smooth(end-10) / 2;
+                                data(cond).position(pos).analysis(mother).size_measurements_smooth(end-15) / 2;
                         end
-                        if length(data(cond).position(pos).analysis(mother).area_measurements_smooth) > 10
+                        if length(data(cond).position(pos).analysis(mother).area_measurements_smooth) > 15
                             data(cond).position(pos).analysis(c).has_calculated_half_of_mother_premitotic_area = true;
                             data(cond).position(pos).analysis(c).half_of_mother_premitotic_area =...
-                                data(cond).position(pos).analysis(mother).area_measurements_smooth(end-10) / 2;
+                                data(cond).position(pos).analysis(mother).area_measurements_smooth(end-15) / 2;
                         end
                     end
                 end
@@ -725,19 +756,53 @@ if measure_lengths_of_phases
     end
 end
 
-% Also measure protein accumulation during SG2
-if measure_protein_concentrations
+% Also measure sizes at G1/S and G2/M
+if measure_sizes_at_birth_and_other_times
     for cond = 1:num_conditions
         
         data(cond).g1s_sizes_for_cells_that_divide = [];
         data(cond).g1s_areas_for_cells_that_divide = [];
         data(cond).sg2_lengths_for_cells_that_divide = [];
         data(cond).g2m_sizes_for_cells_that_divide = [];
-        data(cond).g2m_areas_for_cells_that_divide = [];
+        data(cond).g2m_areas_for_cells_that_divide = [];        
+        
+        for pos = data(cond).positions_list
+            for c = data(cond).position(pos).tracking_measurements.all_tracknums
+                if ~isempty(data(cond).position(pos).analysis(c).passes_g1s) &&...
+                        data(cond).position(pos).analysis(c).passes_g1s &&...
+                        data(cond).position(pos).analysis(c).has_mitosis
+                    %                         data(cond).position(pos).analysis(c).has_complete_cycle &&...
+                    %                         data(cond).position(pos).analysis(c).has_valid_birth_size &&...
+                    %                         data(cond).position(pos).analysis(c).birth_size < analysis_parameters.max_birth_size &&...
+                    %                         ~isempty(data(cond).position(pos).analysis(c).birth_size_is_similar_to_sister) &&...
+                    %                         data(cond).position(pos).analysis(c).birth_size_is_similar_to_sister
+                    %
+                    %                     figure,plot(data(cond).position(pos).analysis(c).protein_measurements)
+                    %                     title(['Condition ' num2str(cond) ' position ' num2str(pos) ' cell ' num2str(c)])
+                    
+                   
+                    data(cond).g1s_sizes_for_cells_that_divide = [data(cond).g1s_sizes_for_cells_that_divide;...
+                        data(cond).position(pos).analysis(c).g1s_size];
+                    data(cond).g1s_areas_for_cells_that_divide = [data(cond).g1s_areas_for_cells_that_divide;...
+                        data(cond).position(pos).analysis(c).g1s_area];
+                    data(cond).sg2_lengths_for_cells_that_divide = [data(cond).sg2_lengths_for_cells_that_divide;...
+                        data(cond).position(pos).analysis(c).sg2_length_hours];
+                    data(cond).g2m_sizes_for_cells_that_divide = [data(cond).g2m_sizes_for_cells_that_divide;...
+                        data(cond).position(pos).analysis(c).g2m_size];
+                    data(cond).g2m_areas_for_cells_that_divide = [data(cond).g2m_areas_for_cells_that_divide;...
+                        data(cond).position(pos).analysis(c).g2m_area];
+                end
+            end
+        end
+    end
+end
+
+% Also measure protein accumulation during SG2
+if measure_protein_concentrations
+    for cond = 1:num_conditions
         data(cond).g1s_protein_amts_for_cells_that_divide = [];
         data(cond).sg2_protein_increases_for_cells_that_divide = [];
         data(cond).sg2_protein_accumulation_rates_for_cells_that_divide = [];
-        
         
         for pos = data(cond).positions_list
             for c = data(cond).position(pos).tracking_measurements.all_tracknums
@@ -766,16 +831,6 @@ if measure_protein_concentrations
                         data(cond).position(pos).analysis(c).sg2_protein_increase];
                     data(cond).sg2_protein_accumulation_rates_for_cells_that_divide = [data(cond).sg2_protein_accumulation_rates_for_cells_that_divide;...
                         data(cond).position(pos).analysis(c).sg2_protein_accumulation_slope_perframe];
-                    data(cond).g1s_sizes_for_cells_that_divide = [data(cond).g1s_sizes_for_cells_that_divide;...
-                        data(cond).position(pos).analysis(c).g1s_size];
-                    data(cond).g1s_areas_for_cells_that_divide = [data(cond).g1s_areas_for_cells_that_divide;...
-                        data(cond).position(pos).analysis(c).g1s_area];
-                    data(cond).sg2_lengths_for_cells_that_divide = [data(cond).sg2_lengths_for_cells_that_divide;...
-                        data(cond).position(pos).analysis(c).sg2_length_hours];
-                    data(cond).g2m_sizes_for_cells_that_divide = [data(cond).g2m_sizes_for_cells_that_divide;...
-                        data(cond).position(pos).analysis(c).g2m_size];
-                    data(cond).g2m_areas_for_cells_that_divide = [data(cond).g2m_areas_for_cells_that_divide;...
-                        data(cond).position(pos).analysis(c).g2m_area];
                 end
             end
         end
@@ -793,13 +848,13 @@ if measure_lengths_of_phases && measure_sizes_at_birth_and_other_times
         data(cond).g1s_areas_cells_born_and_pass_g1s = [];
         data(cond).g1_lengths_cells_born_and_pass_g1s = [];
         
+        data(cond).cells_that_shrink_during_g1 = [];
+        
         data(cond).half_of_mother_premitotic_size = [];
         data(cond).half_of_mother_premitotic_area = [];
-        data(cond).g1s_sizes_cells_born_and_pass_g1s_and_have_calculated_half_of_mother_premitotic_size = [];
-        data(cond).g1_lengths_cells_born_and_pass_g1s_and_have_calculated_half_of_mother_premitotic_size = [];
-        data(cond).g1s_areas_cells_born_and_pass_g1s_and_have_calculated_half_of_mother_premitotic_area = [];
-        data(cond).g1_lengths_cells_born_and_pass_g1s_and_have_calculated_half_of_mother_premitotic_area = [];
-
+        data(cond).g1s_sizes_cells_born_and_pass_g1s_and_have_calculated_half_size_of_mother_premitotic = [];
+        data(cond).g1s_lengths_cells_born_and_pass_g1s_and_have_calculated_half_size_of_mother_premitotic = [];
+        data(cond).g1s_areas_cells_born_and_pass_g1s_and_have_calculated_half_area_of_mother_premitotic = [];
         
         for pos = data(cond).positions_list
             for c = data(cond).position(pos).tracking_measurements.all_tracknums
@@ -826,20 +881,22 @@ if measure_lengths_of_phases && measure_sizes_at_birth_and_other_times
                     data(cond).g1_lengths_cells_born_and_pass_g1s = [data(cond).g1_lengths_cells_born_and_pass_g1s;...
                         data(cond).position(pos).analysis(c).g1_length_hours];
                     
+                    if data(cond).position(pos).analysis(c).birth_size > data(cond).position(pos).analysis(c).g1s_size
+                        data(cond).cells_that_shrink_during_g1 = [data(cond).cells_that_shrink_during_g1; [pos c]];
+                    end
+                    
                     if calculate_half_of_mother_premitotic_size
                         if data(cond).position(pos).analysis(c).has_calculated_half_of_mother_premitotic_size
                             data(cond).half_of_mother_premitotic_size = [data(cond).half_of_mother_premitotic_size;...
                                 data(cond).position(pos).analysis(c).half_of_mother_premitotic_size];
-                            data(cond).g1s_sizes_cells_born_and_pass_g1s_and_have_calculated_half_of_mother_premitotic_size = [data(cond).g1s_sizes_cells_born_and_pass_g1s_and_have_calculated_half_of_mother_premitotic_size;...
+                            data(cond).g1s_sizes_cells_born_and_pass_g1s_and_have_calculated_half_size_of_mother_premitotic = [data(cond).g1s_sizes_cells_born_and_pass_g1s_and_have_calculated_half_size_of_mother_premitotic;...
                                 data(cond).position(pos).analysis(c).g1s_size];
-                            data(cond).g1_lengths_cells_born_and_pass_g1s_and_have_calculated_half_of_mother_premitotic_size = [data(cond).g1_lengths_cells_born_and_pass_g1s_and_have_calculated_half_of_mother_premitotic_size;...
+                            data(cond).g1s_lengths_cells_born_and_pass_g1s_and_have_calculated_half_size_of_mother_premitotic = [data(cond).g1s_lengths_cells_born_and_pass_g1s_and_have_calculated_half_size_of_mother_premitotic;...
                                 data(cond).position(pos).analysis(c).g1_length_hours];
                             data(cond).half_of_mother_premitotic_area = [data(cond).half_of_mother_premitotic_area;...
                                 data(cond).position(pos).analysis(c).half_of_mother_premitotic_area];
-                            data(cond).g1s_areas_cells_born_and_pass_g1s_and_have_calculated_half_of_mother_premitotic_area = [data(cond).g1s_areas_cells_born_and_pass_g1s_and_have_calculated_half_of_mother_premitotic_area;...
+                            data(cond).g1s_areas_cells_born_and_pass_g1s_and_have_calculated_half_area_of_mother_premitotic = [data(cond).g1s_areas_cells_born_and_pass_g1s_and_have_calculated_half_area_of_mother_premitotic;...
                                 data(cond).position(pos).analysis(c).g1s_area];
-                            data(cond).g1_lengths_cells_born_and_pass_g1s_and_have_calculated_half_of_mother_premitotic_area = [data(cond).g1_lengths_cells_born_and_pass_g1s_and_have_calculated_half_of_mother_premitotic_area;...
-                                data(cond).position(pos).analysis(c).g1_length_hours];
                         end
                     end
                 end
@@ -954,6 +1011,7 @@ if measure_g1s_probabilities
         data(cond).all_areas_up_to_g1s_for_born_cells_thisframe = [];
         data(cond).all_sizes_up_to_g1s_for_born_cells_thisframe = [];
         data(cond).all_volumes_up_to_g1s_for_born_cells_thisframe = [];
+        data(cond).all_protein_amts_up_to_g1s_for_born_cells_thisframe = [];
         
         data(cond).all_frame_indices_wrt_g1s_nextframe = [];
         data(cond).all_g1s_happens_here_nextframe = [];
@@ -973,6 +1031,8 @@ if measure_g1s_probabilities
         data(cond).all_areas_up_to_g1s_for_born_cells_nextframe = [];
         data(cond).all_sizes_up_to_g1s_for_born_cells_nextframe = [];
         data(cond).all_volumes_up_to_g1s_for_born_cells_nextframe = [];
+                data(cond).all_protein_amts_up_to_g1s_for_born_cells_nextframe = [];
+
         
         data(cond).all_frame_indices_wrt_g1s_1hrs_ahead = [];
         data(cond).all_g1s_happens_here_1hrs_ahead = [];
@@ -992,6 +1052,8 @@ if measure_g1s_probabilities
         data(cond).all_areas_up_to_g1s_for_born_cells_1hrs_ahead = [];
         data(cond).all_sizes_up_to_g1s_for_born_cells_1hrs_ahead = [];
         data(cond).all_volumes_up_to_g1s_for_born_cells_1hrs_ahead = [];
+                data(cond).all_protein_amts_up_to_g1s_for_born_cells_1hrs_ahead = [];
+
         
         data(cond).all_frame_indices_wrt_g1s_2hrs_ahead = [];
         data(cond).all_g1s_happens_here_2hrs_ahead = [];
@@ -1011,6 +1073,8 @@ if measure_g1s_probabilities
         data(cond).all_areas_up_to_g1s_for_born_cells_2hrs_ahead = [];
         data(cond).all_sizes_up_to_g1s_for_born_cells_2hrs_ahead = [];
         data(cond).all_volumes_up_to_g1s_for_born_cells_2hrs_ahead = [];
+                data(cond).all_protein_amts_up_to_g1s_for_born_cells_2hrs_ahead = [];
+
         
         data(cond).all_frame_indices_wrt_g1s_3hrs_ahead = [];
         data(cond).all_g1s_happens_here_3hrs_ahead = [];
@@ -1030,6 +1094,8 @@ if measure_g1s_probabilities
         data(cond).all_areas_up_to_g1s_for_born_cells_3hrs_ahead = [];
         data(cond).all_sizes_up_to_g1s_for_born_cells_3hrs_ahead = [];
         data(cond).all_volumes_up_to_g1s_for_born_cells_3hrs_ahead = [];
+                data(cond).all_protein_amts_up_to_g1s_for_born_cells_3hrs_ahead = [];
+
         
         for pos = data(cond).positions_list
             for c = data(cond).position(pos).tracking_measurements.all_tracknums
@@ -1050,6 +1116,8 @@ if measure_g1s_probabilities
                         data(cond).position(pos).analysis(c).g1s_happens_here_thisframe];
                     data(cond).all_areas_up_to_g1s_thisframe = [data(cond).all_areas_up_to_g1s_thisframe;...
                         data(cond).position(pos).analysis(c).areas_up_to_g1s_thisframe];
+                    data(cond).all_volumes_up_to_g1s_thisframe = [data(cond).all_volumes_up_to_g1s_thisframe;...
+                        data(cond).position(pos).analysis(c).volumes_up_to_g1s_thisframe];
                     data(cond).all_sizes_up_to_g1s_thisframe = [data(cond).all_sizes_up_to_g1s_thisframe;...
                         data(cond).position(pos).analysis(c).sizes_up_to_g1s_thisframe];
                     data(cond).all_geminins_up_to_g1s_thisframe = [data(cond).all_geminins_up_to_g1s_thisframe;...
@@ -1063,6 +1131,8 @@ if measure_g1s_probabilities
                         data(cond).position(pos).analysis(c).g1s_happens_here_nextframe];
                     data(cond).all_areas_up_to_g1s_nextframe = [data(cond).all_areas_up_to_g1s_nextframe;...
                         data(cond).position(pos).analysis(c).areas_up_to_g1s_nextframe];
+                    data(cond).all_volumes_up_to_g1s_nextframe = [data(cond).all_volumes_up_to_g1s_nextframe;...
+                        data(cond).position(pos).analysis(c).volumes_up_to_g1s_nextframe];
                     data(cond).all_sizes_up_to_g1s_nextframe = [data(cond).all_sizes_up_to_g1s_nextframe;...
                         data(cond).position(pos).analysis(c).sizes_up_to_g1s_nextframe];
                     data(cond).all_geminins_up_to_g1s_nextframe = [data(cond).all_geminins_up_to_g1s_nextframe;...
@@ -1077,6 +1147,8 @@ if measure_g1s_probabilities
                         data(cond).position(pos).analysis(c).g1s_happens_here_1hrs_ahead];
                     data(cond).all_areas_up_to_g1s_1hrs_ahead = [data(cond).all_areas_up_to_g1s_1hrs_ahead;...
                         data(cond).position(pos).analysis(c).areas_up_to_g1s_1hrs_ahead];
+                    data(cond).all_volumes_up_to_g1s_1hrs_ahead = [data(cond).all_volumes_up_to_g1s_1hrs_ahead;...
+                        data(cond).position(pos).analysis(c).volumes_up_to_g1s_1hrs_ahead];
                     data(cond).all_sizes_up_to_g1s_1hrs_ahead = [data(cond).all_sizes_up_to_g1s_1hrs_ahead;...
                         data(cond).position(pos).analysis(c).sizes_up_to_g1s_1hrs_ahead];
                     data(cond).all_geminins_up_to_g1s_1hrs_ahead = [data(cond).all_geminins_up_to_g1s_1hrs_ahead;...
@@ -1091,6 +1163,8 @@ if measure_g1s_probabilities
                         data(cond).position(pos).analysis(c).g1s_happens_here_2hrs_ahead];
                     data(cond).all_areas_up_to_g1s_2hrs_ahead = [data(cond).all_areas_up_to_g1s_2hrs_ahead;...
                         data(cond).position(pos).analysis(c).areas_up_to_g1s_2hrs_ahead];
+                    data(cond).all_volumes_up_to_g1s_2hrs_ahead = [data(cond).all_volumes_up_to_g1s_2hrs_ahead;...
+                        data(cond).position(pos).analysis(c).volumes_up_to_g1s_2hrs_ahead];
                     data(cond).all_sizes_up_to_g1s_2hrs_ahead = [data(cond).all_sizes_up_to_g1s_2hrs_ahead;...
                         data(cond).position(pos).analysis(c).sizes_up_to_g1s_2hrs_ahead];
                     data(cond).all_geminins_up_to_g1s_2hrs_ahead = [data(cond).all_geminins_up_to_g1s_2hrs_ahead;...
@@ -1105,6 +1179,8 @@ if measure_g1s_probabilities
                         data(cond).position(pos).analysis(c).g1s_happens_here_3hrs_ahead];
                     data(cond).all_areas_up_to_g1s_3hrs_ahead = [data(cond).all_areas_up_to_g1s_3hrs_ahead;...
                         data(cond).position(pos).analysis(c).areas_up_to_g1s_3hrs_ahead];
+                    data(cond).all_volumes_up_to_g1s_3hrs_ahead = [data(cond).all_volumes_up_to_g1s_3hrs_ahead;...
+                        data(cond).position(pos).analysis(c).volumes_up_to_g1s_3hrs_ahead];
                     data(cond).all_sizes_up_to_g1s_3hrs_ahead = [data(cond).all_sizes_up_to_g1s_3hrs_ahead;...
                         data(cond).position(pos).analysis(c).sizes_up_to_g1s_3hrs_ahead];
                     data(cond).all_geminins_up_to_g1s_3hrs_ahead = [data(cond).all_geminins_up_to_g1s_3hrs_ahead;...
@@ -1216,7 +1292,8 @@ if measure_g1s_probabilities
                             data(cond).position(pos).analysis(c).volumes_up_to_g1s_3hrs_ahead];
                         
                         if measure_protein_concentrations
-                            
+                            data(cond).all_protein_amts_up_to_g1s_for_born_cells_thisframe = [data(cond).all_protein_amts_up_to_g1s_for_born_cells_thisframe;...
+                                data(cond).position(pos).analysis(c).protein_amt_up_to_g1s_thisframe];
                             data(cond).all_protein_per_area_up_to_g1s_for_born_cells_thisframe = [data(cond).all_protein_per_area_up_to_g1s_for_born_cells_thisframe;...
                                 data(cond).position(pos).analysis(c).protein_per_area_up_to_g1s_thisframe];
                             data(cond).all_protein_per_size_up_to_g1s_for_born_cells_thisframe = [data(cond).all_protein_per_size_up_to_g1s_for_born_cells_thisframe;...
@@ -1224,6 +1301,8 @@ if measure_g1s_probabilities
                             data(cond).all_protein_per_volume_up_to_g1s_for_born_cells_thisframe = [data(cond).all_protein_per_volume_up_to_g1s_for_born_cells_thisframe;...
                                 data(cond).position(pos).analysis(c).protein_per_volume_up_to_g1s_thisframe];
                             
+                            data(cond).all_protein_amts_up_to_g1s_for_born_cells_nextframe = [data(cond).all_protein_amts_up_to_g1s_for_born_cells_nextframe;...
+                                data(cond).position(pos).analysis(c).protein_amt_up_to_g1s_nextframe];
                             data(cond).all_protein_per_area_up_to_g1s_for_born_cells_nextframe = [data(cond).all_protein_per_area_up_to_g1s_for_born_cells_nextframe;...
                                 data(cond).position(pos).analysis(c).protein_per_area_up_to_g1s_nextframe];
                             data(cond).all_protein_per_size_up_to_g1s_for_born_cells_nextframe = [data(cond).all_protein_per_size_up_to_g1s_for_born_cells_nextframe;...
@@ -1231,6 +1310,8 @@ if measure_g1s_probabilities
                             data(cond).all_protein_per_volume_up_to_g1s_for_born_cells_nextframe = [data(cond).all_protein_per_volume_up_to_g1s_for_born_cells_nextframe;...
                                 data(cond).position(pos).analysis(c).protein_per_volume_up_to_g1s_nextframe];
                             
+                            data(cond).all_protein_amts_up_to_g1s_for_born_cells_1hrs_ahead = [data(cond).all_protein_amts_up_to_g1s_for_born_cells_1hrs_ahead;...
+                                data(cond).position(pos).analysis(c).protein_amt_up_to_g1s_1hrs_ahead];
                             data(cond).all_protein_per_area_up_to_g1s_for_born_cells_1hrs_ahead = [data(cond).all_protein_per_area_up_to_g1s_for_born_cells_1hrs_ahead;...
                                 data(cond).position(pos).analysis(c).protein_per_area_up_to_g1s_1hrs_ahead];
                             data(cond).all_protein_per_size_up_to_g1s_for_born_cells_1hrs_ahead = [data(cond).all_protein_per_size_up_to_g1s_for_born_cells_1hrs_ahead;...
@@ -1238,6 +1319,8 @@ if measure_g1s_probabilities
                             data(cond).all_protein_per_volume_up_to_g1s_for_born_cells_1hrs_ahead = [data(cond).all_protein_per_volume_up_to_g1s_for_born_cells_1hrs_ahead;...
                                 data(cond).position(pos).analysis(c).protein_per_volume_up_to_g1s_1hrs_ahead];
                             
+                            data(cond).all_protein_amts_up_to_g1s_for_born_cells_2hrs_ahead = [data(cond).all_protein_amts_up_to_g1s_for_born_cells_2hrs_ahead;...
+                                data(cond).position(pos).analysis(c).protein_amt_up_to_g1s_2hrs_ahead];
                             data(cond).all_protein_per_area_up_to_g1s_for_born_cells_2hrs_ahead = [data(cond).all_protein_per_area_up_to_g1s_for_born_cells_2hrs_ahead;...
                                 data(cond).position(pos).analysis(c).protein_per_area_up_to_g1s_2hrs_ahead];
                             data(cond).all_protein_per_size_up_to_g1s_for_born_cells_2hrs_ahead = [data(cond).all_protein_per_size_up_to_g1s_for_born_cells_2hrs_ahead;...
@@ -1245,6 +1328,8 @@ if measure_g1s_probabilities
                             data(cond).all_protein_per_volume_up_to_g1s_for_born_cells_2hrs_ahead = [data(cond).all_protein_per_volume_up_to_g1s_for_born_cells_2hrs_ahead;...
                                 data(cond).position(pos).analysis(c).protein_per_volume_up_to_g1s_2hrs_ahead];
                             
+                            data(cond).all_protein_amts_up_to_g1s_for_born_cells_3hrs_ahead = [data(cond).all_protein_amts_up_to_g1s_for_born_cells_3hrs_ahead;...
+                                data(cond).position(pos).analysis(c).protein_amt_up_to_g1s_3hrs_ahead];
                             data(cond).all_protein_per_area_up_to_g1s_for_born_cells_3hrs_ahead = [data(cond).all_protein_per_area_up_to_g1s_for_born_cells_3hrs_ahead;...
                                 data(cond).position(pos).analysis(c).protein_per_area_up_to_g1s_3hrs_ahead];
                             data(cond).all_protein_per_size_up_to_g1s_for_born_cells_3hrs_ahead = [data(cond).all_protein_per_size_up_to_g1s_for_born_cells_3hrs_ahead;...
@@ -1260,7 +1345,7 @@ if measure_g1s_probabilities
     end
 end
 
-save([table_expt_folder '\' tracking_strategy '_Data.mat'],'data');
+save([table_expt_folder '\' tracking_strategy '_Data.mat'],'data','-v7.3');
 
 %% Plot results
 
@@ -1834,7 +1919,9 @@ for cond = 1:num_conditions
                                     end
                                     all_traces_padded(1:length(thistrace),i) = thistrace;
                                 end
-                                xlswrite([table_subfolder '\Trace_table_' data(cond).treatment '.xlsx'], all_traces_padded, data_type_to_write{1});
+                                if ~isempty(all_traces_padded)
+                                    xlswrite([table_subfolder '\Trace_table_' data(cond).treatment '.xlsx'], all_traces_padded, data_type_to_write{1});
+                                end
                         end
                 end
             end
@@ -1958,6 +2045,7 @@ if measure_g1s_probabilities
                             assert(length(x_coord_cell_array) == length(y_coord_cell_array));
                             all_x_coords = [];
                             all_y_coords = [];
+                            if length(x_coord_cell_array) > 0
                             
                             figure()
                             hold on
@@ -1991,6 +2079,7 @@ if measure_g1s_probabilities
                             axis([-inf inf min(0,prctile(all_y_coords,1)) prctile(all_y_coords,99.9)])
                             saveas(gcf, [figure_subfolder '\' data_type_to_plot{1} '_' data(cond).treatment '_'...
                                 cell_class_to_plot{1} '_' plottype{1} '.png'])
+                            end
                     end
                 end
             end

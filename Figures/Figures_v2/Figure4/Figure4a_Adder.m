@@ -5,7 +5,7 @@ close all
 load('E:\Manually tracked measurements\DFB_180803_HMEC_D5_1\clicking_Data.mat')
 
 
-for cond = 1:2
+for cond = 1:1
 %     
     birth_sizes_born_and_pass_g1s = data(cond).birth_sizes_cells_born_and_pass_g1s;
     g1_lengths_born_and_pass_g1s = data(cond).g1_lengths_cells_born_and_pass_g1s;

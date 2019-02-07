@@ -2,19 +2,19 @@
 clear all
 close all
 
-for pos = [31:36]
+for pos = [13:24]
 
 %% Initialize Variables
 
 % Need to change backslashes to forward slashes in filenames on Mac
 
 % folder = 'C:\Users\Skotheim Lab\Desktop\Manual_Tracking';
-source_folder = 'F:\DFB_imaging_experiments_2';
+source_folder = 'H:\DFB_imaging_experiments_3';
 base_expt_name = 'DFB_181108_HMEC_D5_palbo_1';
 % pos = 13;
 full_expt_name = [base_expt_name '_Pos' num2str(pos)];
 expt_source_folder = [source_folder '\' base_expt_name];
-destination_folder = 'F:\Manually tracked imaging experiments';
+destination_folder = 'H:\Manually tracked imaging experiments';
 expt_destination_folder = [destination_folder '\' full_expt_name];
 order_of_colors = 'pgrf';
 % phase green red farred

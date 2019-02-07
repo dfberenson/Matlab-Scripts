@@ -1,5 +1,5 @@
 
-function [means,stdevs,stderrs] = bindata(X,Y,bincenters)
+function [means,stdevs,stderrs,Ns] = bindata(X,Y,bincenters)
 
 numbins = length(bincenters);
 all_bindistances = diff(bincenters);

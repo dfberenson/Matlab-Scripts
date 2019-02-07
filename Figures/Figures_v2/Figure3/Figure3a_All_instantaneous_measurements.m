@@ -29,11 +29,11 @@ colormap(flipud(gray))
 colorbar
 axis xy
 
-randomtenpercent = rand(length(data(1).all_area_measurements_avoiding_ends),1) < 0.05;
+randomfivepercent = rand(length(data(1).all_area_measurements_avoiding_ends),1) < 0.05;
 
 figure
 hold on
-scatter(data(1).all_area_measurements_avoiding_ends(randomtenpercent) .^ 1.5, data(1).all_size_measurements_avoiding_ends(randomtenpercent),'.k')
+scatter(data(1).all_area_measurements_avoiding_ends(randomfivepercent) .^ 1.5, data(1).all_size_measurements_avoiding_ends(randomfivepercent),'.k')
 % scatter(data(1).all_area_measurements_avoiding_ends .^ 1.5, data(1).all_size_measurements_avoiding_ends,10,data(1).whichcell_avoiding_ends)
 colormap('colorcube')
 xlabel('Nuclear volume')
