@@ -34,8 +34,16 @@ close all
 
 drive = 'H';
 folder = 'DFB_imaging_experiments_3';
-expt = 'DFB_190121_HMEC_D5_palbo_1';
-channel = 2;
+
+% expt = 'DFB_190121_HMEC_D5_palbo_1';
+% channel = 2;
+
+expt = 'DFB_190212_HMEC_Rb-Clov_D5_1';
+channel = 0;
+
+% expt = 'DFB_190215_HMEC_BT45-Cdt1_D5_3';
+% channel = 1;
+
 
 positions = 1:36;
 frames = 1:432;

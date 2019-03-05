@@ -5,11 +5,11 @@ close all
 framerate = 1/6;
 
 smoothen = true;
-must_be_born = true;
+must_be_born = false;
 bin_by_ages = true;
 
 show_all_plots = false;
-show_some_plots = true;
+show_some_plots = false;
 numbins = 6;
 
 % Binning is restricted to within these percentiles.
@@ -17,7 +17,7 @@ numbins = 6;
 low_prctile = 5;
 high_prctile = 95;
 
-for cond = 2
+for cond = 1:2
     
     if cond == 1
         load('C:\Users\Skotheim Lab\Desktop\Tables\LogData_PBS.mat')
@@ -38,9 +38,7 @@ for cond = 2
     
     for expt = exptnums
         if must_be_born == true
-            % After rerun SaveJustLogisticData.m, can swap these
-            % permanently. (It's just a clarification of variable names).
-            %             frame_indices{expt} = logdata(expt).all_frame_indices_wrt_g1s_for_born_cells;
+
             frame_indices{expt} = logdata(expt).all_frame_indices_up_to_g1s_wrt_g1s_for_born_cells;
             
             ages{expt} = logdata(expt).all_ages_in_hours_up_to_g1s_for_born_cells;
@@ -51,9 +49,6 @@ for cond = 2
             g1s_happens_here{expt} = logdata(expt).all_g1s_happens_here_for_born_cells;
             
         else
-            % After rerun SaveJustLogisticData.m, can swap these
-            % permanently. (It's just a clarification of variable names).
-            %             frame_indices{expt} = logdata(expt).all_frame_indices_wrt_g1s;
             frame_indices{expt} = logdata(expt).all_frame_indices_up_to_g1s_wrt_g1s;
             
             sizes{expt} = logdata(expt).all_sizes_up_to_g1s;
@@ -123,7 +118,7 @@ for cond = 2
     % Only look at whole-hour offsets. Since frames_before = 1 really means
     % to check 'thisframe' and frames_before = 2 means to check
     % 'nextframe', we want to check frames_before = 2,8,14,20,etc.
-    all_frames_before = all_frames_before(mod(all_frames_before - 1, 1/framerate) == 0);
+%     all_frames_before = all_frames_before(mod(all_frames_before - 1, 1/framerate) == 0);
     
     % Algorithm to adjust for each frames_before offset
     for frames_before = all_frames_before
@@ -188,11 +183,11 @@ for cond = 2
         end
         
         %         binsizes = linspace(min(sizes_this_frames_before) , max(sizes_this_frames_before) , numbins);
-        binsizes = linspace(prctile(sizes_this_frames_before,low_prctile), prctile(sizes_this_frames_before,high_prctile), numbins);
-        [means,error_below,error_above,Ns] = bootstrap(sizes_this_frames_before,g1s_happens_here_this_frames_before,binsizes);
+        binsizes = linspace(prctile(sizes_this_frames_before/nanmean(sizes_this_frames_before),low_prctile), prctile(sizes_this_frames_before/nanmean(sizes_this_frames_before),high_prctile), numbins);
+        [means,error_below,error_above,Ns] = bootstrap(sizes_this_frames_before/nanmean(sizes_this_frames_before),g1s_happens_here_this_frames_before,binsizes);
         %         disp('Weighted linear fit to sizes')
         binfit_size = fitlm(binsizes,means,'Weights',Ns);
-        if show_all_plots == true || (show_some_plots == true && ismember(frames_before, 3:19))
+        if show_all_plots == true || (show_some_plots == true && ismember(frames_before, 0:30))
             figure()
             subplot(1,num_subplots,1)
             box on
@@ -204,11 +199,11 @@ for cond = 2
         end
         
         %         binsizes = linspace(min(rb_per_size_this_frames_before) , max(rb_per_size_this_frames_before) , numbins);
-        binsizes = linspace(prctile(rb_per_size_this_frames_before,low_prctile), prctile(rb_per_size_this_frames_before,high_prctile), numbins);
-        [means,error_below,error_above,Ns] = bootstrap(rb_per_size_this_frames_before,g1s_happens_here_this_frames_before,binsizes);
+        binsizes = linspace(prctile(rb_per_size_this_frames_before/nanmean(rb_per_size_this_frames_before),low_prctile), prctile(rb_per_size_this_frames_before/nanmean(rb_per_size_this_frames_before),high_prctile), numbins);
+        [means,error_below,error_above,Ns] = bootstrap(rb_per_size_this_frames_before/nanmean(rb_per_size_this_frames_before),g1s_happens_here_this_frames_before,binsizes);
         %         disp('Weighted linear fit to [Rb]')
         binfit_rb = fitlm(binsizes,means,'Weights',Ns);
-        if show_all_plots == true || (show_some_plots == true && ismember(frames_before, 3:19))
+        if show_all_plots == true || (show_some_plots == true && ismember(frames_before, 0:30))
             subplot(1,num_subplots,2)
             box on
             shadedErrorBar(binsizes,means,[error_above, error_below]');
@@ -222,7 +217,7 @@ for cond = 2
             binsizes = linspace(0,max(ages_this_frames_before),numbins);
             [means,error_below,error_above,Ns] = bootstrap(ages_this_frames_before,g1s_happens_here_this_frames_before,binsizes);
             binfit_age = fitlm(binsizes,means,'Weights',Ns);
-            if show_all_plots == true || (show_some_plots == true && ismember(frames_before, 3:19))
+            if show_all_plots == true || (show_some_plots == true && ismember(frames_before, 0:30))
                 subplot(1,num_subplots,3)
                 box on
                 shadedErrorBar(binsizes,means,[error_above, error_below]');
@@ -244,14 +239,14 @@ for cond = 2
                     these_age_indices_this_frames_before = age_bin_min <= ages_this_frames_before & ages_this_frames_before <= age_bin_max;
                     num_subplots = 2;
                     
-                    if show_all_plots == true || (show_some_plots == true && ismember(frames_before, 3:19))
+                    if show_all_plots == true || (show_some_plots == true && ismember(frames_before, 0:30))
                         figure()
                         suptitle([expt_type{cond} ' ' num2str(10*(frames_before-1)) ' minutes before, restricted to cells in age window ' num2str(age_bin_min) ' to ' num2str(age_bin_max) ' h'])
                     end
                     
                     binsizes = linspace(prctile(sizes_this_frames_before(these_age_indices_this_frames_before),low_prctile), prctile(sizes_this_frames_before(these_age_indices_this_frames_before),high_prctile), numbins);
                     [means,error_below,error_above,Ns] = bootstrap(sizes_this_frames_before(these_age_indices_this_frames_before),g1s_happens_here_this_frames_before(these_age_indices_this_frames_before),binsizes);
-                    if show_all_plots == true || (show_some_plots == true && ismember(frames_before, 3:19))
+                    if show_all_plots == true || (show_some_plots == true && ismember(frames_before, 0:30))
                         subplot(1,num_subplots,1)
                         box on
                         shadedErrorBar(binsizes,means,[error_above, error_below]');
@@ -263,7 +258,7 @@ for cond = 2
                     
                     binsizes = linspace(prctile(rb_per_size_this_frames_before(these_age_indices_this_frames_before),low_prctile), prctile(rb_per_size_this_frames_before(these_age_indices_this_frames_before),high_prctile), numbins);
                     [means,error_below,error_above,Ns] = bootstrap(rb_per_size_this_frames_before(these_age_indices_this_frames_before),g1s_happens_here_this_frames_before(these_age_indices_this_frames_before),binsizes);
-                    if show_all_plots == true || (show_some_plots == true && ismember(frames_before, 3:19))
+                    if show_all_plots == true || (show_some_plots == true && ismember(frames_before, 0:30))
                         subplot(1,num_subplots,2)
                         box on
                         shadedErrorBar(binsizes,means,[error_above, error_below]');
@@ -276,8 +271,8 @@ for cond = 2
             end
         end
         
-        [size_b,size_dev,size_stats] = glmfit(sizes_this_frames_before,g1s_happens_here_this_frames_before,'binomial');
-        [rb_b,rb_dev,rb_stats] = glmfit(rb_per_size_this_frames_before,g1s_happens_here_this_frames_before,'binomial');
+        [size_b,size_dev,size_stats] = glmfit(sizes_this_frames_before/nanmean(sizes_this_frames_before),g1s_happens_here_this_frames_before,'binomial');
+        [rb_b,rb_dev,rb_stats] = glmfit(rb_per_size_this_frames_before/nanmean(rb_per_size_this_frames_before),g1s_happens_here_this_frames_before,'binomial');
         
         size_slopes_logit(frames_before) = size_b(2);
         size_p_logit(frames_before) = size_stats.p(2);
@@ -302,7 +297,7 @@ for cond = 2
         end
         
         
-        if show_all_plots == true || (show_some_plots == true && ismember(frames_before, 3:19))
+        if show_all_plots == true || (show_some_plots == true && ismember(frames_before, 0:30))
             [fig, x_and_y_pvals] = two_variable_logistic_regression(sizes_this_frames_before, rb_per_size_this_frames_before, g1s_happens_here_this_frames_before,low_prctile,high_prctile,low_prctile,high_prctile);
             title([expt_type{cond} ' ' num2str(10*(frames_before-1)) ' minutes before, G1/S probability'])
             xlabel(['Size, p = ' num2str(x_and_y_pvals(1))])
@@ -374,8 +369,8 @@ for cond = 2
     
     subplot(2,2,3)
     hold on
-    plot(framerate*(all_frames_before-1),log(size_p_logit(all_frames_before)))
-    plot(framerate*(all_frames_before-1),log(rb_p_logit(all_frames_before)))
+    plot(framerate*(all_frames_before-1),log10(size_p_logit(all_frames_before)))
+    plot(framerate*(all_frames_before-1),log10(rb_p_logit(all_frames_before)))
     xlabel('Time before G1/S (h)')
     ylabel('Log p-Value')
     title('Logistic regression')
@@ -394,8 +389,8 @@ for cond = 2
     
     subplot(2,2,4)
     hold on
-    plot(framerate*(all_frames_before-1),log(size_p_bins(all_frames_before)))
-    plot(framerate*(all_frames_before-1),log(rb_p_bins(all_frames_before)))
+    plot(framerate*(all_frames_before-1),log10(size_p_bins(all_frames_before)))
+    plot(framerate*(all_frames_before-1),log10(rb_p_bins(all_frames_before)))
     xlabel('Time before G1/S (h)')
     ylabel('Log p-Value')
     title('Linear regression to binned means')
@@ -418,8 +413,8 @@ for cond = 2
         
         subplot(2,2,3)
         hold on
-        plot(framerate*(all_frames_before-1),log(size_p_logit(all_frames_before)))
-        plot(framerate*(all_frames_before-1),log(age_p_logit(all_frames_before)))
+        plot(framerate*(all_frames_before-1),log10(size_p_logit(all_frames_before)))
+        plot(framerate*(all_frames_before-1),log10(age_p_logit(all_frames_before)))
         xlabel('Time before G1/S (h)')
         ylabel('Log p-Value')
         title('Logistic regression')
@@ -438,8 +433,8 @@ for cond = 2
         
         subplot(2,2,4)
         hold on
-        plot(framerate*(all_frames_before-1),log(size_p_bins(all_frames_before)))
-        plot(framerate*(all_frames_before-1),log(age_p_bins(all_frames_before)))
+        plot(framerate*(all_frames_before-1),log10(size_p_bins(all_frames_before)))
+        plot(framerate*(all_frames_before-1),log10(age_p_bins(all_frames_before)))
         xlabel('Time before G1/S (h)')
         ylabel('Log p-Value')
         title('Linear regression to binned means')
@@ -447,6 +442,24 @@ for cond = 2
         
     end
     
+    figure
+    hold on
+    box on
+    plot(framerate*(all_frames_before-1),log10(size_p_logit(all_frames_before)),'-k')
+    axis('square')
+    xlabel('Time before G1/S (h)')
+    ylabel('Log p-Value')
+    
+    figure
+    hold on
+    box on
+    plot(framerate*(all_frames_before-1),log10(size_p_logit(all_frames_before)))
+    plot(framerate*(all_frames_before-1),log10(rb_p_logit(all_frames_before)))
+    axis('square')
+    xlabel('Time before G1/S (h)')
+    ylabel('Log p-Value')
+    title('Logistic regression')
+    legend('Size','[Rb]')
     
     figure
     hold on

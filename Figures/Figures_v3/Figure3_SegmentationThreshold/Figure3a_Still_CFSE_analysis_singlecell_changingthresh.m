@@ -20,6 +20,8 @@ strel_shape = 'disk';
 strel_size = 1;
 se = strel(strel_shape,strel_size);
 
+volume_power = 1.5;
+
 num_segmentation_tries = 25;
 commonly_used_segmentation_num = 9;
 possible_mCherry_thresholds = linspace(120,300,num_segmentation_tries);
@@ -76,19 +78,19 @@ for try_num = 1:num_segmentation_tries
         fullsize_im_local_background_mask(y_min:y_max, x_min:x_max) = boundingBox_background_mask;
         raw_mean_background = regionprops(fullsize_im_local_background_mask, im_mCherry, 'MeanIntensity');
         
-        area_measurements(try_num,j) = raw_mcherry_props(j).Area;
+        volume_measurements(try_num,j) = raw_mcherry_props(j).Area ^ volume_power;
         intensity_measurements(try_num,j) = raw_mcherry_props(j).Area * (raw_mcherry_props(j).MeanIntensity - raw_mean_background.MeanIntensity);
     end
 end
 
 for j = 1:num_objects_mCherry
-    scaled_area_measurements(:,j) = area_measurements(:,j) / area_measurements(commonly_used_segmentation_num,j);
+    scaled_volume_measurements(:,j) = volume_measurements(:,j) / volume_measurements(commonly_used_segmentation_num,j);
     scaled_intensity_measurements(:,j) = intensity_measurements(:,j) / intensity_measurements(commonly_used_segmentation_num,j);
     
     figure
     box on
     hold on
-    plot(possible_mCherry_thresholds,scaled_area_measurements(:,j) .^ 1.5,'k--')
+    plot(possible_mCherry_thresholds,scaled_volume_measurements(:,j),'k--')
     plot(possible_mCherry_thresholds,scaled_intensity_measurements(:,j),'r-')
     %     legend('Nuclear Volume','prEF1a-mCherry-NLS')
     xlabel('Segmentation threshold')

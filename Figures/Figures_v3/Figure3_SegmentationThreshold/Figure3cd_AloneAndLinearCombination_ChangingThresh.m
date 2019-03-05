@@ -8,6 +8,8 @@ load('C:\Users\Skotheim Lab\Box Sync\Daniel Berenson''s Files\Data\Still_Imaging
 
 r2_vals = struct;
 
+volume_power = 1.5;
+
 for i = 1:length(possible_mCherry_thresholds)
     
     cfse_areas = data_at_each_thresh(i).all_cfse_areas;
@@ -16,7 +18,7 @@ for i = 1:length(possible_mCherry_thresholds)
     max_CFSE_obj_area = 1500;
     objs_with_CFSE_area_within_range = cfse_areas < max_CFSE_obj_area & cfse_areas > min_CFSE_obj_area;
     
-    nuclear_volumes = data_at_each_thresh(i).all_mcherry_areas .^ 1.5;
+    nuclear_volumes = data_at_each_thresh(i).all_mcherry_areas .^ volume_power;
     mcherry_intensity = data_at_each_thresh(i).all_mcherry_flat_integratedintensities_minusbackground;
     cfse_intensity = data_at_each_thresh(i).all_cfse_flat_integratedintensities_minusbackground;
     
@@ -39,22 +41,6 @@ for i = 1:length(possible_mCherry_thresholds)
     slope_wrt_mcherry(i) = fit_linearcombo.Coefficients.Estimate(3);
 end
 
-
-figure
-box on
-hold on
-plot(possible_mCherry_thresholds,r2_vals.nuclear_volume_vs_cfse_intensity,'--k')
-plot(possible_mCherry_thresholds,r2_vals.mcherry_intensity_vs_cfse_intensity,'-r')
-plot(possible_mCherry_thresholds, r2_vals.linearcombo,'-b')
-axis([-inf inf 0 0.7],'square')
-xlabel('Segmentation threshold')
-ylabel('R^2 value')
-xticks([120 150 180 210 240 270 300])
-ax = gca();
-ax.FontSize = 16;
-% legend('Nuclear volume vs CFSE','prEF1a-mCherry-NLS vs CFSE','Combination vs CFSE')
-hold off
-
 figure
 box on
 hold on
@@ -68,3 +54,20 @@ xticks([120 150 180 210 240 270 300])
 ax = gca();
 ax.FontSize = 16;
 hold off
+
+
+figure
+box on
+hold on
+plot(possible_mCherry_thresholds,r2_vals.nuclear_volume_vs_cfse_intensity,'--k')
+plot(possible_mCherry_thresholds,r2_vals.mcherry_intensity_vs_cfse_intensity,'-r')
+plot(possible_mCherry_thresholds, r2_vals.linearcombo,'-b')
+axis([-inf inf 0 0.7],'square')
+xlabel('Segmentation threshold')
+ylabel('R2 value')
+xticks([120 150 180 210 240 270 300])
+ax = gca();
+ax.FontSize = 16;
+% legend('Nuclear volume vs CFSE','prEF1a-mCherry-NLS vs CFSE','Combination vs CFSE')
+hold off
+

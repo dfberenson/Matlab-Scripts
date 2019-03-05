@@ -3,7 +3,7 @@
 clear all
 close all
 
-folder = 'I:';
+folder = 'H:\DFB_imaging_experiments_3';
 
 for cond = 1:2
     if cond ==  1

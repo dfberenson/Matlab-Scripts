@@ -1,8 +1,9 @@
 %function FlatField (uniform , darkfield)
 
 
-uniform = GFP5ug10ms;
-darkfield = Darkfield5ug10ms;
+uniform = imread('C:\Users\Skotheim Lab\Desktop\blank-field.tif');
+% darkfield = Darkfield5ug10ms;
+darkfield = 106;,
 aboveDark = uniform - darkfield;
 new_image = aboveDark;
 filter = double(aboveDark);

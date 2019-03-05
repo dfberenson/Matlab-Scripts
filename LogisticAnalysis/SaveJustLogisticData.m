@@ -28,8 +28,7 @@ for cond = all_conditions
             if exist('C:\Users\Skotheim Lab\Desktop\Tables\LogData_40-50nM_palbo.mat')
                 load('C:\Users\Skotheim Lab\Desktop\Tables\LogData_40-50nM_palbo.mat');
             end
-        else
-            
+        else 
             if exist('C:\Users\Skotheim Lab\Desktop\Tables\LogData_100nM_palbo.mat')
                 load('C:\Users\Skotheim Lab\Desktop\Tables\LogData_100nM_palbo.mat')
             end

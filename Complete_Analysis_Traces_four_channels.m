@@ -3,11 +3,11 @@ close all
 
 %% Set parameters
 
-% tracking_strategy = 'clicking';
-% calculate_half_of_mother_premitotic_size = true;
+tracking_strategy = 'clicking';
+calculate_half_of_mother_premitotic_size = true;
 % 
-tracking_strategy = 'aivia';
-calculate_half_of_mother_premitotic_size = false;
+% tracking_strategy = 'aivia';
+% calculate_half_of_mother_premitotic_size = false;
 
 
 % MUST CHANGE BACKGROUND SUBTRACTION FORMULA DEPENDING ON WHAT KIND OF
@@ -17,12 +17,12 @@ calculate_half_of_mother_premitotic_size = false;
 % expt_name = 'DFB_180627_HMEC_1GFiii_palbo_2';
 % table_expt_folder = [source_folder '\' expt_name];
 
-% table_source_folder = 'E:\Manually tracked measurements';
-table_source_folder = 'E:\Aivia';
+table_source_folder = 'E:\Manually tracked measurements';
+% table_source_folder = 'E:\Aivia';
 image_source_folder = 'F:\Manually tracked imaging experiments';
-% expt_name = 'DFB_180803_HMEC_D5_1';
+expt_name = 'DFB_180803_HMEC_D5_1';
 % expt_name = 'DFB_180829_HMEC_D5_1';
-expt_name = 'DFB_181108_HMEC_D5_palbo_1';
+% expt_name = 'DFB_181108_HMEC_D5_palbo_1';
 table_expt_folder = [table_source_folder '\' expt_name];
 image_expt_folder = [image_source_folder '\' expt_name];
 
@@ -129,7 +129,7 @@ analysis_parameters.g1_frames_reqd_before_g1s = 4 / analysis_parameters.framerat
 analysis_parameters.sg2_frames_reqd_after_g1s = 2 / analysis_parameters.framerate;
 analysis_parameters.max_g1s_noise_frames = 10;
 analysis_parameters.frames_before_g1s_to_examine = Inf / analysis_parameters.framerate;
-analysis_parameters.birthsize_measuring_frames = [6:12];
+analysis_parameters.birthsize_measuring_frames = [12:18];
 analysis_parameters.min_cycle_duration_hours = 5;
 analysis_parameters.smoothing_param = 5;
 analysis_parameters.max_fraction_diff_from_sibling_mean = 0.2;

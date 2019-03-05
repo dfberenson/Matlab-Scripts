@@ -1,16 +1,16 @@
 clear all
 close all
 
-load('E:\Manually tracked measurements\DFB_180627_HMEC_1GFiii_palbo_2\clicking_Data.mat')
+load('E:\Manually tracked measurements\DFB_180803_HMEC_D5_1\clicking_Data.mat')
 framerate = 1/6;
 
 cond = 1;
 
 frame_numbers = data(cond).all_individual_complete_traces_frame_indices_wrt_birth;
 nuclear_volumes = data(cond).all_individual_complete_traces_volumes;
-ef1a_mcherry_intensities = data(cond).all_individual_complete_traces_sizes;
+ef1a_mcrimson_intensities = data(cond).all_individual_complete_traces_sizes;
 
-assert(length(frame_numbers) == length(nuclear_volumes) && length(frame_numbers) == length(ef1a_mcherry_intensities));
+assert(length(frame_numbers) == length(nuclear_volumes) && length(frame_numbers) == length(ef1a_mcrimson_intensities));
 num_traces = length(frame_numbers);
 
 eliminate_zeros = true;
@@ -22,7 +22,7 @@ figure
 hold on
 scatter(data(1).all_area_measurements_avoiding_ends .^ 1.5, data(1).all_size_measurements_avoiding_ends,'.k')
 xlabel('Nuclear volume')
-ylabel('prEF1a-mCherry-NLS')
+ylabel('prEF1a-mCrimson-NLS')
 hold off
 
 figure
@@ -43,7 +43,7 @@ scatter(data(1).all_area_measurements_avoiding_ends(randomfivepercent) .^ 1.5, d
 % scatter(data(1).all_area_measurements_avoiding_ends .^ 1.5, data(1).all_size_measurements_avoiding_ends,10,data(1).whichcell_avoiding_ends)
 colormap('colorcube')
 xlabel('Nuclear volume')
-ylabel('prEF1a-mCherry-NLS')
+ylabel('prEF1a-mCrimson-NLS')
 hold off
 
 num_cells_to_plot = 15;
@@ -67,7 +67,7 @@ scatter(data(1).all_area_measurements_avoiding_ends(indices_to_plot) .^ 1.5, dat
     10,renumbered_cells_to_plot(indices_to_plot),'filled')
 colormap('jet')
 xlabel('Nuclear volume')
-ylabel('prEF1a-mCherry-NLS')
+ylabel('prEF1a-mCrimson-NLS')
 hold off
 
 fitlm(data(1).all_area_measurements_avoiding_ends .^ 1.5, data(1).all_size_measurements_avoiding_ends)
@@ -85,16 +85,16 @@ max_clean_trace_length = max(all_clean_trace_lengths);
 
 frame_numbers_matrix = nan(num_traces,max_clean_trace_length);
 nuclear_volumes_matrix = nan(num_traces,max_clean_trace_length);
-mcherry_matrix = nan(num_traces,max_clean_trace_length);
+mcrimson_matrix = nan(num_traces,max_clean_trace_length);
 
 for trace = 1:num_traces
     thistrace_framenumbers = frame_numbers{trace};
     thistrace_nuclearvolumes = nuclear_volumes{trace};
-    thistrace_mcherry = ef1a_mcherry_intensities{trace};
+    thistrace_mcrimson = ef1a_mcrimson_intensities{trace};
     
     thistrace_clean_framenumbers = thistrace_framenumbers(6:end-12);
     thistrace_clean_nuclearvolumes = thistrace_nuclearvolumes(6:end-12);
-    thistrace_clean_mcherry = thistrace_mcherry(6:end-12);
+    thistrace_clean_mcrimson = thistrace_mcrimson(6:end-12);
 
     for t = 1:length(thistrace_clean_framenumbers)
         if eliminate_zeros
@@ -117,26 +117,26 @@ for trace = 1:num_traces
     
     for t = 1:length(thistrace_clean_framenumbers)
         if eliminate_zeros
-            if thistrace_clean_mcherry(t) == 0
+            if thistrace_clean_mcrimson(t) == 0
                 if t == 1
-                    thistrace_clean_mcherry(t) = thistrace_clean_mcherry(t+1);
+                    thistrace_clean_mcrimson(t) = thistrace_clean_mcrimson(t+1);
                 else
-                    thistrace_clean_mcherry(t) = (thistrace_clean_mcherry(t-1) + thistrace_clean_mcherry(t+1))/2;
+                    thistrace_clean_mcrimson(t) = (thistrace_clean_mcrimson(t-1) + thistrace_clean_mcrimson(t+1))/2;
                 end
             end
         end
         
         if smooth_big_jumps
-            thistrace_clean_smooth_mcherry = movmedian(thistrace_clean_mcherry,windowsize);
-            if abs(thistrace_clean_mcherry(t) - thistrace_clean_smooth_mcherry(t)) > maxjump*thistrace_clean_smooth_mcherry(t)
-                thistrace_clean_mcherry(t) = thistrace_clean_smooth_mcherry(t);
+            thistrace_clean_smooth_mcrimson = movmedian(thistrace_clean_mcrimson,windowsize);
+            if abs(thistrace_clean_mcrimson(t) - thistrace_clean_smooth_mcrimson(t)) > maxjump*thistrace_clean_smooth_mcrimson(t)
+                thistrace_clean_mcrimson(t) = thistrace_clean_smooth_mcrimson(t);
             end
         end
     end
     
     frame_numbers_matrix(trace,thistrace_clean_framenumbers - 5) = thistrace_clean_framenumbers;
     nuclear_volumes_matrix(trace,thistrace_clean_framenumbers - 5) = thistrace_clean_nuclearvolumes;
-    mcherry_matrix(trace,thistrace_clean_framenumbers - 5) = thistrace_clean_mcherry;
+    mcrimson_matrix(trace,thistrace_clean_framenumbers - 5) = thistrace_clean_mcrimson;
 end
 
 
@@ -146,14 +146,14 @@ end
 for t = find(sum(~isnan(frame_numbers_matrix)) > 10)
     disp(['Analyzing timepoint ' num2str(t)])
     extant_cell_indices = find(~isnan(frame_numbers_matrix(:,t)));
-    ft = fitlm(nuclear_volumes_matrix(extant_cell_indices,t),mcherry_matrix(extant_cell_indices,t));
+    ft = fitlm(nuclear_volumes_matrix(extant_cell_indices,t),mcrimson_matrix(extant_cell_indices,t));
     slopes_by_age(t) = ft.Coefficients.Estimate(2);
     r2_vals_by_age(t) = ft.Rsquared.Ordinary;
     num_cells_by_age(t) = sum(~isnan(frame_numbers_matrix(:,t)));
     
-        for strap = 1:1000
+    for strap = 1:1000
         resampled_cell_indices = datasample(extant_cell_indices,num_cells_by_age(t));
-        resampled_ft = fitlm(nuclear_volumes_matrix(resampled_cell_indices,t),mcherry_matrix(resampled_cell_indices,t));
+        resampled_ft = fitlm(nuclear_volumes_matrix(resampled_cell_indices,t),mcrimson_matrix(resampled_cell_indices,t));
         bootstrapped_slopes(strap) = resampled_ft.Coefficients.Estimate(2);
         bootstrapped_r2(strap) = resampled_ft.Rsquared.Ordinary;
     end
@@ -162,15 +162,15 @@ for t = find(sum(~isnan(frame_numbers_matrix)) > 10)
     r2_errors_by_age(:,t) = [prctile(bootstrapped_r2,95) - r2_vals_by_age(t); r2_vals_by_age(t) - prctile(bootstrapped_r2,5)];
 end
 
-save('C:\Users\Skotheim Lab\Box Sync\Daniel Berenson''s Files\Data\mCherry_slopes_over_time.mat')
+save('C:\Users\Skotheim Lab\Box Sync\Daniel Berenson''s Files\Data\mCrimson_slopes_over_time.mat')
 
 figure
 box on
 hold on
 shadedErrorBar((5:length(slopes_by_age)+4)*framerate, movmedian(slopes_by_age,13),movmedian(slope_errors_by_age,13))
-axis([0 inf 0 inf],'square')
+axis([0 inf -inf inf],'square')
 xlabel('Cell age (h)')
-ylabel('Slope of prEF1-mCherry-NLS vs nuclear volume')
+ylabel('Slope of prEF1-mCrimson-NLS vs nuclear volume')
 fitlm(1:length(slopes_by_age),slopes_by_age,'Weights',num_cells_by_age)
 
 figure
@@ -179,6 +179,6 @@ hold on
 shadedErrorBar((5:length(r2_vals_by_age)+4)*framerate,movmedian(r2_vals_by_age,13),movmedian(r2_errors_by_age,13))
 axis([0 inf 0 1],'square')
 xlabel('Cell age (h)')
-ylabel('R^2 value for prEF1a-mCherry-NLS vs nuclear volume')
+ylabel('R^2 value for prEF1a-mCrimson-NLS vs nuclear volume')
 fitlm(1:length(r2_vals_by_age),r2_vals_by_age,'Weights',num_cells_by_age)
 

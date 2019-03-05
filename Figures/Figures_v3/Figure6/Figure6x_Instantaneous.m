@@ -78,7 +78,7 @@ for cond = 1:1
         %         shadedErrorBar(bin_sizes,means,stderrs)
         %         %         axis([prctile(clean_X,2.5) prctile(clean_X,97.5), prctile(clean_Y,2.5) prctile(clean_Y,97.5)])
         %         axis([prctile(clean_X,2.5) prctile(clean_X,97.5), -inf inf])
-        %         x_axis_label = 'prEF1a-mCrimson-NLS (AU)';
+        %         x_axis_label = 'prEF1a-E2-Crimson-NLS (AU)';
         %         y_axis_label = ['Instantaneous growth rate (AU/' num2str(60 * framerate * average_instantaneous_growth_rate_over_num_frames) 'min)'];
         %         title(gca,graph_title)
         %         xlabel(gca,x_axis_label)
@@ -107,7 +107,7 @@ for cond = 1:1
         %         axis([prctile(clean_X,2.5) prctile(clean_X,97.5), prctile(scaled_clean_Y,2.5) prctile(scaled_clean_Y,97.5)])
         axis([prctile(clean_X,2.5) prctile(clean_X,97.5),-inf inf],'square')
         axis([0.5 3,-inf inf],'square')
-        x_axis_label = 'prEF1a-mCrimson-NLS (AU)';
+        x_axis_label = 'prEF1a-E2-Crimson-NLS (AU)';
         y_axis_label = ['Scaled instantaneous growth rate (AU/20h)'];
         title(gca,data(cond).treatment)
         xlabel(gca,x_axis_label)
@@ -123,7 +123,7 @@ for cond = 1:1
         end
         axis([prctile(clean_X,2.5) prctile(clean_X,97.5),-inf inf],'square')
         axis([0.5 3,-inf inf],'square')
-        x_axis_label = 'prEF1a-mCrimson-NLS (AU)';
+        x_axis_label = 'prEF1a-E2-Crimson-NLS (AU)';
         y_axis_label = ['Scaled instantaneous growth rate (AU/20h)'];
         title(gca,data(cond).treatment)
         xlabel(gca,x_axis_label)
