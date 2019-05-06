@@ -13,18 +13,18 @@ calculate_half_of_mother_premitotic_size = true;
 % MUST CHANGE BACKGROUND SUBTRACTION FORMULA DEPENDING ON WHAT KIND OF
 % MOVIE
 
-% source_folder = 'E:\Manually tracked measurements';
-% expt_name = 'DFB_180627_HMEC_1GFiii_palbo_2';
-% table_expt_folder = [source_folder '\' expt_name];
+source_folder = 'E:\Manually tracked measurements';
+expt_name = 'DFB_180627_HMEC_1GFiii_palbo_2';
+table_expt_folder = [source_folder '\' expt_name];
 
-table_source_folder = 'E:\Manually tracked measurements';
-% table_source_folder = 'E:\Aivia';
-image_source_folder = 'F:\Manually tracked imaging experiments';
-expt_name = 'DFB_180803_HMEC_D5_1';
-% expt_name = 'DFB_180829_HMEC_D5_1';
-% expt_name = 'DFB_181108_HMEC_D5_palbo_1';
-table_expt_folder = [table_source_folder '\' expt_name];
-image_expt_folder = [image_source_folder '\' expt_name];
+% table_source_folder = 'E:\Manually tracked measurements';
+% % table_source_folder = 'E:\Aivia';
+% image_source_folder = 'F:\Manually tracked imaging experiments';
+% expt_name = 'DFB_180803_HMEC_D5_1';
+% % expt_name = 'DFB_180829_HMEC_D5_1';
+% % expt_name = 'DFB_181108_HMEC_D5_palbo_1';
+% table_expt_folder = [table_source_folder '\' expt_name];
+% image_expt_folder = [image_source_folder '\' expt_name];
 
 
 % source_folder = 'E:\Manually tracked measurements';
@@ -422,8 +422,13 @@ if measure_sizes_at_birth_and_other_times
         data(cond).all_good_sg2_growths = [];
         data(cond).all_good_complete_cycle_growths = [];
         
+        data(cond).all_instantaneous_g1_areas_unaveraged = [];
+                data(cond).all_instantaneous_g1_sizes_unaveraged = [];
         data(cond).all_instantaneous_g1_sizes_nolast = [];
         data(cond).all_instantaneous_g1_size_increases = [];
+                data(cond).all_instantaneous_sg2_areas_unaveraged = [];
+                data(cond).all_instantaneous_sg2_sizes_unaveraged = [];
+        data(cond).all_instantaneous_sg2_areas_nolast = [];
         data(cond).all_instantaneous_sg2_sizes_nolast = [];
         data(cond).all_instantaneous_sg2_size_increases = [];
         
@@ -570,12 +575,22 @@ if measure_sizes_at_birth_and_other_times
                                 end
                             end
                             
+                            data(cond).all_instantaneous_g1_areas_unaveraged = [data(cond).all_instantaneous_g1_areas_unaveraged;...
+                                data(cond).position(pos).analysis(c).instantaneous_areas_during_g1];
+                            data(cond).all_instantaneous_g1_sizes_unaveraged = [data(cond).all_instantaneous_g1_sizes_unaveraged;...
+                                data(cond).position(pos).analysis(c).instantaneous_sizes_during_g1];
+                          
                             data(cond).all_instantaneous_g1_sizes_nolast = [data(cond).all_instantaneous_g1_sizes_nolast;...
                                 (data(cond).position(pos).analysis(c).instantaneous_sizes_during_g1(1 + analysis_parameters.average_instantaneous_growth_rate_over_num_frames : end) +...
                                 data(cond).position(pos).analysis(c).instantaneous_sizes_during_g1(1 : end - analysis_parameters.average_instantaneous_growth_rate_over_num_frames))/2];
                             data(cond).all_instantaneous_g1_size_increases = [data(cond).all_instantaneous_g1_size_increases;...
                                 (data(cond).position(pos).analysis(c).instantaneous_sizes_during_g1(1 + analysis_parameters.average_instantaneous_growth_rate_over_num_frames : end) -...
                                 data(cond).position(pos).analysis(c).instantaneous_sizes_during_g1(1 : end - analysis_parameters.average_instantaneous_growth_rate_over_num_frames))];
+                            
+                            data(cond).all_instantaneous_sg2_areas_unaveraged = [data(cond).all_instantaneous_sg2_areas_unaveraged;...
+                                data(cond).position(pos).analysis(c).instantaneous_areas_during_sg2];
+                            data(cond).all_instantaneous_sg2_sizes_unaveraged = [data(cond).all_instantaneous_sg2_sizes_unaveraged;...
+                                data(cond).position(pos).analysis(c).instantaneous_sizes_during_sg2];
                             
                             data(cond).all_instantaneous_sg2_sizes_nolast = [data(cond).all_instantaneous_sg2_sizes_nolast;...
                                 (data(cond).position(pos).analysis(c).instantaneous_sizes_during_sg2(1 + analysis_parameters.average_instantaneous_growth_rate_over_num_frames : end) +...

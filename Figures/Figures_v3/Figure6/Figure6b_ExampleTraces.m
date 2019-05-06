@@ -18,6 +18,9 @@ geminin_intensities = data(cond).all_individual_complete_traces_geminin;
 rb_intensities = data(cond).all_individual_complete_traces_protein_amts;
 
 frames_to_skip_at_start = 5;
+% Switching to 7 frames for thesis defense because it shows the dilution
+% more clearly
+% frames_to_skip_at_start = 7;
 frames_to_skip_at_end = 10;
 
 assert(length(frame_numbers) == length(nuclear_volumes) && length(frame_numbers) == length(ef1a_size_intensities));
@@ -130,6 +133,38 @@ for trace = 1:num_traces
         xlabel('Time from birth (h)')
         ylabel('Fluorescence intensity')
         
+        figure
+        hold on
+        box on
+        yyaxis left
+        plot(thistrace_clean_framenumbers*framerate,thistrace_clean_size/mean(thistrace_clean_size),'-r')
+        plot(thistrace_clean_framenumbers*framerate,thistrace_clean_rb/mean(thistrace_clean_rb),'-g')
+        %         plot(thistrace_clean_framenumbers*framerate,thistrace_clean_rb ./ thistrace_clean_size,'-k')
+        line([thistrace_clean_framenumbers(find(thistrace_clean_framenumbers_wrt_g1s == 0))*framerate thistrace_clean_framenumbers(find(thistrace_clean_framenumbers_wrt_g1s == 0))*framerate],...
+            [0 2.5],'Color','k')
+        axis([0 14 0 2],'square')
+        xticks([0 4 8 12])
+        yticks([0.5 1 1.5 2 2.5])
+        xlabel('Time from birth (h)')
+        ylabel('Fluorescence intensity')
+        yyaxis right
+        plot(thistrace_clean_framenumbers*framerate,thistrace_clean_geminin/mean(thistrace_clean_geminin),'-m')
+        
+        figure
+        hold on
+        box on
+        rectangle('Position',[thistrace_clean_framenumbers(find(thistrace_clean_framenumbers_wrt_g1s == 0))*framerate 0 14-thistrace_clean_framenumbers(find(thistrace_clean_framenumbers_wrt_g1s == 0))*framerate 2],...
+        'FaceColor',[1 0 0])
+        plot(thistrace_clean_framenumbers*framerate,thistrace_clean_size/mean(thistrace_clean_size),'-r')
+        plot(thistrace_clean_framenumbers*framerate,thistrace_clean_rb/mean(thistrace_clean_rb),'-g')
+        %         plot(thistrace_clean_framenumbers*framerate,thistrace_clean_rb ./ thistrace_clean_size,'-k')
+        line([thistrace_clean_framenumbers(find(thistrace_clean_framenumbers_wrt_g1s == 0))*framerate thistrace_clean_framenumbers(find(thistrace_clean_framenumbers_wrt_g1s == 0))*framerate],...
+            [0 2.5],'Color','k')
+        axis([0 14 0 2],'square')
+        xticks([0 4 8 12])
+        yticks([0.5 1 1.5 2 2.5])
+        xlabel('Time from birth (h)')
+        ylabel('Fluorescence intensity')        
         
         
     end

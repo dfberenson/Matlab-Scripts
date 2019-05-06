@@ -1025,12 +1025,29 @@ if show_figure_plots
     box on
     shadedErrorBar((nanmean(g1_frame_numbers_matrix))*framerate,...
         nanmean(g1_rb_per_size_matrix_each_normalized_to_birth),...
-        nanstd(g1_rb_per_size_matrix_each_normalized_to_birth)./sqrt(num_g1_cells_by_timepoint),'g')
+        nanstd(g1_rb_per_size_matrix_each_normalized_to_birth)./sqrt(num_g1_cells_by_timepoint),'k')
+    xlabel('Time from birth (h)')
+    ylabel('[Rb] per prEF1a-E2-Crimson-NLS')
+    title('Each trace normalized to its birth, G1 traces only')
+    axis([0 inf 0 inf],'square')
+    xticks([0 10 20 30 40 50
+        
+    % Trimming beginning and end
+    
+    frames_to_plot = nanmean(g1_frame_numbers_matrix)*framerate;
+    means_to_plot = nanmean(g1_rb_per_size_matrix_each_normalized_to_birth);
+    stderrs_to_plot = nanstd(g1_rb_per_size_matrix_each_normalized_to_birth)./sqrt(num_g1_cells_by_timepoint);
+    
+    figure
+    hold on
+    box on
+    shadedErrorBar(frames_to_plot(10:120),means_to_plot(10:120),stderrs_to_plot(10:120),'k')
     xlabel('Time from birth (h)')
     ylabel('[Rb] per prEF1a-E2-Crimson-NLS')
     title('Each trace normalized to its birth, G1 traces only')
     axis([0 inf 0 inf],'square')
     xticks([0 10 20 30 40 50])
+    
     
     figure
     hold on

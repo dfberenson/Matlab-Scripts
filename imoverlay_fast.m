@@ -36,6 +36,11 @@ elseif length(sz_I) == 3
         I_green(bw) = max;
         I_blue(bw) = 0;
     end
+    if strcmp(color,'c') || strcmp(color,'cyan')
+        I_red(bw) = 0;
+        I_green(bw) = max;
+        I_blue(bw) = max;
+    end
     if strcmp(color,'m') || strcmp(color,'magenta')
         I_red(bw) = max;
         I_green(bw) = 0;

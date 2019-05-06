@@ -2,16 +2,15 @@
 clear all
 close all
 
-% Plot FSC vs mCherry for cell line 3D
+% Plot FSC vs mCherry for cell line 2A
 
-% table_fpath = 'C:\Users\Skotheim Lab\Box Sync\Daniel Berenson''s Files\Data\FACS\161003_HMEC_size-sensors\HMEC-3D-ActFull3Kb-mCherry_60508_Single Cells_Single Cells.csv';
-table_fpath = 'C:\Users\Skotheim Lab\Box Sync\Daniel Berenson''s Files\Data\FACS\161003_HMEC_size-sensors\HMEC-1G-EF1a-mCherry_60504_Single Cells_Single Cells.csv';
+table_fpath = 'C:\Users\Skotheim Lab\Box Sync\Daniel Berenson''s Files\Data\FACS\190319_K562_mCherry\K1_Single Cells.csv';
 
 T = readtable(table_fpath);
 
-raw_X = T.FSC_A;
-raw_Y = T.mCherry_A;
-x_axis_label = 'FSC';
+raw_X = T.SSC_A;
+raw_Y = T.mCherry_mCherry_A;
+x_axis_label = 'SSC';
 y_axis_label = 'prEF1-mCherry-NLS';
 
 median_X = median(raw_X);
@@ -106,13 +105,13 @@ ax = gca();
 xlabel(x_axis_label)
 ylabel(y_axis_label)
 % plot(0:0.1:2.5,0:0.1:2.5,'-b')
-plot(0:0.1:2.5,polyval(fit1,0:0.1:2.5),'--k')
+plot(0:0.1:4.5,polyval(fit1,0:0.1:4.5),'--k')
 shadedErrorBar(binsizes(binsizes > x_percentile_025 & binsizes < x_percentile_975),allBinsAvgY(binsizes > x_percentile_025 & binsizes < x_percentile_975),allBinsStdDevY(binsizes > x_percentile_025 & binsizes < x_percentile_975),'m-',1)
 shadedErrorBar(binsizes(binsizes > x_percentile_025 & binsizes < x_percentile_975),allBinsAvgY(binsizes > x_percentile_025 & binsizes < x_percentile_975),allBinsStdErrorY(binsizes > x_percentile_025 & binsizes < x_percentile_975),'r-')
 % h = findobj(gca);
 % legend([h(2),h(5),h(9),h(10)],{'Binned means','Standard error','Standard deviation','Linear fit'},'Location','SE')
-axis([0 2.5 0 4.5],'square')
-xticks([0:2])
+axis([0 2.5 0 2.5],'square')
+xticks([0:4])
 yticks([0:4])
 ax.FontSize = 16;
 hold off

@@ -10,7 +10,10 @@ bin_by_ages = true;
 
 show_all_plots = false;
 show_some_plots = true;
-frame_to_show = 1;
+% The flatness at low [Rb] values disappears if we look at 13 frames before
+% rather than 1 frame before
+% frame_to_show = 1;
+frame_to_show = 13;
 numbins = 6;
 
 % Binning is restricted to within these percentiles.
@@ -199,6 +202,26 @@ for cond = 1:2
             num_subplots = 2;
         end
         
+        if must_be_born
+                %         binsizes = linspace(min(sizes_this_frames_before) , max(sizes_this_frames_before) , numbins);
+        binsizes = linspace(prctile(ages_this_frames_before,low_prctile), prctile(ages_this_frames_before,high_prctile), numbins);
+        [means,error_below,error_above,Ns] = bootstrap(ages_this_frames_before,g1s_happens_here_this_frames_before,binsizes);
+        %         disp('Weighted linear fit to sizes')
+        binfit_age = fitlm(binsizes,means,'Weights',Ns);
+        if show_all_plots == true || (show_some_plots == true && ismember(frames_before, frame_to_show))
+            figure()
+            %             subplot(1,num_subplots,1)
+            box on
+            shadedErrorBar(binsizes,means,[error_above, error_below]');
+            %             title([expt_type{cond} ' ' num2str(10*(frames_before-1)) ' minutes before'])
+            xlabel('Cell age (h)')
+            ylabel('G1/S rate (10 mins)-1')
+            axis([0 inf 0 inf],'square')
+            xticks([0 5 10 15 20 25 30 35])
+            yticks([0:0.01:0.05])
+        end
+        end
+        
         %         binsizes = linspace(min(sizes_this_frames_before) , max(sizes_this_frames_before) , numbins);
         binsizes = linspace(prctile(sizes_this_frames_before,low_prctile), prctile(sizes_this_frames_before,high_prctile), numbins);
         [means,error_below,error_above,Ns] = bootstrap(sizes_this_frames_before,g1s_happens_here_this_frames_before,binsizes);
@@ -213,6 +236,7 @@ for cond = 1:2
             xlabel('prEF1-E2-Crimson')
             ylabel('G1/S rate (10 mins)-1')
             axis([0 2 0 inf],'square')
+            xticks([0 0.5 1 1.5 2])
             yticks([0 0.01 0.02 0.03 0.04 0.05])
         end
         
@@ -231,6 +255,7 @@ for cond = 1:2
             ylabel('G1/S rate (10 mins)-1')
             axis([0 2 0 inf],'square')
             yticks([0 : 0.005 : 0.04])
+            xticks([0 0.5 1 1.5 2 2.5])
         end
         
     end

@@ -3,9 +3,10 @@ clear all
 close all
 
 
-load('C:\Users\Skotheim Lab\Box Sync\Daniel Berenson''s Files\Data\Still_Imaging_Data\DFB_190117_HMEC_D5_CFSE_2.mat');
+load('C:\Users\Skotheim Lab\Box Sync\Daniel Berenson''s Files\Data\Still_Imaging_Data\DFB_180905_HMEC_1G_CFSE_1.mat');
 
-raw_X = all_ef1a_areas .^ 1.5;
+% raw_X = all_ef1a_areas .^ 1.5;
+raw_X = all_mcherry_areas .^ 1.5;
 x_axis_label = 'Nuclear volume';
 raw_Y = all_cfse_flat_integratedintensities_minusbackground;
 y_axis_label = 'CFSE';

@@ -131,10 +131,13 @@ if ~is_four_channels
             thiscell_analysis.g1s_area = thiscell_analysis.area_measurements_smooth(thiscell_analysis.g1s_frame);
             thiscell_analysis.frame_to_start_measuring = max(1, thiscell_analysis.g1s_frame - analysis_parameters.frames_before_g1s_to_examine);
             
+            thiscell_analysis.instantaneous_areas_during_g1 = thiscell_analysis.area_measurements(analysis_parameters.num_first_frames_to_avoid:thiscell_analysis.g1s_frame);
             thiscell_analysis.instantaneous_sizes_during_g1 = thiscell_analysis.size_measurements(analysis_parameters.num_first_frames_to_avoid:thiscell_analysis.g1s_frame);
             if thiscell_analysis.has_mitosis
+                thiscell_analysis.instantaneous_areas_during_sg2 = thiscell_analysis.area_measurements(thiscell_analysis.g1s_frame + 1 : end - analysis_parameters.num_last_frames_to_avoid);
                 thiscell_analysis.instantaneous_sizes_during_sg2 = thiscell_analysis.size_measurements(thiscell_analysis.g1s_frame + 1 : end - analysis_parameters.num_last_frames_to_avoid);
             else
+                thiscell_analysis.instantaneous_areas_during_sg2 = thiscell_analysis.area_measurements(thiscell_analysis.g1s_frame + 1 : end);
                 thiscell_analysis.instantaneous_sizes_during_sg2 = thiscell_analysis.size_measurements(thiscell_analysis.g1s_frame + 1 : end);
             end
             
@@ -225,7 +228,7 @@ if ~is_four_channels
         thiscell_analysis.g1s_area = thiscell_analysis.area_measurements_smooth(thiscell_analysis.g1s_frame);
         thiscell_analysis.g2m_size = thiscell_analysis.size_measurements_smooth(end - frames_to_avoid_at_end);
         thiscell_analysis.g2m_area = thiscell_analysis.area_measurements_smooth(end - frames_to_avoid_at_end);
-
+        
         
         thiscell_analysis.g1_growth = thiscell_analysis.g1s_size - thiscell_analysis.birth_size;
         thiscell_analysis.sg2_growth = thiscell_analysis.g2m_size - thiscell_analysis.g1s_size;
@@ -278,10 +281,13 @@ elseif is_four_channels
             thiscell_analysis.complete_cycle_growth = thiscell_analysis.g2m_size - thiscell_analysis.birth_size;
         end
         
+        thiscell_analysis.instantaneous_areas_during_g1 = thiscell_analysis.area_measurements(analysis_parameters.num_first_frames_to_avoid:thiscell_analysis.g1s_frame);
         thiscell_analysis.instantaneous_sizes_during_g1 = thiscell_analysis.size_measurements(analysis_parameters.num_first_frames_to_avoid:thiscell_analysis.g1s_frame);
         if thiscell_analysis.has_mitosis
+            thiscell_analysis.instantaneous_areas_during_sg2 = thiscell_analysis.area_measurements(thiscell_analysis.g1s_frame + 1 : end - analysis_parameters.num_last_frames_to_avoid);
             thiscell_analysis.instantaneous_sizes_during_sg2 = thiscell_analysis.size_measurements(thiscell_analysis.g1s_frame + 1 : end - analysis_parameters.num_last_frames_to_avoid);
         else
+            thiscell_analysis.instantaneous_areas_during_sg2 = thiscell_analysis.area_measurements(thiscell_analysis.g1s_frame + 1 : end);
             thiscell_analysis.instantaneous_sizes_during_sg2 = thiscell_analysis.size_measurements(thiscell_analysis.g1s_frame + 1 : end);
         end
         

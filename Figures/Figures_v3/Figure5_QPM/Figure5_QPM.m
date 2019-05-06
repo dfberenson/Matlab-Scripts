@@ -6,7 +6,8 @@ close all
 % all_cellnums = [1:5];
 xlsx_fpath = 'C:\Users\Skotheim Lab\Box Sync\Daniel Berenson''s Files\Data\Phasics\DFB_180501_Pos21_manual_measurements.xlsx';
 all_cellnums = [1:8];
-
+% xlsx_fpath = 'C:\Users\Skotheim Lab\Box Sync\Daniel Berenson''s Files\Data\Phasics\DFB_180501_Pos11_manual_measurements.xlsx';
+% all_cellnums = 1:4;
 
 % xlsx_fpath_1 = 'C:\Users\Skotheim Lab\Box Sync\Daniel Berenson''s Files\Data\Phasics\DFB_180501_Pos19_manual_measurements.xlsx';
 % all_cellnums_1 = [1:5];

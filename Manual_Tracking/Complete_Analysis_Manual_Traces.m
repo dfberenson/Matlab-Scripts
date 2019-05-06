@@ -72,6 +72,10 @@ data(cond).all_area_measurements = [];
 data(cond).all_size_measurements = [];
 data(cond).all_area_measurements_avoiding_ends = [];
 data(cond).all_size_measurements_avoiding_ends = [];
+        data(cond).all_instantaneous_g1_areas = [];
+        data(cond).all_instantaneous_sg2_areas = [];
+        data(cond).all_instantaneous_g1_sizes = [];
+        data(cond).all_instantaneous_sg2_sizes = [];
 for cond = 1:num_conditions
     for pos = data(cond).positions_list
         for c = data(cond).position(pos).tracking_measurements.all_tracknums
@@ -83,6 +87,15 @@ for cond = 1:num_conditions
                 data(cond).position(pos).analysis(c).area_measurements_avoiding_ends];
             data(cond).all_size_measurements_avoiding_ends = [data(cond).all_size_measurements_avoiding_ends;...
                 data(cond).position(pos).analysis(c).size_measurements_avoiding_ends];
+            
+            data(cond).all_instantaneous_g1_areas = [data(cond).all_instantaneous_g1_areas;...
+                data(cond).position(pos).analysis(c).g1_areas];
+             data(cond).all_instantaneous_sg2_areas = [data(cond).all_instantaneous_sg2_areas;...
+                data(cond).position(pos).analysis(c).sg2_areas];
+             data(cond).all_instantaneous_g1_sizes = [data(cond).all_instantaneous_g1_sizes;...
+                data(cond).position(pos).analysis(c).g1_sizes];
+             data(cond).all_instantaneous_sg2_sizes = [data(cond).all_instantaneous_sg2_sizes;...
+                data(cond).position(pos).analysis(c).sg2_sizes];
         end
     end
 end
@@ -271,6 +284,8 @@ for cond = 1:num_conditions
         end
     end
 end
+
+save([expt_folder '\data.mat'],'data')
 
 %% Plot results
 
@@ -488,4 +503,3 @@ end
 
 
 
-% save([expt_folder '\data.mat'],'data')

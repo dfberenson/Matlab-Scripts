@@ -15,6 +15,7 @@ frame_numbers_wrt_g1s = data(cond).all_individual_complete_traces_frame_indices_
 % nuclear_volumes = data(cond).all_individual_complete_traces_areas;
 nuclear_volumes = data(cond).all_individual_complete_traces_volumes;
 ef1a_mcherry_intensities = data(cond).all_individual_complete_traces_sizes;
+geminin_intensities = data(cond).all_individual_complete_traces_geminin;
 
 frames_to_skip_at_start = 5;
 frames_to_skip_at_end = 10;
@@ -28,6 +29,7 @@ windowsize = 9;
 maxjump = 0.5;
 
 tracenum_to_plot = 13;
+% This is overall trace number 31 from position 1
 plot_wrt_g1s = false;
 plot_discrete_derivatives = false;
 
@@ -45,17 +47,20 @@ frame_numbers_matrix = nan(num_traces,max_clean_trace_length);
 frame_numbers_matrix_wrt_g1s = nan(num_traces,max_clean_trace_length);
 nuclear_volumes_matrix = nan(num_traces,max_clean_trace_length);
 mcherry_matrix = nan(num_traces,max_clean_trace_length);
+geminin_matrix = nan(num_traces,max_clean_trace_length);
 
 for trace = 1:num_traces
     thistrace_framenumbers = frame_numbers{trace};
     thistrace_framenumbers_wrt_g1s = frame_numbers_wrt_g1s{trace};
     thistrace_nuclearvolumes = nuclear_volumes{trace};
     thistrace_mcherry = ef1a_mcherry_intensities{trace};
+    thistrace_geminin = geminin_intensities{trace};
     
     thistrace_clean_framenumbers = thistrace_framenumbers(frames_to_skip_at_start+1:end-frames_to_skip_at_end);
     thistrace_clean_framenumbers_wrt_g1s = thistrace_framenumbers_wrt_g1s(frames_to_skip_at_start+1:end-frames_to_skip_at_end);
     thistrace_clean_nuclearvolumes = thistrace_nuclearvolumes(frames_to_skip_at_start+1:end-frames_to_skip_at_end);
     thistrace_clean_mcherry = thistrace_mcherry(frames_to_skip_at_start+1:end-frames_to_skip_at_end);
+    thistrace_clean_geminin = thistrace_geminin(frames_to_skip_at_start+1:end-frames_to_skip_at_end);
     
     for t = 1:length(thistrace_clean_framenumbers)
         if eliminate_zeros
@@ -101,6 +106,12 @@ for trace = 1:num_traces
     
     num_segments = floor((length(thistrace_clean_framenumbers)) / 6);
     if trace == tracenum_to_plot
+        
+        timepoints_to_plot = thistrace_clean_framenumbers*framerate;
+        nuclearvolumes_to_plot = thistrace_clean_nuclearvolumes/mean(thistrace_clean_nuclearvolumes);
+        mcherry_to_plot = thistrace_clean_mcherry/mean(thistrace_clean_mcherry);
+        geminin_to_plot = thistrace_clean_geminin/mean(thistrace_clean_geminin);
+        
         nucvol_figure = figure()
         hold on
         box on
@@ -121,6 +132,16 @@ for trace = 1:num_traces
         xlabel('Time from birth (h)')
         ylabel('prEF1-mCherry-NLS intensity')
         
+        geminin_figure = figure()
+        hold on
+        box on
+        plot(thistrace_clean_framenumbers*framerate,thistrace_clean_geminin/mean(thistrace_clean_geminin),'-g')
+                axis([0 14 -2 2],'square')
+        xticks([0 4 8 12])
+        yticks([0 0.5 1 1.5 2])
+        xlabel('Time from birth (h)')
+        ylabel('Geminin intensity')
+                
     end
     for seg = 1:num_segments
         thissegment = (seg - 1)/framerate + 1 : min((seg+1)/framerate, length(thistrace_clean_framenumbers));
@@ -370,3 +391,119 @@ end
 disp(['Mean time derivative of mCherry G1: ' num2str(nanmean(diff_mcherry_g1))])
 disp(['Mean time derivative of mCherry during SG2: ' num2str(nanmean(diff_mcherry_sg2))])
 end
+
+%% Animate plots
+
+% Nuclear volume animation
+x = timepoints_to_plot;
+y = nuclearvolumes_to_plot;
+
+figure()
+hold on
+box on
+plt = plot(x(1),y(1),'-k')
+axis([0 14 0 2],'square')
+xticks([0 4 8 12])
+yticks([0 0.5 1 1.5 2])
+xlabel('Time from birth (h)')
+ylabel('Nuclear volume')
+M(1) = getframe;
+
+for k = 2:length(x)
+    plt.XData = x(1:k);
+    plt.YData = y(1:k);
+    drawnow
+    M(k) = getframe;
+end
+
+figure
+box on
+plot(x,y,'-k')
+axis([0 14 0 2],'square')
+xticks([0 4 8 12])
+yticks([0 0.5 1 1.5 2])
+xlabel('Time from birth (h)')
+ylabel('Nuclear volume')
+% movie(M)
+
+V = VideoWriter('C:\Users\Skotheim Lab\Desktop\Movies\NucVol.avi','Motion JPEG AVI');
+V.FrameRate = 5;
+open(V);
+writeVideo(V,M);
+close(V);
+
+% mCherry animation
+
+x = timepoints_to_plot;
+y = mcherry_to_plot;
+
+figure()
+hold on
+box on
+plt = plot(x(1),y(1),'-r')
+axis([0 14 0 2],'square')
+xticks([0 4 8 12])
+yticks([0 0.5 1 1.5 2])
+xlabel('Time from birth (h)')
+ylabel('prEF1a-mCherry-NLS')
+M(1) = getframe;
+
+for k = 2:length(x)
+    plt.XData = x(1:k);
+    plt.YData = y(1:k);
+    drawnow
+    M(k) = getframe;
+end
+
+figure
+box on
+plot(x,y,'-r')
+axis([0 14 0 2],'square')
+xticks([0 4 8 12])
+yticks([0 0.5 1 1.5 2])
+xlabel('Time from birth (h)')
+ylabel('prEF1a-mCherry-NLS')
+
+V = VideoWriter('C:\Users\Skotheim Lab\Desktop\Movies\mCherry.avi','Motion JPEG AVI');
+V.FrameRate = 5;
+open(V);
+writeVideo(V,M);
+close(V);
+
+% Geminin animation
+
+x = timepoints_to_plot;
+y = geminin_to_plot;
+
+figure()
+hold on
+box on
+plt = plot(x(1),y(1),'-g')
+axis([0 14 -1 5],'square')
+xticks([0 4 8 12])
+yticks([-1 0 1 2 3 4 5])
+xlabel('Time from birth (h)')
+ylabel('Geminin')
+M(1) = getframe;
+
+for k = 2:length(x)
+    plt.XData = x(1:k);
+    plt.YData = y(1:k);
+    drawnow
+    M(k) = getframe;
+end
+
+figure
+box on
+axis([0 14 0 2],'square')
+xticks([0 4 8 12])
+yticks([0 0.5 1 1.5 2])
+xlabel('Time from birth (h)')
+ylabel('Geminin')
+movie(M)
+
+V = VideoWriter('C:\Users\Skotheim Lab\Desktop\Movies\Geminin.avi','Motion JPEG AVI');
+V.FrameRate = 5;
+open(V);
+writeVideo(V,M);
+close(V);

@@ -51,12 +51,12 @@ for cond = 1:1
     %         errorbar(birth_sizes_bins,means,stdevs,'k','LineWidth',2)
     errorbar(birth_sizes_bins,means,stderrs,'r','LineWidth',2)
     ylabel('prEF1-E2-Crimson-NLS at G1/S')
-        yyaxis right
-        scatter(birth_sizes_born_and_pass_g1s / mean_birth_size, g1_growths_born_and_pass_g1s / mean_birth_size,5,'k','MarkerFaceColor','k')
-        [means,stdevs,stderrs] = bindata(birth_sizes_born_and_pass_g1s / mean_birth_size, g1_growths_born_and_pass_g1s / mean_birth_size, birth_sizes_bins);
-    %     %         errorbar(birth_sizes_bins,means,stdevs,'r','LineWidth',2)
-        errorbar(birth_sizes_bins,means,stderrs,'k','LineWidth',2)
-        ylabel('prEF1-E2-Crimson-NLS accumulation during G1')
+    %     yyaxis right
+    %     scatter(birth_sizes_born_and_pass_g1s / mean_birth_size, g1_growths_born_and_pass_g1s / mean_birth_size,5,'k','MarkerFaceColor','k')
+    %     [means,stdevs,stderrs] = bindata(birth_sizes_born_and_pass_g1s / mean_birth_size, g1_growths_born_and_pass_g1s / mean_birth_size, birth_sizes_bins);
+    %     %     %         errorbar(birth_sizes_bins,means,stdevs,'r','LineWidth',2)
+    %     errorbar(birth_sizes_bins,means,stderrs,'k','LineWidth',2)
+    %     ylabel('prEF1-E2-Crimson-NLS accumulation during G1')
     xlabel('prEF1-E2-Crimson-NLS at birth')
     title(data(cond).treatment)
     axis([-inf 2.5 -inf 4],'square')
@@ -75,7 +75,7 @@ for cond = 1:1
     errorbar(g1s_sizes_bins,means,stderrs,'g','LineWidth',2)
     [means,stdevs,stderrs] = bindata(g1s_sizes_divide, sg2_growths_divide, g1s_sizes_bins);
     %         errorbar(g1s_sizes_bins,means,stdevs,'r','LineWidth',2)
-        errorbar(g1s_sizes_bins,means,stderrs,'r','LineWidth',2)
+    errorbar(g1s_sizes_bins,means,stderrs,'r','LineWidth',2)
     xlabel('prEF1-E2-Crimson-NLS at G1/S')
     ylabel('prEF1-E2-Crimson-NLS at G2/M')
     %     legend('Size at G2/M','Growth during SG2','Location','NW')
@@ -94,7 +94,7 @@ for cond = 1:1
     [means,stdevs,stderrs] = bindata(birth_sizes_good / mean_birth_size, g2m_sizes_good / mean_birth_size, birth_sizes_bins);
     %         errorbar(g1s_sizes_bins,means,stdevs,'k','LineWidth',2)
     errorbar(birth_sizes_bins,means,stderrs,'k','LineWidth',2)
-%     [means,stdevs,stderrs] = bindata(birth_sizes_good, sg2_growths_divide, g1s_sizes_bins);
+    %     [means,stdevs,stderrs] = bindata(birth_sizes_good, sg2_growths_divide, g1s_sizes_bins);
     %         errorbar(g1s_sizes_bins,means,stdevs,'r','LineWidth',2)
     %     errorbar(g1s_sizes_bins,means,stderrs,'r','LineWidth',2)
     xlabel('prEF1-E2-Crimson-NLS at birth')
@@ -127,4 +127,7 @@ for cond = 1:1
     title(data(cond).treatment)
     hold off
     
+    disp(['CoV at birth = ' num2str(std(birth_sizes_born_and_pass_g1s)/mean(birth_sizes_born_and_pass_g1s))])
+    disp(['CoV at G1/S = ' num2str(std(g1s_sizes_born_and_pass_g1s)/mean(g1s_sizes_born_and_pass_g1s))])
+    disp(['CoV at G2/M = ' num2str(std(g2m_sizes_divide)/mean(g2m_sizes_divide))])
 end
