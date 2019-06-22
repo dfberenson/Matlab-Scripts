@@ -79,8 +79,8 @@ handles.blue_balance = 0;
 
 %The following default values will be overwritten when GUI is called
 %with arguments
-handles.expt_folder = 'C:\Users\Skotheim Lab\Desktop\Manual_Tracking';
-handles.expt_folder = 'F:\Manually tracked imaging experiments\';
+% handles.expt_folder = 'C:\Users\Skotheim Lab\Desktop\Manual_Tracking';
+handles.expt_folder = 'H:\Manually tracked imaging experiments\';
 % handles.expt_name = 'DFB_180822_HMEC_1GFiii_1_Pos1';
 % handles.expt_folder = 'F:\Manually tracked imaging experiments';
 % handles.expt_name = 'DFB_180803_HMEC_D5_1_Pos5';

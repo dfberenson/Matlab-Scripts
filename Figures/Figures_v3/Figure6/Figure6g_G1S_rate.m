@@ -12,8 +12,8 @@ show_all_plots = false;
 show_some_plots = true;
 % The flatness at low [Rb] values disappears if we look at 13 frames before
 % rather than 1 frame before
-% frame_to_show = 1;
-frame_to_show = 13;
+frame_to_show = 1;
+% frame_to_show = 13;
 numbins = 6;
 
 % Binning is restricted to within these percentiles.

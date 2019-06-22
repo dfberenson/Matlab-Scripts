@@ -3,8 +3,10 @@
 close all
 clear all
 
-expt_folder = 'C:\Users\Skotheim Lab\Desktop\Manual_Tracking';
-expt_name = 'DFB_180822_HMEC_1GFiii_1_Pos1';
+% expt_folder = 'C:\Users\Skotheim Lab\Desktop\Manual_Tracking';
+% expt_name = 'DFB_180822_HMEC_1GFiii_1_Pos1';
+expt_folder = 'H:\Manually tracked imaging experiments';
+expt_name = 'DFB_181031_HMEC_1E+gem_palbo_1_Pos1';
 
 segmentation_prefix = [expt_folder '\' expt_name '\'...
     'Segmentation\Segmented'];

@@ -9,12 +9,15 @@ calculate_half_of_mother_premitotic_size = true;
 % tracking_strategy = 'aivia';
 % calculate_half_of_mother_premitotic_size = false;
 
-
 % MUST CHANGE BACKGROUND SUBTRACTION FORMULA DEPENDING ON WHAT KIND OF
 % MOVIE
 
-source_folder = 'E:\Manually tracked measurements';
-expt_name = 'DFB_180627_HMEC_1GFiii_palbo_2';
+% source_folder = 'E:\Manually tracked measurements';
+% expt_name = 'DFB_180627_HMEC_1GFiii_palbo_2';
+% table_expt_folder = [source_folder '\' expt_name];
+
+source_folder = 'H:\Manually tracked measurements';
+expt_name = 'DFB_181031_HMEC_1E+gem_palbo_1';
 table_expt_folder = [source_folder '\' expt_name];
 
 % table_source_folder = 'E:\Manually tracked measurements';
@@ -25,7 +28,6 @@ table_expt_folder = [source_folder '\' expt_name];
 % % expt_name = 'DFB_181108_HMEC_D5_palbo_1';
 % table_expt_folder = [table_source_folder '\' expt_name];
 % image_expt_folder = [image_source_folder '\' expt_name];
-
 
 % source_folder = 'E:\Manually tracked measurements';
 % expt_name = 'DFB_180822_HMEC_1GFiii_1';
@@ -77,6 +79,19 @@ switch expt_name
         analysis_parameters.movie_start_frame = 1;
         analysis_parameters.movie_end_frame = 432;
         analysis_parameters.segmentation_parameters.threshold = 200;
+        analysis_parameters.segmentation_parameters.strel_size = 1;
+        analysis_parameters.geminin_threshold = 20000;
+        analysis_parameters.second_line_min_slope = 50000/20;
+        
+    case 'DFB_181031_HMEC_1E+gem_palbo_1'
+        measure_protein_concentrations = false;
+        num_conditions = 2;
+        analysis_parameters.order_of_channels = 'prg';
+        analysis_parameters.size_channel = 'r';
+        analysis_parameters.geminin_channel = 'g';
+        analysis_parameters.movie_start_frame = 1;
+        analysis_parameters.movie_end_frame = 432;
+        analysis_parameters.segmentation_parameters.threshold = 300;
         analysis_parameters.segmentation_parameters.strel_size = 1;
         analysis_parameters.geminin_threshold = 20000;
         analysis_parameters.second_line_min_slope = 50000/20;
@@ -170,6 +185,8 @@ for cond = 1:num_conditions
                         data(cond).positions_list = [];
                 end
                 
+            case 'DFB_181031_HMEC_1E+gem_palbo_1'
+                
             case 'DFB_180829_HMEC_D5_1'
                 switch tracking_strategy
                     case 'aivia'
@@ -216,6 +233,9 @@ for cond = 1:num_conditions
                         data(cond).positions_list = [];
                 end
                 
+            case 'DFB_181031_HMEC_1E+gem_palbo_1'
+                data(cond).treatment = '50 nM palbociclib';
+                
             case 'DFB_180829_HMEC_D5_1'
                 data(cond).treatment = '50 nM palbociclib';
                 switch tracking_strategy
@@ -241,6 +261,10 @@ for cond = 1:num_conditions
                     case 'aivia'
                         data(cond).positions_list = [25:35];
                 end
+                
+            case 'DFB_181031_HMEC_1E+gem_palbo_1'
+                data(cond).treatment = '100 nM palbociclib';
+                
         end
     end
 end

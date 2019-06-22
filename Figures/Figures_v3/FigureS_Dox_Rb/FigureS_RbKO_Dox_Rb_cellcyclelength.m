@@ -192,6 +192,21 @@ xlabel('Rb at G1/S')
 ylabel('G1 length (h)')
 axis([0 200 0 60],'square')
 
+figure
+box on
+hold on
+scatter(dox0_g1s_rb / median(all_birth_rb_unnormalized), dox0_g1_length, 100, '.b')
+scatter(dox20_g1s_rb / median(all_birth_rb_unnormalized), dox20_g1_length, 100,'.c')
+scatter(dox500_g1s_rb / median(all_birth_rb_unnormalized), dox500_g1_length, 100, '.g')
+xlabel('Rb at G1/S')
+ylabel('G1 length (h)')
+legend({'0 ng/mL dox','20 ng/mL dox','500 ng/mL dox'})
+axis([0 200 0 60],'square')
+set(gca,'XScale','log')
+
+
+
+
 
 % all_with_dox_birth_rb = [dox20_birth_rb; dox500_birth_rb];
 % all_with_dox_g1s_rb = [dox20_g1s_rb; dox500_g1s_rb];
