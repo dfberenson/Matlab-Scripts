@@ -1,7 +1,14 @@
 clear all
 close all
 
+
+% Make sure you update parts of the code with this flag on an
+% experiment-by-experiment basis before running it:
+%FLAG
+
 %% Set parameters
+
+%FLAG
 
 tracking_strategy = 'clicking';
 calculate_half_of_mother_premitotic_size = true;
@@ -9,14 +16,11 @@ calculate_half_of_mother_premitotic_size = true;
 % tracking_strategy = 'aivia';
 % calculate_half_of_mother_premitotic_size = false;
 
-% MUST CHANGE BACKGROUND SUBTRACTION FORMULA DEPENDING ON WHAT KIND OF
-% MOVIE
+source_folder = 'E:\Manually tracked measurements';
 
-% source_folder = 'E:\Manually tracked measurements';
 % expt_name = 'DFB_180627_HMEC_1GFiii_palbo_2';
 % table_expt_folder = [source_folder '\' expt_name];
 
-source_folder = 'H:\Manually tracked measurements';
 expt_name = 'DFB_181031_HMEC_1E+gem_palbo_1';
 table_expt_folder = [source_folder '\' expt_name];
 
@@ -43,6 +47,7 @@ measure_g1s_probabilities = true;
 analysis_parameters = struct;
 
 switch expt_name
+    %FLAG
     case 'DFB_180627_HMEC_1GFiii_palbo_2'
         measure_protein_concentrations = false;
         num_conditions = 2;
@@ -85,7 +90,7 @@ switch expt_name
         
     case 'DFB_181031_HMEC_1E+gem_palbo_1'
         measure_protein_concentrations = false;
-        num_conditions = 2;
+        num_conditions = 1;
         analysis_parameters.order_of_channels = 'prg';
         analysis_parameters.size_channel = 'r';
         analysis_parameters.geminin_channel = 'g';
@@ -157,6 +162,7 @@ analysis_parameters.average_instantaneous_growth_rate_over_num_frames = 3;
 %% Gather data
 
 % Create data structure
+%FLAG
 for cond = 1:num_conditions
     if cond == 1
         data(cond).treatment = 'PBS';
@@ -186,6 +192,12 @@ for cond = 1:num_conditions
                 end
                 
             case 'DFB_181031_HMEC_1E+gem_palbo_1'
+                switch tracking_strategy
+                    case 'clicking'
+                        data(cond).positions_list = [1];
+                    case 'aivia'
+                        data(cond).positions_list = [];
+                end
                 
             case 'DFB_180829_HMEC_D5_1'
                 switch tracking_strategy
@@ -235,6 +247,12 @@ for cond = 1:num_conditions
                 
             case 'DFB_181031_HMEC_1E+gem_palbo_1'
                 data(cond).treatment = '50 nM palbociclib';
+                switch tracking_strategy
+                    case 'clicking'
+                        data(cond).positions_list = [13];
+                    case 'aivia'
+                        data(cond).positions_list = [];
+                end
                 
             case 'DFB_180829_HMEC_D5_1'
                 data(cond).treatment = '50 nM palbociclib';
@@ -2129,10 +2147,10 @@ end
 
 % Calculate and plot logistic regressions
 if measure_g1s_probabilities
-    disp(['Condition 1: number of cells that pass G1/S = ' num2str(sum(data(1).all_g1s_happens_here_thisframe))])
-    disp(['Condition 2: number of cells that pass G1/S = ' num2str(sum(data(2).all_g1s_happens_here_thisframe))])
-    disp(['Condition 1: number of cells that are born and pass G1/S = ' num2str(sum(data(1).all_g1s_happens_here_for_born_cells_thisframe))])
-    disp(['Condition 2: number of cells that are born and pass G1/S = ' num2str(sum(data(2).all_g1s_happens_here_for_born_cells_thisframe))])
+    for cond = 1:num_conditions
+        disp(['Condition ' num2str(cond) ': number of cells that pass G1/S = ' num2str(sum(data(cond).all_g1s_happens_here_thisframe))])
+        disp(['Condition ' num2str(cond) ': number of cells that are born and pass G1/S = ' num2str(sum(data(cond).all_g1s_happens_here_for_born_cells_thisframe))])
+    end
     
     % One variable logistic regression
     all_data_types_to_plot = {...
@@ -2741,7 +2759,7 @@ if measure_g1s_probabilities
                         switch plottype{1}
                             case 'two_var_logit'
                                 
-                                two_variable_logistic_regression(data_to_scatter(cond).x, data_to_scatter(cond).y, data_to_scatter(cond).z);
+                                two_variable_logistic_regression(data_to_scatter(cond).x, data_to_scatter(cond).y, data_to_scatter(cond).z, 0, 100, 0, 100);
                                 
                                 title(gca,graph_title)
                                 xlabel(x_axis_label)
